@@ -1,9 +1,9 @@
 import numpy as np
 import sys
 import warnings
-from api.routines.geometry import angle_btw, Fitter
-from api.schema.msitelist import MSitelist
-from api.schema.bond import Bond
+from routines.geometry import angle_btw, Fitter
+from schema.msitelist import MSitelist
+from schema.bond import Bond
 
 
 class Ring(MSitelist):
@@ -11,12 +11,12 @@ class Ring(MSitelist):
     def __init__(self, msites):
         for ms in msites:
             if ms.siteid == -1:
-                warnings.warn('you are init a ring with sites not in an omol obj')
+                warnings.warn('W: you are init a ring with sites not in an omol obj')
         super().__init__(msites)
         self.n_member = len(self)
         self.idx = [s.siteid for s in self.msites]
         if self.n_member < 3:
-            sys.exit('you are initializing a ring with less than 3 msites!')
+            sys.exit('E: you are initializing a ring with less than 3 msites!')
         normal, self.ptsmean, self.pl_error = Fitter.plane_fit(self.coordmat)
         self.n1 = normal
         self.n2 = -normal
@@ -36,6 +36,10 @@ class Ring(MSitelist):
 
     @property
     def bonds(self):
+        """
+        bond objects can be extracted from this ring
+        :return:
+        """
         bonds = []
         for si in self.idx:
             sa = self.get_site_byid(si)
@@ -48,6 +52,7 @@ class Ring(MSitelist):
     def normal_along(self, refnormal, tol=60.0):
         """
         get the n1 or n2 that is along the direction of refnormal within a certain tol
+        this is useful to identify 2 plane normals for a partially-bent structure
         :param refnormal:
         :param tol:
         :return:
@@ -55,24 +60,36 @@ class Ring(MSitelist):
         for n in [self.n1, self.n2]:
             if abs(angle_btw(n, refnormal)) < np.radians(tol):
                 return n
-        warnings.warn('no normal along this direction!')
+        warnings.warn('W: no normal along this direction!')
         return None
 
-    def iscoplane_with(self, other, tol=20.0):
+    def iscoplane_with(self, other, tol=20.0, tolunit='degrees'):
         angles = []
+        if tolunit == 'degrees':
+            tol = np.radians(tol)
         for v1 in [self.n1, self.n2]:
             for v2 in [other.n1, other.n2]:
                 angles.append(abs(angle_btw(v1, v2)))
-        if min(angles) < np.radians(tol):
+        if min(angles) < tol:
             return True
         return False
 
     def isfused_with(self, other):
+        """
+        'fused' means the two rings share at least 2 sites
+        :param other:
+        :return:
+        """
         if len(self.interscet(other)) > 1:
             return 1
         return 0
 
     def isconnected_with(self, other):
+        """
+        if two rings are connected by a bond
+        :param other:
+        :return:
+        """
         nbs_idx_of_ring = []
         for s in self.msites:
             nbs_idx_of_ring += s.nbs_idx

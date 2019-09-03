@@ -1,6 +1,6 @@
 import warnings
-from api.routines.geometry import angle_btw
-from api.schema.msitelist import MSitelist
+from routines.geometry import angle_btw
+from schema.msitelist import MSitelist
 
 
 class Sidechain(MSitelist):

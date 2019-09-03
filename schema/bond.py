@@ -1,7 +1,7 @@
 import numpy as np
 import warnings
-from api.routines.geometry import norm
-from api.schema.msitelist import MSitelist, MSite
+from routines.geometry import norm
+from schema.msitelist import MSitelist, MSite
 
 
 class Bond(MSitelist):
@@ -10,7 +10,8 @@ class Bond(MSitelist):
         super().__init__([sitea, siteb])
         for ms in self.msites:
             if ms.siteid == -1:
-                warnings.warn('you are init a bond with sites not in an omol obj')
+                warnings.warn('W: you are init a bond with sites not in an omol obj')
+                break
         self.a = sitea
         self.b = siteb
 

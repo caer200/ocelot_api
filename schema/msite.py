@@ -1,4 +1,4 @@
-from api.schema.element import Element
+from schema.element import Element
 import numpy as np
 from collections import Hashable
 from pymatgen.core.sites import Site
@@ -18,9 +18,6 @@ class MSite(Hashable):
         self._coords = np.empty(3)
         for i in range(3):
             self._coords[i] = float(coords[i])
-
-    # def to_psite(self, pbc):
-    #     return PSite(self.element.name, cart2frac(self.coords, pbc), pbc, siteid=self.siteid)
 
     @property
     def x(self):
@@ -43,7 +40,7 @@ class MSite(Hashable):
         try:
             self._siteid = int(v)
         except ValueError:
-            sys.exit("id must be int, but you tried to set it as: {}".format(v))
+            sys.exit("E: id must be int, but you tried to set it as: {}".format(v))
 
     @property
     def coords(self):
@@ -102,7 +99,7 @@ class MSite(Hashable):
         try:
             return cls(d["element"], d["xyz"], d["siteid"])
         except KeyError:
-            warnings.warn('cannot init MSite from dict as no required keys')
+            warnings.warn('W: cannot init MSite from dict as no required keys')
             return None
 
     @classmethod
