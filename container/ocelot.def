@@ -1,0 +1,48 @@
+Bootstrap: yum
+OSVersion: 7
+MirrorURL: http://mirror.centos.org/centos-%{OSVERSION}/%{OSVERSION}/os/$basearch/
+Include: yum
+
+%help
+
+os == CentOS 7
+
+Intel Parallel Studio with my edu lic. Notice you need to modify silent.cfg to install ipsxe.
+Somehow ivtune doesnt work properly.
+
+- vasp 5.4.4
+- gaussian 16/A.03
+- zindo
+- openbabel 2.3.2
+
+
+
+%setup
+    mkdir -p ${SINGULARITY_ROOTFS}/sources/ipsxe
+    mkdir -p ${SINGULARITY_ROOTFS}/sources/vasp
+    cp NCOM_L___S4ZD-X8GR92HJ.lic ${SINGULARITY_ROOTFS}/sources/ipsxe/
+    cp -r parallel_studio_xe_2019_update2_cluster_edition ${SINGULARITY_ROOTFS}/sources/ipsxe/
+    cp -r vasp_5.4.4_skylake ${SINGULARITY_ROOTFS}/sources/vasp/
+
+%post
+    echo "install dep......"
+    yum install util-linux nfs-utils man-db which -y
+    yum -y install gcc gcc-c++ gcc-gfortran make dapl libibverbs
+    yum -y install rsync
+
+    echo "installing ipsxe......"
+    cd /sources/ipsxe/parallel_studio_xe_2019_update2_cluster_edition/
+    ./install.sh -s silent.cfg || true
+    echo "cleanup ipsxe install folder"
+    cd ../
+    rm -rf parallel_studio_xe_2019_update2_cluster_edition
+    echo "source ipsxe vars......"
+    cd /opt/intel/parallel_studio_xe_2019*
+    source ./bin/psxevars.sh
+    echo "make vasp......"
+    cd /sources/vasp/vasp_5.4.4_skylake
+    make all > log
+    echo "all vasp binaries have been made at $PWD......"
+
+%labels
+    qai222@uky.edu

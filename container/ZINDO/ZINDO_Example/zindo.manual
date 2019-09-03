@@ -1,0 +1,4037 @@
+
+A Users Guide to ZINDO -- a Comprehensive Semi-Empirical SCF/CI Package.
+ 
+   This is one of the most versatile SCF/CI programs available and as
+a consequence, it has a great number of options.  It can perform PPP,
+EHT, IEHT, CNDO and INDO type calculations.  This handout is a
+(hopefully) straightforward guide to using this program.  If you have
+any suggestions on how to make this handout more understandable, please
+feel free to contact any of the authors listed below.
+ 
+  Closed shell CNDO program
+  M. Zerner and C. Warren                         Uppsala  1969
+ 
+  Closed shell INDO program
+  M.C. Zerner and J.E. Ridley                     Guelph   1972
+ 
+  Open shell UHF INDO program
+  M.C. Zerner and A.D. Bacon                      Guelph   1975
+ 
+  Transition metal parameterization
+  M.C. Zerner and R.F. Kirchner                   Stanford 1977
+ 
+  Open shell restricted Hartree-Fock              Guelph   1980
+  M.C Zerner and W. D. Edwards
+ 
+  Rumer diagram CI                                         1980
+  M.C. Zerner , J. McKelvey and W.D. Edwards      Guelph
+  Taken in part from D.D. Shillady                VCU
+ 
+  Localization                                             1984
+  J.C. Culberson and M.C. Zerner                  Florida
+  Taken in part from W. Luken and J.C. Culberson  Duke
+ 
+  Geometry Optimization                                    1985
+  J.D. Head, M.C. Zerner, B. Weiner               Guelph
+                                              and Florida
+ 
+  Fragment Orbitals, Namelist Input                        1986
+  A.D. Cameron, M.C.Zerner                        Florida
+
+  Spin Orbit Treatment
+  M. Kotzian, N. Roesch and M C. Zerner           Munich   1991
+  Rumer Treatment
+
+  Polarizabilities
+  Bill Parkinson, Jenwei Yu and M. C. Zerner      Florida  1986-1996
+
+  Spin-Orbit treatment
+  M.Kotzian, N.Roesch,R.Pitzer,M.C.Zerner         Munich 
+  Double group treatment                      and Florida  1989
+
+  Projected UHF                               Florida      1995
+  M. Cory and M. C. Zerner
+
+  Solvent Effects                    Tartu and Florida 1991-1996
+  Toomas Tamm, Mati Karelson and M.C. Zerner
+
+--------------------------------------------------------------------
+---- Contents ------------------------------------------------------
+--------------------------------------------------------------------
+
+ 1. References
+ 2. Introduction
+ 3. Section I   : Closed shell ground state scf 
+    Section II  : Open shell (uhf) scf 
+    Section III : Configuration Interaction
+    Section IV  : Geometry optimization
+    Section V   : Electron assignment
+    Section VI  : Calculation of polarizabilities
+    Section VII : Spin-orbit calculation
+    Section VIII: Power users
+                - Print options 
+                - Vectors
+                - Electrostatic potentials
+                - Triplet parametrization
+                - Configuration mixing for metals
+                - Point charges
+                - Polarizabilities
+                - Partial or projected density of states
+                - Self consistent reaction field
+                - Resonance Integrals
+                - Localization
+                - Fragment orbitals
+                - Memory Management
+                - Historical switches
+                - Self Consistent Field Convergence
+ 4. Some program arrays
+ 5. File structure
+ 6. Control words and data blocks
+--------------------------------------------------------------------
+
+--------------------------------------------------------------------
+---- References: ---------------------------------------------------
+--------------------------------------------------------------------
+ 
+ 
+  Pople,Santry,Segal.............J. Chem. Phys., 43, S129,(1965)
+  Pople,Segal....................J. Chem. Phys., 43, S136,(1965)
+  Pople,Segal....................J. Chem. Phys., 44, 3289,(1966)
+  Santry,Segal    ...............J. Chem. Phys., 47,  158,(1967)
+  Santry.........................J. Amer. Chem. Soc., 90,3309,(1968)
+  Ridley,Zerner  ................Theoret. Chim. Acta, 32,111,(1973)
+  Ridley,Zerner .................Theoret. Chim. Acta, 42,223(1976)
+  Bacon,Zerner  .................Theoret. Chim. Acta, 53,21 (1979)
+  Zerner,Loew,Kirchner,Mueller-Westerhoff
+                .................J. Amer. Chem. Soc., 102,589(1980)
+  Head,Zerner   .................Chem. Phys. Lett., 122,264(1985)
+  Head,Zerner   .................Chem. Phys. Lett., 131,359(1986)
+  Anderson,Edwards,Zerner........Inorg. Chem., 25,2728(1986)
+  Edwards,Zerner.................Theoret. Chim. Acta, 72,347(1987)
+  Kotzian, Roesch,Zerner.........Theoret. Chim. Acta, 81,201(1992)
+                        .........Intern. J. Quant. Chem, S25,545(1991) 
+--------------------------------------------------------------------
+---- INTRODUCTION: -------------------------------------------------
+--------------------------------------------------------------------
+ 
+   The ZINDO program has, at its heart, two different semi-empirical
+procedures: a method for calculating spectroscopic properties
+(spectroscopic gammas) and a method for calculating geometries
+(theoretical gammas).  Each has a different set of options, and
+consequently it is important that you decide what sort of calculation
+you want to perform.  For example, if you want charge distributions,
+dipole moments or orbital energies, you should use spectroscopic gammas.
+If you want relative energies of ground state molecules, you should use
+theoretical gammas.  Geometry optimization MUST be done with theoretical
+gammas.  Configuration Interaction SHOULD be done with spectroscopic
+gammas in order to obtain the best electronic spectroscopic predictions.
+ 
+   In all cases, the input file will consist of at least 3 sections:
+$TITLEI, $CONTRL and $DATAIN.  The data fields for the $CONTRL  
+section is free format, namelist type input.  This means that the
+value of variables, switches and arrays needed to run the program can be
+read in, by name, in random order and in a nearly arbitrary format.  All
+that is required is a valid name, followed by an equal sign (may be omitted
+for backwards compatibility, but such omission may not be supported
+in the future), then followed by one or more values.  Comments begin with
+an ! (exclaimation point) and continue until the end of the line. Comments
+may be included anywhere in the file. Some data blocks require FORMATted 
+data in a specific order, but the sections themselves may appear in any 
+order. The section names must contain a $ sign in column 2, immediately
+followed by the name of the section (upper or lower case). Each section
+ends with a similar line containing $END .
+
+   Arrays can be assigned on element-by-element basis, e.g. A(1)=4
+a(4)=10 a(2)=9, or in longer sections. The index of the first element
+must always be provided: a(1)=4 9 0 10 . If the first method is used,
+the skipped index numbers will remain at default values.
+
+   Some sections, $CONTRL in particular, allow the actual input to be
+placed on the same line, but since this is not universal (yet). For
+example, the following input would be valid:
+
+ $contrl scftyp=uhf $end
+
+   You may have several similar sections in the same file, and you will be
+able to choose between them by shifting the section name out of column 2.
+In the following example, the first input is ignored, but the second one is
+processed:
+
+    $contrl scftyp=rhf $end
+ $contrl scftyp=uhf $end
+
+   The following examples illustrate the input required for a number of
+common cases.
+ 
+--------------------------------------------------------------------
+   Special Comments**  Set IDD2 = 0 for routine cases that scf converge
+   easily to save memory
+                       Set N1 = 0 for runs with spectroscopic parameters
+   if no CI is done to save memory
+                       For closed-shell or doublet CI, NCONF .LE.4 is
+   faster if the CI can be done this way (CIS).
+--------------------------------------------------------------------
+
+--------------------------------------------------------------------
+---- Section I: Closed shell ground state scf ----------------------
+--------------------------------------------------------------------
+ 
+ $TITLEI
+ 
+   Make-believe water calculation used as an illustrative example
+   20 June, 1988. The title can be as long as you wish.
+   Updated, TT, 28 May 1996.
+ 
+ $END
+ 
+ $CONTRL
+ 
+   SCFTYP = RHF  RUNTYP = ENERGY  ENTTYP = COORD  UNITS = ANGS
+   ASYM = C2V
+ 
+! ***** Base name for temporary and output files *****
+ 
+   ONAME = water
+ 
+ 
+   NEL =  8       MULT = 1   ITMAX = 20   SCFTOL = 0.000010
+   APX = INDO/1   INTTYP = 1
+ 
+   INTFA(1) = 1.000000  1.267000  0.585000  1.000000  1.000000
+ 
+ $END
+ 
+ $DATAIN
+ 
+  0.000000  0.000000  0.000000    8
+  0.000000  1.000000 -1.000000    1
+  0.000000 -1.000000 -1.000000    1
+ 
+ $END
+ 
+:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+     Input for CLOSED SHELL GROUND STATE WATER Explained
+:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+ $TITLEI
+
+   The title can be anything you wish and as long as you wish.
+
+ $END
+
+:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+ $CONTRL section
+
+   The first five variables determine the type of calculation and
+   the nature of the input.
+ 
+     SCFTYP = RHF <----- a standard closed shell RHF type calculation
+            = UHF  ----- an Unrestricted HF type calculation
+            = UHFA ----- a UHF calculation followed by annihilation of
+                         the next higher spin component
+            = PUHF ----- a UHF calculation followed by projecting out
+                         the pure S=Ms densities. An analysis of the
+                         higher spin components, i.e. S > Ms, contributions
+                         to the unprojected wavefunction is also performed.
+                         TO calculate the Mulliken Population for
+                         each component, place PUHF_MULPOP in the $OUTPUT
+                         block. The number of multiplets that are considered
+                         can be limited  by PUHFST in the $CONTROL block.
+                         PUHFST = 0 is the default, and all components
+                         of the UHF wavefunction are analyzed from M = Sz to
+                         M = NEL/2, or until the weight of a multiplet is
+                         below an internal threshold, now 10**(-8). Else:
+                         PUHFST=ABCD where ABCD is a four character integer, 
+                         it should be viewed as two contiguous I2 words. 
+                         Depending what PUHFST is yields varying results, e.g. 
+                         0103 = 103 = 0301 = 301 would report the energies 
+                         for the first three spin-components. (There is no 
+                         case for which the weights of all components are not 
+                         reported.) In addition, if PUHF_MULPOP is also set
+                         then the Mulliken populations of the three spin states                            will also be reported. If PHUFST=2=02 is given, then 
+                         only the energy of the second component is given, and 
+                         only it's Mulliken population analysis if PUHF_MULPOP 
+                         is also set. If PUHFST=-1 then only the weights are
+                         reported, and if PUHF_MULPOP is set then the mull. 
+                         pop.s for all reported weights.
+                         See PUHF below for other options.
+            = ROHF ----- a spin restricted open shell RHF calculation.
+                         This option requires additional input!
+            = SUHF ----- This is a UHF calculation with laGrange constraint
+                         that the multiplicity be MULT, M -> Sz. The
+                         Langrange constraint LAMBDA = X may be given in the
+                         $CONTRL block. The default is LAMBDA = 0.2 . See
+                         N. Handy. For large enough LAMBDA this approaches
+                         the ROHF solution, but convergence is slow for
+                         large LAMBDA.
+            = GVB   ---- General valence bond a la John Cullen. 
+                         If GVB, then in the control block is
+                         needed GVBFN(1) = N1, N2, N3
+                         with N1 = number of canonical mo's doubly
+                         occupied, N2= number of gvb pairs, N3 = number of
+                         open shell orbitals.  The default is
+                         GVBFN(1) = 0, (NEL-MULT+1)/2, MULT-1
+                         Note that GVBFN(3) = N3 must equal MULT-1
+                         GVBFN(4) = 2 scales the gvb iterations with the
+                         inverse Hessian in the line search. This is
+                         recommended for open-shell calcs for convergence
+'                        and MAY always be better.
+ 
+     RUNTYP = ENERGY <----- a simple SCF calculation
+            = GEOM    ----- a geometry optimization calculation
+            = CI      ----- a configuration interaction calculation
+            = RPA     ----- an RPA calculation will be set up as a
+                            separate job. See ZINDORPA.HLP.  The
+                            operation requires pgm rpago with input
+                            ONAME_rpa.DAT and generates output 
+                            ONAME_rpa.out, i.e., rpago < ONAME_rpa.DAT.
+            = SELFEN  ----- Calculates the ionisation spectrum from
+                            the electron propagator  Formalism. Several
+                            files are created ONAME_sel.xxx. Although
+                            these are kept, they can be deleted unless
+                            a restart option is used.
+            = CIF    ------ Calculation is to be followed by a general 
+                            configuration interaction using fullci pgm
+                            Three files are created, oname_CIF.DAT which 
+                            is in clear text.  Then ther is oname_oneel.file
+                            and oname_twoel.file that contain the one and
+                            two electron integrals blocked as given in
+                            oname_CIF.DAT
+     ENTTYP = COORD  <----- atomic positions in cartesian coordinates
+            = ZMAT   <----- atomic positions in internal coordinates
+            = PDB    <----- protein data base input
+            = CAR    <----- MSI CAR input file
+            = SCOORD <----- atomic symbol, X, Y, Z and, perhaps, TAB
+ 
+     UNITS = ANGS   <----- cartesian coordinates in units of angstrom
+           = BOHR    ----- cartesian coordinates in units of bohrs
+           = CANGS  <----- cartesian coordinates in units of angstrom
+                           center the coordinates, and rotate to principle
+                           moments of inertia
+           = CBOHR  <----- cartesian coordinates in units of bohrs 
+                           center the coordinates, and rotate to principle
+                           moments of inertia
+ 
+     ASYM = C2V  <----- Point group is C2V.  Other possibilities include
+          = C2          the following Abelian groups.  In all cases, the
+          = CI          C2 axis must lie along the z axis of the molecul
+          = CH
+          = C2H
+          = D2
+          = D2H
+     NOTE.  If in the $CONTRL block DETSYM = 1, the program will determine
+            molecular symmetry
+ 
+ Output File Name
+ 
+   ONAME = ANYNAME ----- This 8 character name will be used to generate
+                         filenames used by the program.
+ 
+ Switches
+ 
+   NAT = 3    ----- Number of atoms (usually omitted). This must be equal
+                    to the actual number of atoms in $DATAIN.
+ 
+   NEL = 8    ----- Number of valence electrons
+   (or CHARGE = 0.0) --- will generate 8 electrons
+ 
+   MULT = 1   ----- Multiplicity (number of unpaired electrons + 1)
+ 
+   ITMAX = 20 ----- Maximum number of SCF cycles.  This depends on the
+                    size and complexity of the problem.  20 is usually
+                    enough for most moderate size problems.
+ 
+   SCFTOL = 0.0001 ----- Convergence criteria for the diagonal of the
+                         density (bond orders).  If differences between
+                         densities from one cycle to the next are all
+                         less than this, convergence is assumed.
+                         Program will print the message:
+
+                            SENSE LIGHT 2 IS ON
+ 
+    APX = EHT -- Extended Huckel    ITMAX > 0 iterative Extended Huckel
+          CNDO/1
+          CNDO/2
+          INDO/1 <<<<< (default)    Method of choice (author's favorite)  
+          INDO/2
+          NDDO/1
+          NDDO/2
+          PPP     theory 
+          AM1
+          PM3
+          MNDO   
+  
+     The following is supported for compatibility:
+
+   IAPX = 0 : Extended Huckel     1 : CNDO/1      2 : CNDO/2
+          3 : INDO/1 (default)    4 : INDO/2      5 : NDDO/1
+          6 : NDDO/2              7 : PPP         8 : XINDO
+         51 : MNDO               52 : AM1        53: PM3
+
+   INTTYP = 0 <<<<<< Theoretical (Fo) Gammas (GEOMETRY theory)         
+                     The higher Slater Condon Factors are semi-empirical
+                     or they are scaled calculated
+          = 1 <<<<<< Mataga-Nishimoto Gammas (SPECTROSCOPIC theory)
+          = 2  ----- Not presently used
+          = 3  ----- Ohno-Klopman Gammas (CNDO/INDO/PPP only)
+          = 4  ----- Pariser-Parr Gammas
+          = 5  ----- Modified Warshel Gammas
+          = -1 ----- All Integrals ab-initio
+
+    LINEAR = .FALSE.  the default.  Normal Calculation
+           = .TRUE.   the devide and conquer method will be used to
+                      linearize the quantum mechanics.  If this is
+                      used the fragments must be defined.
+                      This option requires:
+                         BCUT =  The threshold for defining buffers
+                           If A is any atom in the fragment being
+                           considered and  B is another atom in another
+                           fragment, with R(AB)*(ZETA(A)+ZETA(B)) > BCUT
+                           then the entire fragment of atom B will be 
+                           placed in the buffer for A, and visa-versa.
+                           R(AB) is in Angstroms, and ZETA are the basis
+                           set exponents.  The default is a generous 5.
+                           which would give very accurate results, but
+                           at a longer run time
+                      and
+                         ITMAG = the max number of global iterations
+                           the default is 25
+                      and rethink ITMAX, now the maximum number of
+                      iterations per subsytem (fragment + buffers)
+                           ITMAX = 1-5 seems best.
+
+                    see below for the fragment specifocations.
+    GFAC = 0 -----  default
+         = 1 -----  calculate all single excitations for a doublet ground
+                    state and create the file ONAME_gfac.DAT.  This
+                    file is for pickup by the esr gfactor program.
+                    For this option the DYNAL(7) = the number of active
+                    mo's under the $CIINPU block.(same as ACTSP)  Note 
+                    that N1 can be 0 or 2 for this to work properly.
+         = 2 -----  as above, but calculate only those excitations needed
+                    for the gfactor program (i->m, and m->a, where i is
+                    doubly occupied, m is singly occupied and a is virtual.)
+                    
+                    NOTE:  There is a much smaller memory requirement if
+                    the g factors are being calculated without a CI (N1=0)
+ 
+ Interaction factors
+ 
+  INTFA(1) = S-sigma, P-sigma, P-pi, D-sigma, D-pi, D-delta
+ 
+    For spectroscopic singlet-recommended for nearly ALL cases
+             (especially for calculations for UV/visible spectra)
+
+  INTFA(1) =   1.0    1.267    0.585   1.0     1.0    1.0
+ 
+    For ordinary CNDO or INDO-recommended for geometry optimisation
+
+  INTFA(1) =   1.0    1.0      1.0     1.0     1.0    1.0
+ 
+    For EHT (Hoffmann recommends factors of 1.75)
+
+  INTFA(1) =   1.89   1.89     1.89    1.89    1.89   1.89
+ 
+    For PPP
+
+  INTFA(1) =   0.585  0.585    0.585   0.585   0.585  0.585
+ 
+ $END ----- Other switches and parameters can go in this section
+
+            See power users section (section VI) for more information
+
+ 
+:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+ $DATAIN section: Atomic coordinates and atomic numbers
+
+  One line for each atom or centre. Comments are allowed anywhere; they
+  start with an exclamantion mark and continue through end of line.
+  The first line which is blank (not a comment and no coordinates),
+  or which contains the string '$END', signals the end of input.
+
+  There are several options in which to enter the atomic information:
+
+METHOD 1: The traditional XYZ coordinates. Free format. The first four 
+--------      fields (X,Y,Z,atomic number) are required, others are
+              optional, but quantum numbers and exponents must appear 
+              in pairs as explained below:
+
+
+  X  Y  Z    Atomic Number    Net Valence Charge   Basis Set   Exponent
+ 
+  X  Y  Z ----- Cartesian coordinates for each atom in units specified
+                 in variable UNITS 
+ 
+  Atomic Number ----- Integer
+ 
+  Net Valence Charge = 4.0 for neutral carbon
+                     = 8.0 for neutral Fe
+                     = 0.0 for DEFAULT values (omit if default and no 
+                                               exponents are input)
+
+     For PPP calculations  *** INPUT IS REQUIRED ***
+
+                     = 1.0 for C
+                     = 1.0 for N (PYRIDINE)
+                     = 2.0 for N (PYRROLE)
+ 
+  Basis set definition  = 1 for S
+                        = 2 for S,P
+                        = 3 for nS,nP,nD
+                        = 4 for nS,nP,(n-1)D
+                        = 5  for ns, np,(n-1)d,(n-2)f
+                        = 6 to be continued
+                        = 0 for DEFAULT                            
+ 
+  Exponents can be overridden (omit for defaults):
+
+            n, Exponent(S);   n, Exponent(P);   n, Exponent(D)
+            n is the principle quantum number for the orbital
+ 
+  EXAMPLES:
+  ---------
+
+    Oxygen atom, all defaults
+
+  0.000000  0.000000  0.000000    8
+
+    This is the same as:
+
+  0.000000  0.000000  0.000000    8  6.000000    2
+ 
+    Carbon atom, reset exponents
+
+  0.000000  0.000000  0.000000    6  4.000000    2 2  1.7000 2  1.7000
+ 
+    Point charge
+
+  0.000000  0.000000  0.000000    0 -0.500000
+ 
+ $END
+
+METHOD 2: Re-defining atomic types using TABS:
+--------
+  Input X, Y, Z, atomic number as above, then add END or TABxx to the end
+  of the line. IF END, all information is defaulted as in the very first
+  example above. If TAB, you will need to add a $TABS input block, which
+  defines atomic types, distinhuished by the two characters immediately
+  following 'TAB':
+
+ 1.11111111 1.23456789  2.0       6         END
+
+ In this case all other information about the Carbon atom (=6) is
+ defaulted. Point charges cannot be inputted this way.
+
+ 1.11111111 1.23456789  2.0       6        TABC1
+
+ if this is the case than there must be a $TABS section defining 'C1':
+
+ $TABS
+  C1 ZCORE = 4.00 NTYP = 3  NS = 2 ZETAS = 1.625 NP = 2 ZETAP = 1.595 #
+     ND = 2 ZETAD = 1.595  IPD = -2.0
+     COULS = (in eV)  COULP = (in eV)  COULD = (in eV) and COULF = (in eV)
+     GUESS = 0.01  GUESP = 0.00  GUESD = 0.00
+  C2 ..........
+ $END
+
+  In the above all atoms with a tab of C1 will have the specified
+  attributes:
+     ZCORE is the core charge, and together with the atomic number = 0
+     in the $DATAIN section could specify a point charge. 
+     The value of ZCORE must be given if TABS are used <=====**
+ 
+     NTYP as above.  In this case a s,p,d basis set, with NS=NP=ND=2
+     A d polarization function has been added with exponent 1.595.
+     An IP for the D orbital IPD has been added, as there is no 
+     default value for a 3d function on carbon.
+     USS, UPP, UDD, UFF allows one to enter core integrals directly
+     bypassing the use of the IPS, etc., in the calculation of USS,etc.
+     These values are in Hartrees and are generally NEGATIVE.
+     GUESS, GUESP, GUESD GUESF shift the diagonal elements of the 
+     starting Hamiltonian for a better starting density.  These 
+     values are in au.
+
+  A # marks a continuation line follows for this tab.
+
+METHOD 3: Zmatrix input.  If in the control block there is ENTYP = ZMAT
+--------          zmatrix input can be used. The format is identical to
+                  the one used in MOPAC and AMPAC, except that default
+                  connectivity for atoms 1, 2, and 3 is not supported.
+                  You will need to specify the full connectivity of all
+                  atoms.
+
+   Example:
+
+ $TITLEI
+ 
+ Fe2-fdx -- Z-matrix model -- PDB-X-ray of Cyanobacteria Amobaena
+ 
+ $END
+ 
+ $CONTRL
+   SCFTYP = ROHF                RUNTYP = ENERGY
+   NEL = 106
+   APX = INDO/1                 INTTYP = 1       MULT =  11
+   UNITS = ANGS
+   SCFTOL = 0.000001            ITMAX=  10       IPRINT = 0
+   ONAME = fe_zmat   
+     .
+     .
+     .
+
+   ENTTYP= ZMAT
+
+ $END
+ 
+ $DATAIN
+ 
+  X    0.000000  0    0.000000  0    0.000000  0    0    0    0 
+  X    2.000000  0    0.000000  0    0.000000  0    1    0    0 
+  Fe   1.350000  0   90.000000  0    0.000000  0    1    2    0 
+  Fe   1.350000  0   90.000000  0  180.000000  0    1    2    3 
+  S    2.190000  0   51.943492  0   90.000000  0    4    1    2 
+  S    2.190000  0   51.943492  0  270.000000  0    4    1    2 
+  S    2.290000  0  106.230000  0   90.000000  0    3    1    6 
+  S    2.290000  0  106.230000  0  270.000000  0    3    1    6 
+  S    2.290000  0  106.230000  0   90.000000  0    4    1    6 
+  S    2.290000  0  106.230000  0  270.000000  0    4    1    6 
+  C    1.820000  0  109.471220  1  180.000000  0    7    3    1 TABC1
+  .
+  .
+  .
+ $END
+
+  Again you may add the word TABXY, changing the defaults. For the above 
+  example there must be a C1 in a $TABS section.
+
+  Atoms marked with X are dummy atoms, used for convenience if desired.
+
+  For atom number 'a' :
+  AT-SYMB  R(AM) M1 THETA(AMN) M2 PHI(AMNO) M3 ATOM-M ATOM-N ATOM-O 
+
+  R(AM) is the distance between atom numbers A (this atom) and M, etc.
+  in Angstroms unless UNITS = BOHRS in the $CONTRL section.
+  M1, M2  M3  are for the moment ignored.  If coordinates are to be
+  frozen in a geometry optimisation thay must be frozen in the $INTCOR
+  section.
+
+  METHOD 4: PDB input:
+
+ $CONTRL
+  ENTYP = PDB
+  .
+  .
+ $END
+    This is strictly formatted:
+
+
+         Column:                  Content:
+  1     1-6                 'ATOM' or 'HETATM'
+  2     7-11    Atom serial number (may have gaps)
+  3     13-16   Atom name in IUPAC standard format
+  4     17      Alternate location indicator(chain) A,B,C,etc.
+  5     18-20   Residue name in IUPAC standard format
+  6     22      RES LETTER
+  7     23-26   Residue sequence number (order as below)
+  8     27      LET2
+  9     28-30   Code for insertions of residues (ie 66A & 66B)
+  10    31-38   X coordinate
+  11    39-46   Y coordinate
+  12    47-54   Z coordinate
+  13    55-60   Occupancy
+  14    61-66   Temperature Factor
+  15    68-70   Footnote number
+
+     SAMPLE INPUT
+1----67---1b3--678-0b23--678-01------89------67------45----01----6b8-0
+ATOM     15  SG  CYS A 112      20.479  13.319  10.861  1.00 18.56
+ATOM     16 1HB  CYS A 112      19.270  11.709   9.494  1.00  0.00
+ATOM     17 2HB  CYS A 112      19.072  13.366   8.877  1.00  0.00
+
+ATOM     37  CU   CU A 130      -0.739  -0.425   3.680  1.00  0.00
+
+NOTE THAT CHEMICAL SYBMOLS WILL BE RECOGNIZED. The above will be
+interpreted as Cu not a carbon atom on unit U
+ If there is a chance for confusion, as CUB not Cu but C on a fragment
+ UB, a warning will be issued.  These warnings are important and very 
+ one of them needs to be checked******* 
+ If HETATM is used this will force the first two symbols to represent
+ the atom
+
+
+ METHOD 5  MSI  CAR FILE
+
+ $CONTRL
+  ENTYP = CAR
+  .
+  .
+ $END
+
+ $DATAIN
+CL44    -2.776314625   -0.955053888   -1.178162957 Z1   0      Cl      Cl -0.233
+CL45    -0.838342261   -2.158296441    1.518279685 Z1   0      Cl      Cl -0.205
+CL47    -2.737601206    1.233552863    1.574915779 Z1   0      Cl      Cl -0.233
+C53      1.316782944   -0.609552934   -0.798633465 Z1   0      c       C  -0.133
+C531     0.272834566   -1.048458177   -1.626236132 Z1   0      c       C  -0.133
+H5311   -0.098288626   -0.286630199   -2.348989090 Z1   0      h       H   0.062
+H5312   -0.102758098   -2.021418857   -1.510777376 Z1   0      h       H   0.062
+H531     1.660075960    0.393999938   -0.947691724 Z1   0      h       H   0.062
+H532     1.650766299   -1.306030235   -0.037701254 Z1   0      h       H   0.062
+CL55    -0.881809615    2.383359128   -1.247763094 Z1   0      Cl      Cl -0.205
+TI22    -0.771202504    0.130491180    0.141784459 Z1   0      Ti046   Ti  0.769
+C56      0.672848279    0.948648042    1.452684755 Z1   0      c       C  -0.277
+H561     1.289017484    0.149035105    1.886452730 Z1   0      h       H   0.042
+H562     1.262906973    1.682075104    0.880662876 Z1   0      h       H   0.042
+H563     0.081084428    1.464279370    2.241174807 Z1   0      h       H   0.042
+ $END
+
+No format is required - the lines are parsed.  
+The information used in the CAR input is
+ 
+ --      X                  Y               Z      -    -      -     Symbol  -
+
+
+Method 6: Simply  (ENTTYP = SCOORD)
+
+  atomic symbol    X   Y   Z  
+     C    0.000   0.000   1.342000
+or atomic symbol   X   Y   Z     TAB
+     Fe   0.000   0.000  2.000   TABFE
+
+X  Y  Z  can be in Angstroms (default or UNITS = ANGS), or in Bohrs
+         (UNIT = BOHRS )
+--------------------------------------------------------------------
+---- Section II: Open shell (uhf) scf ------------------------------
+--------------------------------------------------------------------
+ 
+ $TITLEI
+ 
+   Water Positive Ion.  An open-shell UHF calculation
+   approximating the doublet state.
+   20 June, 1988. The title can be as long as you wish.
+ 
+ $END
+ 
+ $CONTRL
+ 
+   SCFTYP = UHF  RUNTYP = ENERGY  ENTTYP = COORD  UNITS = ANGS
+   ASYM = C2V
+ 
+! ***** Output file name *****
+ 
+   ONAME = waterp
+ 
+ 
+   NEL = 7   MULT = 2   ITMAX = 20   SCFTOL = 0.000010
+   APX = INDO/1   INTTYP = 1
+ 
+   INTFA(1) = 1.000000  1.267000  0.585000  1.000000  1.000000
+ 
+ $END
+ 
+ $DATAIN
+ 
+  0.000000  0.000000  0.000000    8
+  0.000000  1.000000 -1.000000    1
+  0.000000 -1.000000 -1.000000    1
+ 
+ $END
+ 
+:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+ Input for OPEN SHELL UNRESTRICTED HARTREE FOCK SCF Explained
+:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+  For open shell UHF calculations, the only changes in $CONTRL are:
+           RUNTYP = UHF
+           MULT = 2 
+           NEL    = 17 
+making the molecule open shell. No other changes are needed for UHF 
+calculations.
+ 
+
+::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+ Data for an OPEN SHELL RESTRICTED HARTREE FOCK SCF calculation
+::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+ 
+ $TITLEI
+ 
+   Make-believe open shell water doublet cation; an illustrative
+   example.  5 July, 1988.
+ 
+ $END
+ 
+ $CONTRL
+ 
+  SCFTYP = ROHF
+  RUNTYP = ENERGY  ENTTYP = COORD  UNITS = ANGS
+  ASYM = C2V
+  NOP = 1
+  NDT = 1
+  FOP(1) =    6.0    1.0
+ 
+! ***** Output file name *****
+ 
+  ONAME = water
+ 
+ 
+ NEL =  7
+ MULT = 2
+ ITMAX = 20   SCFTOL = 0.000010
+ INTTYP = 1 APX = INDO/1
+ 
+    INTFA(1) = 1.000000  1.267000  0.585000  1.000000  1.000000
+ 
+ $END
+ 
+ $DATAIN
+ 
+  0.000000  0.000000  0.000000    8
+  0.000000  1.000000 -1.000000    1
+  0.000000 -1.000000 -1.000000    1
+ 
+ $END
+ 
+:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+ Input for OPEN SHELL RESTRICTED HARTREE FOCK SCF Explained
+:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+ For open shell RHF calculations additional data is required
+ 
+   SCFTYP = ROHF
+   MULT = 2
+   NEL = 7
+   NOP = 1             ----- The number of open shell orbitals
+   NDT = 1             ----- The class of the open shell state
+                             see below for classes available
+   FOP(1) =   6.0  1.0 ----- The number of electrons in each shell
+                             First number is number of electrons in
+                             closed shell.  For default cases, second
+                             number is total number of electrons in
+                             all open shells.
+ 
+  Default cases: Let FF = Number of closed shell electrons
+ 
+      A) One electron, one open orbital --- DOUBLET
+
+          NOP =  1
+          NDT = 1
+          FOP(1) = FF.000000  1.000000
+ 
+      B) N electrons, N open orbitals --- Highest spin case
+         (ie 4 electrons, 4 open orbitals --- QUINTET)
+
+            NOP = 4
+            NDT = 1
+            FOP(1) = FF.000000  4.000000
+ 
+      C) One electron, N open orbitals (ie N=4 --- DOUBLET)
+
+            NOP = 4
+            NDT = 1
+            FOP(1) = FF.000000  1.000000
+ 
+      D) Two orbitals, one electron  --- DOUBLET   See C
+         Two orbitals, two electrons --- TRIPLET   See B
+         Two orbitals, two electrons --- SINGLET   Two types
+
+            One electron in each orbital
+
+               NOP = 2
+               NDT = 1
+               FOP(1) = FF.000000  2.000000
+ 
+            Two electrons in one orbital, none in the other XaXb+YaYb
+ 
+               NOP = 2
+               NDT = 2
+               FOP(1) = FF.000000  2.000000
+
+            Two electrons in one orbital, none in the other XaXb-YaYb
+
+               NOP = 2
+               NDT = 3
+               FOP(1) = FF.000000  2.000000
+ 
+           XaXb+YaYb and XaXb-YaYb are degenerate in certain groups
+ 
+     E) Three electrons, two open orbitals --- DOUBLET
+
+           NOP = 2
+           NDT = 1
+           FOP(1) = FF.000000  3.000000
+ 
+     F) Averaged multiplet, M open orbitals with N electrons
+        This is the CAHF option.
+
+
+           NOP = M
+           NDT = 9
+           FOP(1) = FF.000000  N
+
+        From orbitals obtained from the Configuration Averaged Hartree
+        Fock calculations, a Rumer CI (see below) can be performed to 
+        project out states of a specific multiplicity or symmetry. In 
+        such a case it is best to store the vectors (VEC=9) and restart 
+        the CAHF calculation and Rumer CI after examining the nature of 
+        the orbitals obtained.
+
+     G) Average energy for a given N electrons in M orbital of given S
+        This is the MAHF = multiplet averaged hartree-fock
+        
+        NOP = M
+        NDT = 8
+        FOP(1) = FF.0000   N
+
+        This option is best for the higher multiplicities, but has
+        often convergence problems for the lower multiplets
+
+
+ 
+Open shell RHF -- General case
+
+    Requires input of vector coupling coefficients
+ 
+    MIM(2) = 3    2        ----- Total number of orbitals per open shell
+ 
+    AR(1) = 1.0  -1.0  0.0 ----- The alpha vector coupling coefficients
+                                 read in as a linearized matrix
+                                 NOTE  alpha = 1 - A
+                                 A is from the energy expression
+ 
+    BR(1) = -1.0 -1.0  2.0 ----- The beta vector coupling matrix
+                                 NOTE  beta = 1 - B
+                                 B is from the energy expression.
+ 
+    EXAMPLE --- 3 degenerate orbitals, 4 electrons, TRIPLET
+ 
+       NOP    =  3
+       NDT    =  0
+       FOP(1) =  FF.000000  4.000000
+       MIM(2) =  3    0
+       AR(1)  =  0.062500
+       BR(1)  = -0.125000
+ 
+ 
+--------------------------------------------------------------------
+---- Section III: Configuration interaction ------------------------
+--------------------------------------------------------------------
+ 
+ $TITLEI
+ 
+     HC=C-CN  For G. Diercksen Max Planck Institute for Astrophysics
+ 
+ $END
+ 
+ $CONTRL
+ 
+ SCFTYP = RHF    RUNTYP = CI     ENTTYP = COORD    UNITS = ANGS
+ ASYM = C2V
+ 
+ INTTYP = 1   APX = INDO/1    NEL = 18
+ MULT   = 1   ITMAX = 20
+ 
+    INTFA(1) = 1.000000  1.267000  0.585000  1.000000  1.000000
+ 
+! ***** C.I. size information *****
+ 
+   CISIZE=100   ACTSPC=17
+ 
+! ***** Output file name *****
+ 
+   ONAME = HCCCN
+ 
+ $END
+ 
+ $DATAIN
+ 
+  0.000000  0.000000  2.568000    7
+  0.000000  0.000000  1.378000    6
+  0.000000  0.000000  0.000000    6
+  0.000000  0.000000 -1.205000    6
+  0.000000  0.000000 -2.263000    1
+ 
+ $END
+ 
+ $CIINPU
+ 
+    2    1   10    1    0    0    0    1    1    2   10
+ -60000.00  0.000000
+    0    0    0    0    0    0    0    0    0
+    1    9    9
+   21    1    9   10   17
+ 
+ $END
+ 
+::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+      Input for CONFIGURATION INTERACTION Explained
+::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+ 
+Changes to the $CONTRL section consist of the following:
+ 
+   RUNTYP = CI
+   CISIZE=101  ACTSPC=17
+
+   CISIZE  = 101 -- The CI is expected to generate no more than 100
+                    configurations in EACH irrep of the group (C2V)
+                    plus the generating state
+                    If no value for CISIZE is given in the input, an
+                    estimate for this value and for ACTSPC is made. 
+                    If the estimate is incorrect, you can override
+                    it by specifying CISIZE and ACTSPC in the input.
+	            This estimate does not take into account symmetry,
+                    so for these cases it is recommended to use CISIZE.
+                    For spinorbit calculation the size of the CI has
+                    to be specified.
+                    A too small value for CISIZE or ACTSPC is a common
+                    reason for abnormal termination of a CI calculation.
+                    If that happens, try to run the calcualtion again with 
+                    bigger values.
+ 
+   ACTSPC  = 17  -- The last active orbital in this CI is the
+                    (virtual) orbital 17
+                    For special CI use value of (MOMAX-MOMIN+1)
+                    For general CI use value of (MOMAX)
+                    For MP/2 use value of (MOMAX)
+
+  Some old data sets may contain an array DYNAL. The 6-th element
+  of DYNAL is the same as CISIZE, and the 7-th element is ACTSPC. Other
+  elements are ignored.
+ 
+  An additional section, $CIINPU has been added which details the type
+  of configuration interaction calculation to be done
+ 
+  Briefly, the CI input consists of:
+
+    (A) Initial CI switches (FORMAT 11I5)
+    (B) Thresholds for reducing the number of configurations (2F10.6)
+    (C) Point group and irrep specification (9I5)
+    (D) Symmetry information  (OMIT if symmetry is used in SCF) (40I2)
+    (E) Orbital occupancy of reference determinant(s)  (16I5)
+    (F) Excitation information  (16I5)
+
+  *** NOTE ***  THIS IS FORMATTED INPUT!!!
+
+ 
+  (A) Initial CI switches; eleven switches in 11I5 FORMAT
+      This is known below as the "CI LINE"
+
+      N1    N2    N3    N4    N5    N6    N7    N8    N9   N10   N11
+ 
+      N1 = 1 ----- Calculate only the diagonal elements of CI matrix
+         = 2 ----- CI for SINGLETS from closed shell reference
+                   or SIngles only for a ground state doublet
+         = 3 ----- CI for TRIPLETS from closed shell reference
+         = 4 ----- CI for TRIPLETS and SINGLETS
+                   or SIngles only for a ground state doublet for the
+                   DOUBLETS and QUARTETS
+         = 5 ----- General CI using Rumer diagrams, any multiplicity
+                   Use for ROHF SCF ground states
+         = 9 ----- GUGA CI.  This generates input for the DRT program,
+                   then TRN program then SDG program, see appropriate
+                   help files.
+ 
+         =20 ----- MP/2 perturbation theory
+         =21 ----- Nesbet-Epstein second order perturbation theory
+         =50 ----- Double Group CI (with Spin-Orbit) 
+ 
+      N2 = 1 ----- The number of reference determinants to be used
+                   to generate the excited configurations.
+                   If this is an MP/2 calculation on a UHF wavefunctio
+                   then N2 = 2, one for alpha and one for beta orbital
+                   Only for Rumer diagram CI (N1 = 5) can there be
+                   more than ONE reference determinant.
+ 
+      N3 = 0 ----- The number of roots of the CI matrix to calculate
+                   DEFAULT is the 10 lowest
+ 
+      N4 = 1 ----- The multiplicity of the CI.  It need not be the
+                   the same as that of the reference SCF
+ 
+   Natural Orbital Section--Available only for Rumer CI (N1 = 5)
+ 
+      N5 = N ----- Perform Natural Orbital Optimization on state N
+                   DEFAULT = 1. This option works only if N1 = 5
+ 
+      N6 = M ----- Average the first M densities for NO'S
+                   DEFAULT=1.
+ 
+      N7 = 0 ----- Do not perform natural orbital optimization
+         = 1 ----- Perform non-iterative NO analysis
+         = N ----- Perform N iterations in the NO analysis
+                   This option works only for the Rumer diagram CI
+ 
+   Transition Moment Section
+ 
+      N8 = 0 ----- Do not calculate transition moments
+         > 0 ----- Calculate the transition moments between
+      N9 =         states N8 through N9 into N10 through N11
+     N10 =         DEFAULT is N9 = 1  N10 = 2  N11 = 10
+     N11 =
+ 
+ 
+  (B) Criteria to reduce the number of configurations included in the CI
+      Threshold for components of CI vectors to be printed
+ 
+     ECUT      COMP     THRES  (FORMAT F10.1,F10.6,F10.6)
+ 
+     ECUT = 0 or a negative number for normal calculation
+          = Positive threshold value (in cm-1) below which all
+            configurations are included.  For example a value of
+            60000. means any configuration with a DIAGONAL CI
+            element less than 60,000 cm-1 is included
+ 
+     COMP = A value indicating the extent of interaction to be included
+            For example a value of 500.0 (cm-1) means that ANY generated
+            configuration having an OFF DIAGONAL CI element larger than
+            500 cm-1 with any of the states accepted by ECUT (above) is
+            included.  A value of 0.0 includes all configurations
+ 
+     THRES = real number which indicates up to how many percent contri-
+            bution to CI vectors is printed. If THRES = 0.0 or left blank,
+            the default of 0.1 will be used.
+
+  (C) Point group symmetry information (FORMAT 9I5)
+ 
+     ISYM IREP IREP IREP IREP IREP IREP IREP IREP
+ 
+     ISYM = N ----- the order of the Abelian group followed by UP TO
+                    eight IREPPs to be considered, in turn, for the CI.
+
+     IF NO SYMMETRY IS TO BE CONSIDERED SET ISYM = 0
+
+     If symmetry is assigned, eg., ASYM = C2V, or DETSYM = 1, and the program
+     determines symmetry, and if all the CI's for the different irreducible
+     representations are the same, then a single master codetor and generating
+     line can be used if you do not specify a different master codetor and
+     generating line.  This also works if DETSYM = 1 and ISYM =   -1   
+ 
+ EXAMPLES:
+
+     4    1    2    3    4    ----- do all four irreps for C2V
+     2    2    1              ----- do irreps 2 and then 1 for C2
+     8    6    7    8         ----- do the last 3 irreps for D2H
+ 
+           Character tables for Abelian groups
+ 
+     ISYM=2:    IRREP                  CI    C2   CS
+                  1         1    1     Ag    A    A'
+                  2         1    1     Au    B    A''
+ 
+     ISYM=4     IRREP                             C2H     C2V      V=D2
+                  1         1    1    1    1      Ag      A1(Z)    A1
+                  2         1    1   -1   -1      Au(Z)   A2       B1(Z)
+                  3         1   -1    1   -1      Bu(X/Y) B1(X)    B2(Y)
+                  4         1   -1   -1    1      Bg      B2(Y)    B3(X)
+ 
+     ISYM=8     IRREP                                  D2H
+                  1    1  1  1  1  1  1  1  1          Ag
+                  2    1  1  1  1 -1 -1 -1 -1          Au
+                  3    1  1 -1 -1  1  1 -1 -1          B1g(XY)
+                  4    1  1 -1 -1 -1 -1  1  1          B1u(Z)
+                  5    1 -1  1 -1  1 -1  1 -1          B2g(XZ)
+                  6    1 -1  1 -1 -1  1 -1  1          B2u(Y)
+                  7    1 -1 -1  1 -1  1  1 -1          B3u(X)
+                  8    1 -1 -1  1  1 -1 -1  1          B3g(YZ)
+ 
+ (D) Orbital symmetry specifications  >>>>> USUALLY OMITTED <<<<<
+ 
+ 
+ 
+ CI Specification(s)
+ 
+ *** NOTE: *** If the CI is done on more than one irrep, then the CI
+     specification lines must be repeated for each irrep considered
+     THERE MUST BE A REFERENCE DETERMINANT AND GENERATING LINES FOR
+     EACH IRREP CONSIDERED.
+ 
+ (E) First line ----- The number of generating lines and the reference
+                      determinant in FORMAT nI5
+     EXAMPLE:
+
+                 2    4    4    5
+
+         Means there are two lines specifying excitations from the
+         reference determinant:
+
+              (1a,1b,2a,2b,...4a,4b,5a)
+
+         The list must start with a closed shell alpha/beta pair
+         followed by open shell coupled alpha/beta pairs and
+         ending with unpaired alpha orbitals.
+         For closed shell cases specify only the outermost occupied pair
+         For ordinary CI (N1 = 2) only one reference determinant is
+         allowed.  
+
+            For Rumer CI (N1 = 5) several reference determinants
+         are allowed and these do NOT need to be the SCF determinant.
+         In addition, for many open shells it is convenient to use the
+         words DOC(doubly occuppied), SOC (singly occuppied) and VIR
+         (virtual or empty). For example, 
+             2    4    4    5           ----> 2   4*DOC  SOC
+             1    3    3    5    5    4 ----> 1   3*DOC  SOC  DOC  
+             1    3    3    5    5      ----> 1   3*DOC  VIR  1*DOC  
+
+         NOTE: REFERENCE DETERMINANT(S) AND GENERATING LINES ARE
+         REQUIRED FOR EACH IRREP CALCULATED
+ 
+ (F) Second line(s) ----- Generating lines in FORMAT 16I5
+                                       
+       COLUMNS 1-5 =    1 Individually specified
+                          singly excited configurations
+                   =    2 Individually specified
+                          doubly excited configurations
+                   =   21 Multiply specified
+                          singly excited configurations
+                   =   22 Multiply specified
+                          doubly excited configurations
+                   =   32 Multiply specified TYPE I
+                          doubly excited configurations
+ 
+       COLUMNS 6-78 =     Occupied orbitals --> Virtual orbitals
+ 
+ Examples of CI specification lines
+ 
+    1    4    5 -----  One singly excited configuration with electron
+                       removed from MO 4 and placed into MO 5
+                       (4 INTO 5)
+                  or
+
+   21    2    4    5    6 
+                  ----- All possible singly excited configurations
+                        generated by removing electrons from MO 2
+                        through 4 and placing them into MO 5 to 6,
+                        one electron at a time.  (2-4 INTO 5-6)
+                        or
+                        This is equivalent to specifying the following
+    1    2    5
+    1    3    5
+    1    4    5
+    1    2    6
+    1    3    6
+    1    4    6
+ 
+
+    2    2    5    4    8 
+                -----   One doubly excited configuration (2 INTO 5, 4 INTO 8)
+
+    2    I    A    J    B 
+               -----   I into A, J into B, requires that I .LE. J and A .LE. B
+ 
+   22    2    4    5    8    1    3    5    8 
+               -----   Multiply specified double excitations
+                       (2-4 into 5-8 and 1-3 into 5-8)
+ 
+ *** NOTE ***
+
+     All '   2X' lines (multi-configurations) before '    X' lines
+     (single configurations)  ALL INDIVIDUALLY SPECIFIED CONFIGS AND
+     REFERENCE DETERMINANTS ARE INCLUDED, REGARDLESS OF SYMMETRY!
+     TRIPLES AND QUANDRUPLES BEFORE SINGLES AND DOUBLES
+     SPECIFIED FULL CI AFTER ALL OTHERS.
+     ie
+
+     23    2    5    6    9
+     21    1    5    6   10
+     22    1    5    6   10    1    5    6   10
+     29    4    5    6    7
+ 
+ *** If N1 = 5 (Rumer CI) Additional generating lines are allowed
+ 
+       21....      SINGLES.
+       22....      DOUBLES
+       23....      TRIPLES
+       24....      QUADS
+       ...
+       28...       OCTUPLES
+       29   3    5    6   10  FULL CI between orbitals 3-5 into 6-10
+       For ND(2) = 23 to 29 the following syntax is allowed as well:
+
+       1    5    5
+      29    3    5    6   10   12   14  take electrons out of orbital 3 to 5
+       					and put them into 6 to 10 and 12 to 14
+       or:
+       1   10   10
+      29    3    5    8   10   12   14  take electrons out of orbital 3 to 5
+       					and 8 to 10 and put them into 12 to 14
+ 
+     For the Rumer CI, the multiplicity of the CI may be different
+     from the multiplicity of the reference determinant.  Under those
+     circumstances, the reference determinant used for generating the
+     list of configurations may not, itself, be included in the list of 
+     configurations
+ 
+ *** If N1 = 20 (MP/2)
+
+     Only one reference determinant is allowed.  In the case
+     of UHF, specify BETA symmetry, reference determinant, and
+     ONLY ONE GENERATING LINE.  Then repeat for ALPHA set.
+ 
+     EXAMPLE:
+
+     (blank line)           ----- (No cutoff or threshold)
+    4    1                  ----- (4 irreps, do only irrep No. 1)
+    1    2    4    3    1    2    3    1
+                            ----- (Sym of BETA MO.'s)
+    1    1    2    3    4   ----- (One Gen line, 1-2-3-4 are BETA)
+   22    1    4    5    8    1    4    5    8 
+                            ----- (Multiple doubles, 1-4 into 5-8)
+                                  (now repeat for alpha spin)
+    1    2    4    3    1    3    2    1     
+                            ----- (ALPHA and BETA sym not the same)
+    1    1    2    3    4    5
+                            ----- (ALPHA occupied in aufbau order)
+   22    1    5    6    8    1    5    6    8
+                            ----- (Note extra alpha electron)
+ 
+ ---ADDITIONAL CONFIGURATION INTERACTION SPECIFICATIONS---
+ 
+   21    2    4    5    8    3    4  
+                      ---- All excitations (2-4 TO 5-8) but only
+                           those with MOs (2-4) with large AO
+                           character of type 03 (PY) and with MOs (5-8)
+                           with large AO character of type 04 (PZ)
+                           This option does not work for singly
+                           specified configurations (0001, etc)
+                           1=S,     2=PX,       3=PY,     4=PZ,
+                           5=D(Z2), 6=D(X2-Y2), 7=D(XY),
+                           8=D(XZ), 9=D(YZ).
+                           or
+
+   22    2    4    5    8    1    3    5    8    4    4 
+                              ----- All doubly excited configurations
+                                    (2-4 TO 5-8, 1-3 TO 5-8)
+                                    but only when MOs 2-4 and 1-3 have
+                                    SMALL type 04 contributions and MOs
+                                    5-8 and 5-8 have SMALL 04 contribs.
+                                    or
+ 
+   32    1    5    6    9
+                  ----- Singlet configurations, all possible double
+                        excitations removing 2 electrons from MO 1 and
+                        placing both in MO 6.  Then 2 electrons from 1
+                        into 7,... 2 electrons from MO 5 into MO 9
+                        (Type I doubles 1-5 into 6-9)
+
+   42    1    6    2    8    3    7    4   10   11   12
+                                  ----- Double excitations
+                                        1 into 6 with 2 into 8  and
+                                        1 into 7 with 2 into 10 and
+                                        1 into 11 with 2 into 12 and
+                                        3 into 6 with 4 into 8 and
+                                        3 into 7 with 4 into 10 and
+                                        3 into 11 with 4 into 12
+ 
+ 
+ $END
+ 
+    The I420(I2) format is no longer supported.
+
+    The use of symmetry in the CI will generate a Summary table at the end
+    which eleminates reduntant states, and orders the states in increasing
+    energy. Reduntant states are those that are specified singly, or those
+    that are used to generate other states (The Master Codetor's). The
+    really belong only to their own irreps, but serve as markers for the
+    calculation.  On occasion the CI will change the lowest energy state
+    to be other than that used as the marker in each irrep.  If this should
+    happen, then the oscillator strength will not be printed for that
+    irrep in the summary table, as it will have been calculated from the
+    lowest configuration in each irrep, and not neccesarily from the 
+    lowest energy (ground) state of the molecule.
+
+    To correct this situation, the lowest energy state of the molecule
+    should be specified in each irrep singly, so this state is the lowest
+    energy in each irrep.
+
+   ***AUTOMATIC CI
+
+   There is an automatic option for generating closed shell CI
+   This will generate a 10 up 10 down CI.
+
+ $CIINPU
+   N1   N2   N3   N4   N5   N6   N7   N8   N9  N10  N11   as before
+   EPS ECUT                                               as before
+    0                          = ISYM                     or -1  see below
+   -1                          generate the 10 up 10 down
+ $END
+
+  If ISYM = -1 above, and DETSYM = 1 in the $CONTRL block, the CI will
+  automatically be symmetry blocked.
+
+  If N10 is a number less than N9 then the excited state spectrum between
+  states will also result.  For example, if N8 = 1, N9 = 10, N10 = 1
+  and N11 = 50, all states from 1 thru 10 into 1 thru 50 will be calculated.
+  In addition each of the first 10 states will be analyzed and the 
+  population analysis printed (in the ZDO basis). If bond orders are desired for  each of the states N10 through N9, then CIBONDS should appear as a keyword in
+  the $OUTPUT section. Spin densities for excited states after CI can also
+  be obtained using AISO = NNMM in the $CONTRL block, where states NN to MM
+  will be examined.  This is a four digit number as 0130 states 1 to 30.
+
+   ***
+
+--------------------------------------------------------------------
+---- Section IV: Geometry optimization -----------------------------
+--------------------------------------------------------------------
+ 
+ $TITLEI
+ 
+     NH3 BFGS UPDATE,    April 6, 1988
+ 
+ $END
+ 
+ $CONTRL
+ 
+ SCFTYP = RHF      ENTTYP = COORD    UNITS = ANGS
+ RUNTYP = GEOM
+ 
+ INTTYP = 0   APX = INDO/1    III = 2001
+ NEL = 8      MULT = 1        ITMAX = 12
+ SCFTOL = 0.000000
+ 
+! ***** Interaction factors *****
+ 
+   INTFA(1) = 1.0 1.0 1.0 1.0 1.0 1.0
+ 
+! ***** Output file name *****
+ 
+   ONAME = g1
+ 
+ $END
+ 
+ $DATAIN
+ 
+  0.000000  0.000000  0.000000    7
+  1.026604  0.000000 -0.411484    1
+ -0.513302  0.889066 -0.411484    1
+ -0.513302 -0.889066 -0.411484    1
+ 
+ $END
+ 
+:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+          Input for GEOMETRY OPTIMIZATION Explained
+:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+ 
+The following switches should be set to run a geometry optimisation
+ 
+   RUNTYP = GEOM ----- Geometry Optimization
+   INTTYP = 0    ----- Theoretical Gammas <<<<< MOST IMPORTANT
+   SCFTOL = 0.00 ----- SCF states must be well converged
+   INTFA(1) = 1.0 1.0 1.0 1.0 1.0 1.0
+ 
+In addition, a number of switches may be set in order to control the
+details of the geometry optimization procedure.
+The most important switch for geometry optimisation is III which is
+a four digit integer made up of 4 parts: IA:IB:IC:ID
+Choose a value for each of IA, IB, IC, ID and concatenate to form a
+4 digit integer from these values.  Enter this value for III.
+For normal calculations the following switches are recommended.
+ 
+   III = 0000 ----- NO GEOMETRY OPTIMISATION
+       = 2000 ----- for ground state structures
+       = 3120 ----- for transition state calculations
+ 
+ 
+ Additional possibilities (for experienced users) are:
+ 
+  -- Search for minimum, transition state, etc.?
+
+     IA = 0 energy calculation only        (No optimization)
+        = 1 energy and gradient calculated (No optimization)
+        = 2 for stable geometry
+        = 3 for transition state
+        = 4 for transition state restart    (not operational)
+
+  -- Type of Optimisation --
+
+     IB = 0 Newton Raphson
+        = 1 Augmented hessian
+	     if transition state followed by f+f
+        = 2 Minimize norm squared of gradient (full treatment)
+        = 3 Homotopic path continuation (with IB = 2)
+        = 4 Mimimize norm squared of gradient (approx. treatment)
+        = 5 Homotopic path continuation (with IB = 4)
+   (**  = 6 Gradient extremal for transition states.  For example
+            III = 3620.  Note you must include a target set of
+            coordinates even though they are not used as is needed
+            for all transition set calculations.**)
+        = 7 LTP option for transition states.
+   (**  = 8 use Newton-Raphson with trust radius to control step
+          length after either Augmented hessian or gradient extremal 
+          have found 1 negative root of the hessian.( see note below
+          regarding use of IP and IQ )  **)
+ 
+  -- Type of search --
+
+     IC = 0 Updated Hessian
+        = 1 Updated Hessian with last iteration with analytic Hessian
+        = 2 Analytic Hessian
+        = 3 gradient only, no Hessian
+        = 4 Analytic Hessian calculated with first order approximation (V1)
+        = 5 Analytic Hessian calculated with second order approximation
+ 
+  -- Threshold for convergence --
+
+     ID = 0  Optimisation converged when component of grads < 1.D-3
+        = 1               converged when component of grads < 5.D-4
+        = 2               converged when component of grads < 1.D-4
+        = 3               converged when component of grads < 1.D-5
+        = 4               converged when component of grads < 1.D-6
+        = 5               converged when step components    < 1.D-4
+        = 6               converged when energy change      < 5.D-7
+        = 7               converged when grad norm          < 1.D-3
+        = 8               converged when grad norm          < 5.D-4
+        = 9               converged when grad norm          < 1.D-4
+(** NOTE:
+          For special transition state calculations III can be used as a six 
+      digit integer of the form IP:IQ:IA:IB:IC:ID. Here IP and IQ can be
+      used to override the default options built in for the Augmented 
+      hessian and gradient extremal methods, viz. Allowing the use of
+      Newton-Raphson with step length controlled by a trust region to move
+      to the nearest extreme point, after the hessian attains 1 negative 
+      eigenvalue (IP=8).
+         This option is useful to override the default minimization of norm
+      squared of the gradient when using Augmented hessian. This feature
+      may also be useful when using gradient extremal. IP can take values 
+      4 and 8 corresponding to the values of IB and IQ can take values 2,
+      4 and 5 corresponding to values of IC.
+         If the V1 approximation to the exact analytic hessian is chosen
+      (IB=4), then care must be exercised in the choice of a mode since 
+      the eigenvalues of the V1 hessian may be depressed in comparison 
+      with those of the exact analytic hessian. A good choice of MODE in 
+      such cases is 3.    **)
+
+      GRAD = 0 the default .  Analytic gradients
+           = 1 numerical gradient - generally slower, but, at present
+             must be used for APX = AM1, PM3 or MNDO
+             If GRAD = 1, then
+                GSCF = number of SCF cycles per numerical gradient
+                     evaluation.  At present this is 0, and a frozen
+                     density is used.  If there is a failure, GSCF =
+                     2 or 3 will give a more accurate gradient, as the
+                     density is relaxed relative to the geometry step.
+
+ ** Other Geometry Switches **
+ 
+       MODE refers to the initial vibrational mode to be followed by the
+            transition state search in a "break-up" or rearrangement
+            reaction.
+
+       ITYPE controls the type of update procedure used
+
+       ITYPE = 1 <<<<< BFGS UPDATE (DEFAULT)
+             = 2 ----- MURTAGH-SARGEANT (OLD FNMIN)
+             = 3 ----- DFP
+             = 4 ----- GREENSTADT
+ 
+       LMASS = .TRUE.  <<<<< if mass scaled coordinates are used
+             = .FALSE. ----- if not
+ 
+       RHO = 0.03 <<<<< DEFAULT
+             0.50 ----- an exact line search, DON'T DO IT!
+                  ----- 0.01 < RHO < 0.45  is a typical range
+ 
+       SIGMA = 0.9 <<<<< DEFAULT (a loose line search)
+             = 1.0 ----- any decrease in energy
+             = 0.5 ----- exact line search, DON'T DO IT!
+                   ----- 0.55 < SIGMA < 0.95 is a typical range
+ 
+       PHASE is a parameter used for transition state calculations
+
+       PHASE < -4.5 ----- Energy is maximized along the direction
+                          vector between reactants and products or
+                          guessed transition state
+ 
+       PHASE < -3.5 ----- First move is along mode of Hessian that
+                          most strongly overlaps with the vector
+                          between reactants and products or guessed
+                          transition state
+ 
+       PHASE < -2.5 ----- First move is along mode of Hessian that
+                          most strongly overlaps with input direction
+                          vector
+ 
+       PHASE < -1.5 ----- phase of move along chosen mode is
+                          determined by the vector between reactants
+                          and products or guessed transition state
+                          (For stable state calculations, phase of
+                           move along chosen mode is determined by
+                           the vector between transition state and
+                           reactants)
+ 
+       PHASE = -1 ----- phase of chosen mode of Hessian is reversed
+ 
+       PHASE = +1 ----- phase of chosen mode of Hessian is unchanged
+ 
+       LINV = .TRUE.  ----- Inverse Hessian is used
+            = .FALSE. ----- Direct Hessian is used
+                            (This depends on ITYPE)
+
+       If one wants an Updated Augmented Hessian then LINV must be
+       set FALSE on input.
+ 
+    LEXACT = .TRUE. ----- Once negative eigenvalue is found in a
+                          transition state calculation with subroutine
+                          SADDLE, then exact method for minimizing the
+                          norm of the gradient is used
+ 
+    ISRCH = 1 ----- Normal line search method (subroutine SEARCH)
+          = 2 ----- Alternate method (subroutine STPSIZ)
+ 
+    STPTOL = 0.4 au ----- Maximum allowed stepsize norm (for IC = 4)
+                          DEFAULT = 0.4 au
+
+ 
+ ** NOTE **
+
+    The program will accept internal coordinates and constrained
+    optimisation is allowed in internal coordinates.
+    Specification of internal coordinates are described below and
+    are completely general.
+    
+    The internal (or valence bond) coordinate option is an alternative
+    to the more conventional approach of minimizing molecular energies
+    with respect to cartesian coordinates.  Internal coordinates form a
+    natural approach to constrained optimization problems. In a large 
+    molecule or cluster one may be interested in optimizing a limited
+    number of bond lengths and/or bond angles. Experience, however, has
+    indicated that the initial complete optimization of large systems
+    may be better performed using the cartesian coordinates approach.
+    The cartesian approach usually does not produce large relative
+    atom movements, whereas the internal procedure links together atom
+    movements and can result in large displacements, particularly of
+    the end atom in a long chain of atoms.
+
+    Basic outline of the internal coordinate procedure:
+
+    As in any standard molecular calculation a set of cartesian 
+    coordinates is read in by the program, the atom labels correspond
+    to the order in which the atomic coordinates are read in (i.e., 
+    atom 1 corresponds to the first line of coordinates, 2 the second
+    line etc.). Then a separate set of internal coordinates, which are
+    specilfied by the relevant atom labels, are read in from the group
+
+ $INTCOR
+       
+! An example of some internal coordinates for water.
+
+  INTERNALS
+  102
+  103  20103
+
+ $END
+
+ Another  example on H3
+                      \
+                       C1=N2
+                      /   \
+                     H4    H5
+ $INTCOR
+       
+! An example of some internal coordinates for H2CNH.
+
+INTERNALS
+  102                                    defines atom2
+  103  20103                             defines atom3
+  104  20104  10203041     <--type 1     defines atom4
+  205  10205  10204052     <--type 2
+ $END
+    
+
+
+    The different internal coordinates are: -
+
+    a) Bond Lengths - designated by two integer atom labels i and j
+
+    b) Bond angles - denoted by three atom labels i, j, k where j is
+                     the atom at the vertex of the angle.
+
+    c) Torsion and wag angles - these require 4 atom labels i, j, k, l
+                                as well as an integer indicating the
+                                appropriate coordinate type.
+
+          ITYPE = 1 : ijkl - the torsional coordinate is the angle
+                             between the planes ijk and ijl.
+
+                                          l
+                                         /
+                                     j--i
+                                         \
+                                          k
+
+          ITYPE = 2 : ijkl - this type is similar to type 1 however
+                             atom l is joined to atom j. Again the
+                             coordinate is the angle between the 
+                             planes ijk and ijl.
+
+                                          l
+                                         /
+                                     i--j
+                                    /
+                                   k
+
+
+          ITYPE = 3 : ijkl - this is a wag coordinate, atoms ijk 
+                             define a plane and the angle gives the 
+                             line il out of the plane ijk.
+
+                                       \
+                                        l   j
+                                      t  \ /
+                                     ---- i      
+                                           \
+                                            k
+          ITYPE = 4 : ijkl - same as 3 but the angle is 
+                             180-(angle from 3). 
+
+                                            j
+                                            |  l
+                                            | /
+                                            |/ t 
+                                            i ----l
+                                             \ 
+                                              \
+                                               k
+     Input of Internal coordinates:
+
+     Each input line with internl coordinate data specifies the position
+     of one new atom relative to atoms with known positions.
+
+     Line 1: A bond length coordinate. This gives the labels for  the
+             initial two atoms from which the complete system is built up.
+
+     Line 2: Bond length coordinate and either an angle coordinate or
+             another bond length. These two coordinates relate the 
+             third atom to the first two.
+
+     Remaining lines:
+
+             Each remaining atom is specified in turn by three internal
+             coordinates. Each of these coordinates should only include
+             one atom label not previously specified. The various
+             combinations of allowed coordinates are: -
+
+             1) Three bond lengths ril, rjl, rkl ; positions atom l
+
+             2) One bond length ril and two bond angles Ojil, Okil.
+
+             3) One bond length, one bond angle, and one torsion angle.
+                Common combinations are
+
+                a) ril, Ojil, tijkl (ITYPE=1)
+                b) rjl, Oijl, tijkl (ITYPE=2)
+                c) ril, Ojil (or Okil), tijkl (ITYPE=3 or 4)
+
+             4) Two bond lengths and one torsion angle. These 
+                coordinates enable the closure of rings of atoms, e.g.
+                in the figure, l is the only previously unspecified
+                atom. Ring closure can be effected by: -
+
+                                        ----h
+                                             \
+                                              l
+                                             /
+                                       i----j
+                                      /      \
+                                     k        k'
+
+                  a) rjl, rhl, tijkl (ITYPE=2)
+                  b) rjl, rhl, tjik'l (ITYPE=1)
+
+     A total of (N-1) data lines are required for input, where N is the
+     number of atoms in the system. Each coordinate is expressed as a single
+     integer using the rule: -
+
+       a) Bond length rij = I*100 + J: i.e., 102 for r12
+       b) Bond angle Oijk = I*1000 + J*100 + K i.e., 10302  for angle 1-3-2 
+       c) Torsion   tijkl = I*10000000 + J*100000 + K*1000 + L*10 + ITYPE
+
+
+     Constrained Optimization
+
+     A coordinate is not optimized when it is input as a negative integer,
+     i.e., -010203 fixes angle O123.
+     The program allows scale factors to be associated with each
+     coordinate. However, when no scale factor is given the default is one.
+
+     Data Format:
+
+       Line 1: bond length (and scale factor)        I5,F10.6
+       Line 2: 2nd and 3rd coords. (and factors)     I5,I7,2F10.6
+        .
+       Line N-1: 3 coords (and factors)              I5,I7,I10,3F10.6
+
+     NOTE Bond lengths are listed before bond angles, which in turn are 
+          listed before torsion angles on each line.
+
+     Error checks and redundant coordinates.
+
+     The subroutines in the internal coordinate package make several
+     simple checks for errors in the input coordinates and prints out
+     self-explanatory error messages.
+
+     A more difficult error is associated with redundant coordinates. For
+     example consider NH3:
+
+
+                                    H
+                                    |
+                                Ob  |  Oa
+                                    N
+                                   / \
+                                  /Oc \
+                                H       H 
+
+     The figure above indicates a suitable set of coordinates when the
+     molecule is non-planar. However if NH3 becomes planar then one of
+     the bond angles is redundant since
+
+                               Oa + Ob + Oc = 360
+
+     and there is no coordinate present describibg the atomic
+     coordinates perpendicular to the plane of the molecule. An error in
+     the program occurs because the redundant coordinates produce a 
+     singular coordinate transformation matrix which needs to be inverted.
+     To diagnose the redundant coordinate the transformation matrix is
+     diagonalized, and the eigenvector (or vectors) associated with zero
+     eigenvalue groups together with the redundant coordinates. If a 
+     coordinate is entered twice, one of the coordinates will be found
+     as a redundant coordinate.
+
+     Constrained optimisation can also be done in cartesian coordinates.
+     This also requires an INTCOR Block.
+
+ $INTCOR
+ ! An example of a four atom system in which the second and third atoms
+ ! have there z coordinates frozen during the geometry optimisation.
+  CARTESIANS
+  1.000000  1.000000  1.000000    <-- this is the x, y and z scaling
+  1.000000  1.000000  0.000000         factors of atom 1 in free format
+  1.000000  1.000000  0.000000         1.0=full optimisation
+  1.000000  1.000000  1.000000         0.0=completely frozen
+ $END
+
+An example of a calculation for a transition state
+
+ $TITLEI
+
+     NH3 Transition state
+     April 6, 1988
+
+                   $$$$$GEOMETRY OPTIMIZATION SUMMARY$$$$$
+
+   IT     ENERGY          SCF        GRAD         MAX         ALPHA   LEFT
+                     CONVERGENCE     NORM         GRAD              FAILS FAILS
+
+   0   -12.522849     0.000013     0.001337     0.000700     0.000000    0    0
+   1   -12.521285     0.000002     0.013850     0.005653     0.000000    0    0
+   2   -12.516034     0.000005     0.021692     0.009547     0.000000    0    0
+   3   -12.509819     0.000006     0.025393     0.012428     0.000000    0    0
+   0   -12.509819     0.000006     0.025393     0.012428     0.000000    0    0
+   1   -12.507360     0.000008     0.023395     0.012907     0.325770    0    0
+   2   -12.507139     0.000004     0.008693     0.004908     0.967428    0    0
+   3   -12.507084     0.000000     0.001000     0.000493     1.000000    0    0
+
+
+ $END
+
+ $CONTRL
+
+ SCFTYP     RHF      RUNTYP     GEOM     ENTTYP     COORD    UNITS      ANGS
+
+ INTTYP          0   IAPX            3   III          3120   NAT             4
+ NEL             8   MULT            1   ITMAX          10   MODE            1
+ ITYPE           1   LMASS      .TRUE.   LINV       .TRUE.   LEXACT    .FALSE.
+ ISRCH           1
+ SCFTOL   0.000000   RHO          0.01   SIGMA         1.0   PHASE        -4.0
+ STPTLD        0.4
+
+! ***** Basis set and C.I. size information *****
+
+   DYNAL(1) =    0   3   1   0   0   0   0
+
+! ***** Interaction factors *****
+
+   INTFA(1) = 1.0 1.267 0.585 1.0 1.0 1.0
+
+! ***** Output file name *****
+
+   ONAME = g6
+
+ $END
+
+ $DATAIN
+
+ -0.000000  0.000000 -0.000000    7  5.000000    2
+  0.966500  0.000000 -0.410672    1  1.000000    1
+ -0.483250  0.837018 -0.410672    1  1.000000    1
+ -0.483250 -0.837018 -0.410672    1  1.000000    1
+ -0.000000 -0.000000 -0.400000    7  5.000000    2
+  0.966500  0.000000 -0.310672    1  1.000000    1
+ -0.483250  0.837018 -0.310672    1  1.000000    1
+ -0.483250 -0.837018 -0.310672    1  1.000000    1
+
+
+ $END
+ $INTCOR
+  CARTESIANS
+  1.000000  1.000000  1.00000
+  1.000000  1.000000  1.000000
+  1.000000  1.000000  1.000000
+  1.000000  1.000000  1.000000
+ $END
+ 
+ 
+--------------------------------------------------------------------
+----- Section V: Electron assignment  ------------------------------
+--------------------------------------------------------------------
+
+ $TITLEI
+ 
+     Hexamino-cobalt(II) - quartet C.I.
+     from doublet ROHF - assign electrons
+     April 6, 1988
+ 
+ $END
+ 
+ $CONTRL
+ 
+ SCFTYP = ROHF     RUNTYP = CI       ENTTYP = COORD    UNITS = ANGS
+ ASYM = CS
+ 
+ INTTYP = 1       APX = INDO/1
+ NEL = 55         MULT = 2       ITMAX = 10
+ SCFTOL = 0.000110
+ 
+! ***** C.I. size information *****
+ 
+   CISIZE=200 ACTSPC=45
+ 
+! *****   ROHF information *****
+ 
+   NOP = 2   NDT = 1
+   FOP(1) = 54.000000  1.000000
+ 
+! ***** Interaction factors *****
+ 
+   INTFA(1) =   1.00000  1.26700  0.64000  1.00000  1.00000  1.00000
+ 
+! ***** Output file name *****
+ 
+   ONAME = ci1
+ 
+ $END
+ 
+ $DATAIN
+ 
+  0.000000  0.000000  0.000000   27
+  0.000000  0.000000  2.200000    7
+  0.000000 -0.980520  2.546670    1
+ -0.849160  0.490260  2.546670    1
+  0.849160  0.490260  2.546670    1
+  0.000000  0.000000 -2.200000    7
+  0.000000 -0.980520 -2.546670    1
+  0.849160  0.490260 -2.546670    1
+ -0.849160  0.490260 -2.546670    1
+  2.200000  0.000000  0.000000    7
+  2.546670 -0.980520  0.000000    1
+  2.546670  0.490260  0.849160    1
+  2.546670  0.490260 -0.849160    1
+ -2.200000  0.000000  0.000000    7
+ -2.546670 -0.980520  0.000000    1
+ -2.546670  0.490260 -0.849160    1
+ -2.546670  0.490260  0.849160    1
+  0.000000 -2.200000  0.000000    7
+  0.980520 -2.546670  0.000000    1
+ -0.490260 -2.546670 -0.849160    1
+ -0.490260 -2.546670  0.849160    1
+  0.000000  2.200000  0.000000    7
+ -0.980520  2.546670  0.000000    1
+  0.490260  2.546670 -0.849160    1
+  0.490260  2.546670  0.849160    1
+ 
+ $END
+ 
+ $CIINPU
+ 
+! ***** Configuration Interaction specification *****
+ 
+    5    3   10    4    0    0    0    0    0    0    0
+  -60000.0  0.000000
+    2    1    2
+    2   26   26   27   27   28
+   21   20   28   28   34
+   22   23   28   28   29   23   28   28   29
+    2   26   26   27   27   29
+   21   20   29   28   34   
+   22   23   29   28   29   23   29   28   29
+    2   25   25   28   28   29   29   26
+   21   25   29   26   27   
+   22   25   29   26   27   25   29   26   27
+    2   26   26   27   27   28   
+   21   20   28   28   34   
+   22   23   28   28   29   23   28   28   29
+    2   26   26   27   27   29
+   21   20   29   28   34   
+   22   23   29   28   29   23   29   28   29
+    2   25   25   28   28   29   29   26
+   21   25   29   26   27   
+   22   25   29   26   27   25   29   26   27
+ 
+ $END
+ 
+ $ASSINP
+ 
+! ***** Electron assignment specification *****
+ 
+   10    7    5    5    0    0    0    0
+  0.000000    5  0.400000    0  0.000000    0  0.000000
+  0.000000    6  0.400000    0  0.000000    0  0.000000
+  2.000000    7  0.400000    0  0.000000    0  0.000000
+  2.000000    8  0.400000    0  0.000000    0  0.000000
+  2.000000    9  0.400000    0  0.000000    0  0.000000
+  0.500000    5  0.400000    0  0.000000    0  0.000000
+  0.500000    6  0.400000    0  0.000000    0  0.000000
+  0.000000    7  0.400000    0  0.000000    0  0.000000
+  0.000000    8  0.400000    0  0.000000    0  0.000000
+  0.000000    9  0.400000    0  0.000000    0  0.000000
+ 
+ $END
+ 
+:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+          Data for ELECTRON ASSIGNMENT explained
+:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+ 
+ $ASSINP
+ 
+   Switches for assignment of electrons to MOs are in FORMAT 8I5
+   Several options exist for assigning orbital occupations
+   and are determined by the value of NASS(1)
+ 
+   NASS(1) = 0 <<<<< Molecular orbitals are filled in order of
+                     increasing orbital energy (aufbau)
+ 
+   NASS(1) =-1 ----- For ROHF calculations:  MOs are rearranged and
+                     the lowest NEL/2 are filled.
+ 
+   NASS(1) =-2 ----- Molecular orbitals are filled on the basis
+                     of symmetry information
+ 
+   NASS(1) > 0 ----- Orbital occupations are assigned on the basis
+                     of the atomic orbital character of the MOs.
+ 
+ 
+ 
+  --- For NASS(1) > 0 --- First Line FORMAT 8I5
+ 
+  NASS(1) = J ----- J is a positive number specifying the the number of
+                    lines of data to be read in
+  NASS(2) = K ----- K is the total number of ELECTRONS to be assigned by
+                    this method
+  NASS(3) = 0 ----- For closed shell RHF
+          = L ----- Assign L ALPHA orbital occupancies (UHF)
+                    Assign L CLOSED shell orbitals (ROHF)
+  NASS(4) = M ----- Assign M BETA orbital occupancies (UHF)
+                    Assign M orbitals to the first open shell (ROHF)
+  NASS(5) = N ----- Assign N orbital occupations in subsequent
+  NASS(6)           open shell(s) (ROHF).
+  NASS(7)
+  NASS(8)
+ 
+  --- For NASS(1) > 0 --- Subsequent line(s)
+ 
+     Orbital occupancies (by shells) as listed above.  FORMAT for
+     specifying occupancy is given by the values of
+     ELECTRONS   AO-SPECS   THRESHOLD  (F10.6,3(I5,F10.6))
+ 
+     ELECTRONS ----- The number of electrons to be assigned to a
+                     particular MO.  This is a FLOATING POINT number
+                     ranging from 0.0 (a hole) to 2.0  (F10.6)
+ 
+     AO-SPECS -----  The number of the AO basis function as it appears
+                     in the MO.  AO 3 would be the third basis function.
+                     AO-SPEC is an I5 integer that may specify up to two
+                     different AOs.  A value of 05025 specifies both AO
+                     5 and AO 25. (I5)
+ 
+     THRESHOLD ----- The test used to determine the character of the MO
+                     As many as three pair of (AO/THRESH) can be
+                     specified on each line. (F10.6)
+ 
+  EXAMPLES:
+
+   10    7    5    5 ----- There are 10 lines assigning 7 electrons,
+                            5 for the first shell, and 5 for the second
+
+  0.000000    5   0.4 ----- Assign ZERO electrons to the MO which has
+                            a coefficient for AO number 5 that when
+                            SQUARED is larger than 0.4
+
+  Nine more lines are required for this example
+ 
+    3    2    0    2    1 ----- 3 lines assigning TWO electrons, none
+                                for the closed shell, two for the first
+                                open shell, one for the second.
+
+   0.00000 3  5 -0.200000 ----- Assign zero electrons to the MO in which
+                                the product of the coefficients for AO 3
+                                and AO 5 is a larger negative number
+                                than -0.2000000  This line is for the
+                                first open shell
+
+   1.00000   22  -1.00000 ----- Assign two electrons to the MO with a
+                                node on AO 22 for second open shell
+
+   2.00000   20  0.400000   25  0.400000 ----- Assign two electrons to
+                                               the MO with coefficients
+                                               for AO 20 > 0.4 and for
+                                               for AO 25 > 0.4
+ 
+ ** NOTE ** MOs are scanned from the HOMO/LUMO gap going up 1, then
+            going down 1, then up 2, down 2,... until all assignments
+            are satisfied.
+ 
+ 
+  --- NASS(1) = -1 ---
+
+
+
+            Next line specifies rearranged order of starting vectors
+            in (16I5).  First orbital and last orbital specified must
+            not be rearranged.  Note that this requires the use of
+            starting vectors and the rearrangment only takes place on
+            the first cycle.  Subsequent cycles revert to NASS(1) = 0
+            BECAUSE OF ORBITAL RELAXATION, THIS IS A DANGEROUS OPTION!
+            For UHF, two such lines must be given, first for beta spin
+            orbitals, then alpha.
+ 
+   EXAMPLE(RHF):
+
+   -1
+    3    4    5    7    6    8 ----- Specifies transposing MO 6 and MO 7 
+            before filling by aufbau.  This procedure is only done on the
+            first cycle.  All other cycles are done by aufbau. 
+ 
+  --- For NASS(1) = -2 ---
+
+	   NASS(2)   = 0
+	   NASS(3-7) = 0 or 1. A zero specifies that the orbitals of
+		    this operator are to be filled by the aufbau principal, 
+		    a one specifies that this shell will be symmetry assigned
+		    by the following lines. For this case the number
+		    of mo's in each symmetry type are given in order.
+		    The format is 8I5.
+
+	   i.e:
+
+   -2    0    0    1    1    1    0 ---NASS. 
+    4    3    2    1                ---second shell
+    0    1    1    1                ---third shell
+    0    0    1    2                ---fourth shell
+
+	   This is an example of an open shell ROHF calculation
+	   with five shells. The first shell is filled by aufbau, 
+	   the second shell has 4 mo's of irrep 1, 3 of irrep 2,
+	   2 of irrep 3, and 1 of irrep 4. The next open shell
+	   has no mo's of irrep 1 filled, 1 of irrep 2, one of 
+	   irrep 3, and one of irrep 4.
+ 
+--------------------------------------------------------------------
+---- Section VI: Calculation of Polarizabilities  ------------------
+--------------------------------------------------------------------
+ 
+    IN the $CONTRL   block add
+	RUNTYP = CI
+	POLAR  = 1  <---  This is Bill PArkinson's TDA and RPA for
+                         alpha, TDA for beta and gamma. and approx.
+                         RPA for beta. This is fast for alpha and
+                         beta, and the size of the CI should be
+                         set equal to the particle*hole space + 1
+                         in DYNAL (sixth entry) 
+                         CAUTION: THE CI LINE DETERMINES THE HOLE AND
+                         PARTICLE SPACE INCLUDED IN THE CALCULATION
+                         SEE THE GENERATING LINE
+              = 2  <---  This is Kanis for frequency dependent beta.
+                         CAUTION: THE NUMBER OF STATES INCLUDED WILL
+                         NOT EXCEED N3 ON THE CI LINE. A selection
+                         of states based on the energy differences
+                         between ground and excited states is made.
+                         If these states do not contain the oscillator
+                         strength, the results will not be good.
+                         This code has undergone major restructuring, and
+                         it is unlikely problems here are the fault of
+                         Dave Kanis!  This code knows no symmetry. If symmetry
+                         is to be used, use POLAR = 4
+                         Because of the selection based on N3, this code
+                         can be used for large molecules effectively.
+                         But POLAR = 4 is the best for this prupose.
+              = 3  <---  This is both of the above
+
+              = 4  <--- This is the Yu - Parkinson - Zerner frequancy
+                        code.  This is the fastest code for polarizability
+                        and includes the solvent effect if ISCRF . NE.0
+                        The states included are determined by the CI
+                        generating line.  There is no selection as in
+                        POLAR = 2
+
+              = 0  <--- This is the default: do not calculate pol-
+                        arizabilities.
+         If using the frequency dependent Kanis code, these frequencies
+         can be specified in the $CONTRL block.
+
+ $CONTRL
+  .
+  .
+     FREQ(1) = 0.000  0.650  1.12   1.30  <-- up to 6 in ev.
+     FREQ(1) = 0.000  0.000               <-- only static polarizabilities.
+     FREQ(1) = 0.000  2.000  -1.000       <-- six frequencies will
+                                              be calculated from 0.0ev
+                                              to 2.00ev in equal steps.
+
+     If no frequencies are given, the 3 defaults are 0.0, 0.6491 and 1.17 ev
+
+--------------------------------------------------------------------
+---- Section VII: Spin-orbit calculations---------------------------
+--------------------------------------------------------------------
+ 
+
+ $TITLEI
+
+     Cerium Oxide     Double-group C.I.  + spin-orbit
+     triplet CI  from Triplet ground state
+
+ $END
+
+ $CONTRL
+
+ SCFTYP  =  ROHF     RUNTYP = CI       ENTTYP  =  COORD    UNITS  =   ANGS    
+ ASYM    =  C2V
+
+ INTTYP  =       1   APX     =   INDO/1
+ NEL     =      10   MULT    =       3   ITMAX    =     40
+ SCFTOL  = .000010   SPNORB  =       1   VEC      =      9
+
+! THE ALLOCATION FOR THE CISIZE BELOW = 14, IS AN ESTIMATE OF THE NUMBER
+! OF DETERMINANTS NEEDED FOR CALCULATING OSCILLATOR STRENGTH
+! IF THIS IS A PROBLEM KEEP UNIT = MOMENTS EXTERNAL
+
+ DYNAL(1) =  0    0   1   0   1  14  20
+
+! ***** C.I. size information *****
+
+   CISIZE=10 ACTSPC=20
+
+   ONAME =   CeO1
+
+! *****   ROHF information *****
+
+   NOP    =        8   NDT       =     0
+   FOP(1) =  8.000000  1.000000  1.000000
+   MIM(2) =   7    1
+   AR(1)  =  1.000000  0.000000  1.000000
+   BR(1)  =  1.000000 -1.000000  1.000000
+
+! ***** Interaction factors *****
+
+   INTFA(1) =   1.00000  1.26700  0.58500  1.00000  1.00000  1.00000
+
+! ***** Beta Values *****
+
+   LBETA(1) =   58         8         0        0       0        58        58
+    BETA(1) =   -1.00000 -21.00000  00.00000 0.00000  0.00000 -6.00000 -12.00000
+
+ $END
+
+ $DATAIN
+
+  0.000000  0.000000  0.000000   58
+  0.000000  0.000000  1.821000    8
+
+ $END
+
+ $CIINPU
+
+! ***** Configuration Interaction specification *****
+
+!  N1 REF  ROOTS MULT NATO DEN NOPT FROM->TO  FROM->TO
+   50   1   50    3    0    0    0    1    4    1   50
+! 50=DGCI  1 = 1 REF,  50 states, 3=triplet, 0,0,0 then transition moments
+! 1 t0 4 into 1 to 50 (or max number in this case)
+    0
+!  0  NO THREHOLDS ARE OPERATIVE HERE
+    4    1    2    3    4                                          
+! THIS IS 4 IRREPS, THE NEXT VALUES ARE ORDER OF COMPONENTS OF ANGULAR
+!   MOMENT INTEGRALS, AND LEAVE THIS ALONE. THE LAST VALUE IS THE NO OF
+!   IRREPS CONSIDERED.
+   58  0.126217   08  0.018846   00 00.000000   58  0.045998   58  0.076995
+! THE ABOVE IS THE RESET OF SPIN ORBIT FACTORS "ZETA" IF DESIRED, THREE P, 
+!    THEN D, THEN F: ATOMIC NUMBER THEN ZETA, IN ATOMIC UNITS
+! --------SYMMETRY SET 1
+!KSYM NBCFG NCFGIN NCFGDE MXOP KORBOC  SEE POWER USERS SECTION
+    1    1    0    0    2    0 
+! SYMMETRY 1, NO. OF BASIC CONFIGS = 1, NO. OF CONFIGS INSERTED,
+!  No. of CONFIGS DELETED, 2=MAX No. OF OPEN_SHELLS, KORBOC,
+!  SEE CIGNLS IN POWER USERS SECTION
+2222100000010000000011
+!<---MO's--------->|<--EXCITATION LEVELS 
+! FIRST BASIC CONFIGURATION HAS TWO ELECTRONS IN THE FIRST-FOURTH
+! MO, THEN 1 IN THE FIFTH AND 1 IN THE 12TH MO. THERE ARE 20 MO'S.
+! THERE ARE TWO GROUPS OF EXCITATIONS GIVEN AFTER THIS. ONLY SINGLES
+! IN THE FIRST GROUP, AND ONLY SINGLES IN THE SECOND GROUP. THE NEXT 
+! LINE SPECIFIES THE ACTIVE ORBITAL IN EACH GROUP.
+! SEE SUB GENCFG IN POWER USERS SECTION
+  5  6  7  8  9 10 11 -1
+! THE FIRST GROUP SINGLY EXCITES ALL ORBITALS IN 5-11. NO EXCITATIONS
+! IN THE SECOND GROUP.
+! 5  6  7  8  9 10 11 12 -2 WOULD BE ALL DOUBLE EXCITATIONS IN THIS GROUP
+!                        OF ORBITALS
+! SEE SUB GENCFG IN POWER USERS SECTION
+!NROOTS ICIWRT 
+   50    1    0    0    0    0    0 
+! FOR THE ABOVE SEE CIDG: 50 = MAX NO. OF STATES, THEN ANALYSE THE CI (=1).
+! THE OTHER OPTIONS ARE EXPLAINED IN THE POWER USERS SECTION BUT ARE EASILY
+! DEFAULTED TO ZERO.
+   -1    0
+! --------SYMMETRY SET 2
+    2    1    0    0    2    0 
+2222100000010000000011
+  5  6  7  8  9 10 11 -1
+   50    1    0    0    0    0    0 
+   -1    0
+! --------SYMMETRY SET 3
+    3    1    0    0    2    0 
+2222100000010000000011
+  5  6  7  8  9 10 11 -1
+   50    1    0    0    0    0    0 
+   -1    0
+! --------SYMMETRY SET 4
+    4    1    0    0    2    0 
+2222100000010000000011
+  5  6  7  8  9 10 11 -1
+   50    1    0    0    0    0    0 
+   -1    0
+
+ $END
+
+  Some comments about output:
+ 
+  Some knowledge about the double group will be needed to interpret
+  these results and to assign state symmetries. Recall that for states
+  of half-integral spin (or J) the results that are meaningful occur
+  in irrep #5 of the double group.  For integral values of spin (J)
+  the meaningful results occur in the first four irreps; ie, those
+  that would appear in the normal group.
+
+-------------------------------------------------------------------
+There are two ways to do spin-orbit calculations. The above uses the
+double group formalism of Pitzer (see Pitzer, Roesch and Zerner). It
+is effective for small molecules and works over determinants, thus 
+including all possible spin mixings. The second method uses the Rumer
+formalism of Manne and Zerner as developed by Kotzian, Roesch and Zerner
+and mixes the spin states of interest with the states of the next highest
+multiplicity. In the example that follows singlets are mixed with
+triplets.  This is a much faster proceedure.
+
+------------------------------------------------------------------
+
+ $TITLEI
+ 
+    Rumer CI with spin-orbit on water.
+    ******    NOT FOR EXPORT ********
+
+    Configuration Interaction roots
+
+   E(  1)=  -12.34235069  DELTA ENERGY(CM-1)=       0.0
+   E(  2)=  -12.28911576  DELTA ENERGY(CM-1)=   11683.8
+   E(  3)=  -12.27087987  DELTA ENERGY(CM-1)=   15686.1
+   E(  4)=  -12.19520501  DELTA ENERGY(CM-1)=   32294.9
+   E(  5)=  -12.18698504  DELTA ENERGY(CM-1)=   34099.0
+   E(  6)=  -12.16225904  DELTA ENERGY(CM-1)=   39525.8
+   E(  7)=  -12.16175970  DELTA ENERGY(CM-1)=   39635.4
+   E(  8)=  -12.15182784  DELTA ENERGY(CM-1)=   41815.2
+   E(  9)=  -12.14167006  DELTA ENERGY(CM-1)=   44044.6
+   E( 10)=  -12.08022492  DELTA ENERGY(CM-1)=   57530.3
+   E( 11)=  -12.02513743  DELTA ENERGY(CM-1)=   69620.7
+   E( 12)=  -12.01461330  DELTA ENERGY(CM-1)=   71930.4
+
+ $END
+ 
+ $CONTRL
+ 
+   SCFTYP = RHF    RUNTYP = CI
+   DYNAL(1) = 0    2    1    0   0   200   80
+   IAPX = 3   INTTYP = 1
+! SPNORB = 1 FOR RUMER SPIN ORBIT TREATMENT.  N1 IN CIINPU = 5 FOR RUMER
+! VALENCE BOND CONSTRUCTION, = 105 FOR BRANCHING DIAGRAM CONSTRUCTION.
+! (THIS USES A SCHMIDT ORTHOGONALIZATION ON THE RUMER STRUCTURES IN THE
+!  GENEOLOGICAL ORDER)
+   SPNORB = 1
+   NAT = 3   NEL =  8  MULT  1  
+   SCFTOL = 0.00001    ITMAX=20
+   UNITS = BOHR
+ 
+ $END
+
+ $DATAIN
+ 
+  0.000000  0.000000  0.000000    8
+  0.000000  1.513900  1.171700    1
+  0.000000 -1.513900  1.171700    1
+ 
+ $END
+ 
+ $CIINPU
+ 
+    5    1  20    3    0    0    0    1    1    1   5
+-60000.000  0.000000
+    1
+! THESE RESET SPIN ORBIT ZETA PARAMETERS.  FIVE VALUES CAN BE SPECIFIED BY
+! GIVING THE ATOMIC NUMBER AND THE NEW VALUE OF ZETA IN I5, F10.6 FORMAT.
+! UNITS ARE EV.  THE FIRST TWO ALLOW THE VALENCE P-ORBITAL ZETA OF THE
+! SPECIFIED ELEMENT TO BE CHANGED, THE NEXT TWO CHANGE D-ORBITAL ZETA'S,
+! AND THE FIFTH ALLOWS AN F-ORBITAL ZETA TO BE CHANGED.
+! FORMAT.FIRST TWO ARE P, THEN D THEN F.
+! THIS EXAMPLE SPECIFIES ZETA FOR THE 6P ORBITAL OF CERIUM, THE 2P ZETA
+! FOR CARBON, AND THE 5D ZETA FOR CERIUM:
+   58  0.126217   06  0.018846   58 00.045998   00  0.000000   58  0.0
+   
+! THIS EXAMPLE SPECIFIES THE D-ORBITAL ZETA OF IRON:
+   00  0.000000   00  0.000000   26  0.020000   00  0.000000   00  0.0
+! LEAVE A LINE OF:
+!   0  0.000000 FOR DEFAULT ZETA'S TO BE USED.
+! THE NEXT TWO LINES ARE FOR THE TRIPLET CI
+    1    4    4
+   21    1    4    5    6
+! THE NEXT TWO LINES ARE FOR THE SINGLET CI
+    1    4    4
+   21    1    4    5    6
+ 
+ $END
+
+To reduce the amount of memory allocated, you can use SPNORB = 2.
+There are 9 singlets, and 8 triplets.
+
+ $CONTRL
+
+....
+
+ SPNORB = 2  SODIM(1) = 0 9 8
+ ACTSPC = 6
+...
+ $END
+
+--------------------------------------------------------------------
+---- Section VIII: Power users section -----------------------------
+--------------------------------------------------------------------
+ 
+ Additional switches for $CONTRL section
+ 
+---- Print options -------------------------------------------------
+
+   IPRINT = 0 <<<<< for normal operations                          
+          = 1 ----- Prints H, F, COULOMB, and other calculated matrices
+          =-1 ----- for reduced output.
+
+---- Molecular volume and area -------------------------------------
+
+     VOLTYPE = GEPOL uses tesserae and gepol93 to calculate surface
+              accessible area and volume. 
+     RADTYPE = MASS     radius from mass density, default
+               MAXDIM   radius from maximum distance/2 + 0.5Angs
+               RAVE     radius from average effective distances from
+                        center of solute to surface of solvent.
+     If a radius is = 0.0 in the $SCRFIN block, it RADTYPE = MASS
+                 is > 0.2 in this block, it overwrites the mass density
+                 option and the MAXDIM option, but will be used in RAVE
+
+---- G Factors -----------------------------------------------------
+
+      GFAC = 1  Create file for g factor program (ONAME_gfac.DAT)
+           = 2
+ 
+---- Vectors -------------------------------------------------------
+
+      VEC =  0 <<<<< DEFAULT Normal calculation                    
+          =  8 ----- Read MO coef from file with extnsion .vec8 , 
+                     first BETA, Then ALPHA
+          =  9 ----- Store MO coef on file with extension .vec9 , 
+                     Every 5th cycle
+                     New vectors will be written in format suitable
+                     with reading later using option 8
+          = 10 ----- Read MO coef from file ONAME.vec8 to start and store MO 
+                     coef every 5th cycle on file ONAME.vec9
+
+---- Effective core potential---------------------------------------
+
+     VCORE = 1 for the Zerner effective core potential
+     
+---- Moessbauer section --------------------------------------------
+
+     MOSSB = 1 calculate Moessbauer spectra, Nuclear Quadrupole
+               Moment of Fe set to 0.187
+             2           same with 0.210
+     
+---- Memory Management ---------------------------------------------
+
+      DEBUG0 = .TRUE. Print names of subroutines being called to unit
+                0 = screen.  Default = .FALSE.
+      DEBUGM = .TRUE. Print memory allocation and deallocation information
+                Default = .FALSE.
+      MEMINI = .TRUE. Initialize dynamic memory to standard patterns
+                (all reals are 1.23456789012345) Default = .FALSE.
+      TRACELBL = unit as AOINTS, MOMENTS, etc, will track all io
+                 on this unit.
+ 
+---- Electrostatic potentials --------------------------------------
+
+   IELEC = 0 <<<<< DEFAULT                     
+         = 1 ----- FILE 23 XXXX.inb is cataloged for calculation
+                   of electrostatic potentials using ELESTA program
+ 
+---- Molecular Orbital Plot-----------------------------------------
+      A molecular orbital plot appears below the MO eigenvector printout.
+      This plot can be changed
+      NPLOT = Number of lines in the plot.  The default is 50, and this
+              fits on one page of printout.  This can be extended up to
+              200 lines, which is often useful for transition metal 
+              complexes which have low lying d orbitals
+      NBELOW = Number of orbital to be shown below HOMO-LUMO gap. The
+              number of virtual orbitals plotted is always 10. The default
+              value is NBELOW = 20; ie, 10 virual and 20 occuppied
+              mo's are plotted on 50 lines.
+      $CONTRL
+        .
+        .
+        NPLOT = 50     NBELOW =  20
+        .
+        .
+      $END
+
+---- Triplet parameterization --------------------------------------
+
+   ITRIP = 0 <<<<< DEFAULT             
+         = 1 ----- Triplet parameterization.  This is an alternate
+                   parameterization.  See J.E. Ridley & M. Zerner 
+                                 Theoret. Chim. Acta, 32,111,(1973)
+                                 Theoret. Chim. Acta, 42,223(1976)
+ 
+---- Configuration mixing for metals -------------------------------
+
+   ISW2 = 0 <<<<< Valence bond mixing of configurations DEFAULT  
+        = 1 ----- D(n-1)S(1) configuration of the metal
+        = 2 ----- D(n-2)S(2) configuration of the metal
+        = 3 ----- D(N) configuration of the metal.  Only available
+                  for the second transition series.
+        = 4 ----- Input extent of configuration mixing
+                  First give atomic no. than amount of D(N-2)S(2),
+                  then D(N-1)S(1), then D(N) if any. 
+                  Two sets max in 2(I5,3F10.6)
+ 
+        This option has its own group in the data set -
+        The format is I5,%F10.6, and if one line is given, two will be
+        expected. Atomic number, then the five mixing values, and these 
+        must add up to 1.000000. 
+
+       For the main transition series
+         COFSQ2(ATOMIC NO., TYPE)  TYPE = 1, 2, 3, 4 FOR
+         D(N-1)S(1),  D(N-2)S(2), D(N), AND D(N-1)SP RESPECTIVELY.
+
+       For the lanthanides:
+         TYPE    1 = F(N-3)D S(2) : TYPE    2 = F(N-2) S(2)
+
+       FOr the actinides:
+         TYPE =1, 5F**(N-3) 6d 7S**2: TYPE=2, 5F**(N-3) 7P 7S**2:
+         TYPE =3, 5F**(N-4) 6d**2 7S**2: TYPE=4, 5F**(N-4) 6d**3 7S:
+         TYPE =5  5F**(N-2) 7S**2
+
+        $MIXCOF
+    Z  0.421000  0.220000  0.220000  0.100000  0.040000 <-Atomic number,
+    0  0.000000                                           Then the mixing
+                                                          coef. Two lines
+          .                                               are required.
+        $END
+
+---- Output control ----------------------------------------------------
+
+Add a section $OUTPUT, which contains keywords. Various parts of the
+program print additional information depending on these keywords.
+
+Recognized keywords are:
+
+   ALL             Changes the default value for IPRINT to 1.
+
+   ALL_VARIABLES   Prints all variables that the user could have assigned
+                   in $CONTRL, no matter whether they actually where input.
+                   This is a good way to study the default values.
+
+   ANGLES          Prints all bond angles in those cases where there are
+                   more than 100 atoms.
+
+   CIMATRICES      Prints the CI matrix and the Overlap Matrix between
+                   CSF's.
+
+   CIBONDS         Analyzes the bond orders of excited states from N9 
+                   to N8 of the CI section, and will also estmate the
+                   width of transitions between N1 and N10 thru N11.
+
+   CIVECTORS       Print the entire C.I. vector array. CAREFUL! This may be
+                   huge!
+
+   CONFILE         Creates an output file with .con extension and places
+                   atomic connection informatino on it.
+
+   DIHEDRAL        Prints all dihedral angles.  For a large molecule this
+                   could be quite lengthy.
+
+   DISTANCES       Prints the enetire Bond length matrix for each cycle
+                   of a geometry search.
+
+   DIPOLEMAP       Prints the dipole matrix elements between CI states.
+
+   GEOM_ITERATIONS Prints the detailed information on a geometry search.
+
+   HMATRICES       Prints all one-electron matrices
+
+   MIN             Changes the default value for IPRINT to -1.
+
+   MOS             Prints the detailed MO's. This could be lengthy
+                   The default prints only the largest components of 
+                   each MO.
+
+   NO_CORE          Do not calculate the inner-shell core mo's
+
+   NO_OPTFILE      By default, Zindo creates an output file with .opt 
+                   extension and puts geometry optimisation summary in it.
+                   By specifying this keyword, the .opt file is deleted
+                   at the end of run.
+
+   OVERLAP         Prints the Overlap matrix
+
+   PCM_DEBUG       Prints debug information for the PCM solvent model
+
+   PCM_VISUAL      Prints information from the PCM solvent model, which
+                   can be used to visualize the cavity surface and point
+                   charges
+
+   PRNT_SPINDN     Calculate and print the spin densities for an ROHF,
+                   ROHF/CI or UHF function
+
+   PUHF_MULPOP     Calculate and print the Mullikan population for
+                   projected UHF functions.
+
+   PUHF_NOAISO     ?
+
+   RPA_OUTPUT      For an RPA calculation, this will cause extended
+                   output over the states.
+  
+   SCF_ITERATIONS  Prints additional information about SCF iterations.
+
+   SOVEC           Prints the entire Spin-Orbit vector, else only the
+                   major components.  The full output vectors can be
+                   huge!
+
+   SUMMARY         Prints an one-line summary at the end of run, including
+                   SCF energy and dipole moment. Can be useful for processing
+                   many output files with 'grep'.
+
+   SUMRYFILE       Creates a file with .smry extension and puts geometry
+                   optimisation summary into it.
+
+---- Point charges -------------------------------------------------
+ 
+        $CONTRL
+          .
+          PTCG = N       
+          ...
+        $END 
+
+     If point charges are used to modify the one electron matrix,
+     the number of these point charges is N. The
+     coordinates are then given under group as:
+
+
+         $PTCHGI
+            A title line of 70 or less symbols - you MUST give a title!
+            The Screening constant (aa) and a bulk dielectric (eps).
+            in 2F10.6.  Leave zero if no dielectric screening.
+            A negative value of aa sets e = abs(aa)*R. R in a.u.
+            A zero value of aa, and a value of eps, sets e = eps.
+            Else e = eps -(eps-1)*exp(-aa*R**2)
+
+           
+            The coordinates in angstroms, X, Y, Z, and the
+            'atomic no.' of the pt. charge,and the charge,
+            in 3F10.6,I5,F10.6. one pt per line until all
+            pts are given. If the 'atomic no.' is zero a true pt.
+            charge is considered. if not a potential will be
+            generated as if the pt. were an atom of given charge
+            and atomic no.
+           
+         $END
+
+         For example: 
+
+         $PTCHGI 
+
+          This is a test of point charge option
+          0.00000   0.00000                           <--- aa and eps   
+          0.000000  0.000000  3.000000    0  1.000000 <--- a positive pt.
+          0.000000  0.000000 -3.000000    0 -1.000000 <--- a negative pt.
+
+         $END
+
+
+
+     Note that a limited no. of pt. charges can also be added as atoms.
+     In such a case they cannot be screened.
+ 
+---- Other  options  ---------------------------------------------
+
+    AISO =  N    The magnetic isotropic hyperfine splitting constants
+                 will be calculated for state N for ROHF-CI wavefunctions,
+                (The authors favorite method.), or for the HF-SCF reference
+                for the UHF, SUHF and PUHF methods. For the PUHF case the
+                pure S=Ms multiplet is project out of the UHF reference and
+                thus the densities are of those for a proper spin state. 
+                (They are variational, but this wave function is no longer 
+                stationary with respect to the SCF variational parameters.)
+                (KEYWORD ESR or EPR)
+
+     NMR =    0 ----- NMR option This is FLORG/LORG and MCZ doesn't
+                      like the implementation
+     SPNORB = 0 <<<<< DEFAULT for normal calculations    
+            = 1 ----- Spin Orbit calculation will be performed.
+                      Both a SINGLET and a TRIPLET CI are required
+            = 2 ----- This option allows to specify the actual size of the
+                      CI for the three multiplicities considered. It 
+                      requires the input switch SODIM(1) which contains
+                      the size of the CI for the multiplicity as specified
+                      by N4 in the CI switches line (SODIM(2)), for 
+                      MULT = N4-2 (SODIM(1)), and MULT = N4+2 (SODIM(3)).
+                      SODIM(2) replaces CISIZE in this case, but do not
+                      forget to specify ACTSPC!
+ 
+---- Self Consistent Reaction Field: -------------------------------
+
+     ISCRF = 0 <<<<< DEFAULT for normal calculations          
+           = 1 ----- Self Consistent Reaction Field. Theory A for the
+                     Ground state, theory C for the relaxation of
+                     the excited state.
+           = 2 ----- Self Consistent Reaction Field. Theory A for the
+                     ground state, but C1 (mean field) for the relaxation
+                     of the excited state.
+           = 3 ----- Static electric field or FF = 1                    
+           = 4 ----- Our version of the PCM Solvent model.
+                     This option enables processing the data block $GEPOL
+                     (optional).
+           = 5 ----- SCRF on excited states (Absorbtion spectra)
+			fully relaxed theory, as in ISCRF =2 ,A
+           = 6 ----- SCRF on excited states (Absorbtion spectra)
+			approximate   theory, as in ISCRF =1 , B.
+           = 7 ----- SCRF on excited states, mean field, A1
+           = 8 ----- SCRF on excited states, mean field, B1
+           = 9 ----- SCRF multicavity, theory A
+           = 10 ---- SCRF multicavity, theory B 
+           = 11-16 - Infinite relaxation for absorption or emmision
+                     -  see below.
+           = 19 ---- SCRF multicavity/ellips, theory C
+           = 20 ---- SCRF multicavity/ellips, theory C1
+           = 30 ----  COSMO - NOT FUNCTIONAL
+           = 40 ---- reserved for Piet van Duijnen's Direct Reaction Field 
+                     (not part of current Zindo)
+           = 50 ----  Amsol model
+            
+ 
+     If a self consistent reaction field calculation is to be
+     performed then additional information is required, in FORMAT
+     3I5,6F10.6.
+
+       ISCRF  = As above, repeat this value.
+       NMU    = The number of terms in the multipole expansion.
+                Default is 1, the dipole term.
+       IDISP  = Is this a calculation for dispersion? If not 
+              = 0  no dispersion
+              = 1 the solvent calculation, save the manifold of
+                excited states under SOLNAM_solvent.file.
+              = 2 use the above file in calculating the spectrum
+                of the present solute in the above solvent, including
+                dispersion.
+       A0     = Cavity radius in angstroms: if this is set to
+                zero, mass density will be used to determine A0.
+       EPS    = Static dielectric constant for SOLVENT
+                Default = 78.5(water)
+       XND    = Refractive index for SOLVENT
+                Default = 1.33287(water)
+       DENSV  = Density of the solvent (g/cc), Can be ignored, unless
+                dispersion is calculated. Default = 1.0(water)
+       AMUSV  = Molar mass of solvent (amu), Can be ignored, unless
+                dispersion is calculated. No default.
+       DIPSV  = Dipole moment of solvent, Can be ignored
+       FNODEN = Solvent reduced number density, from Piorrotti scaled
+                particle theory. This is defaulted to 0.44 (spherical)
+                unless the solvent is water, than 0.371. This value
+                is used to calculated the cavitation energy.
+
+               
+       If ISCRF = 3 then an addition line is required that contains the
+                    field strength in au., with the X, Y, Z components.
+		    1au = 5.14193*10**11 Volts/meter.
+                    Formatted as 3F10.6
+
+   For example:
+
+       $CONTRL
+      ...
+       ISCRF = 1
+      ..
+       $END
+
+       $SCRFIN
+
+          1    2   0  2.000000 78.500000  1.332870<--The solvent is water
+                                                 The cavity of the solute
+       $END                                      molecule has radius 2.0A
+
+  or
+       $CONTRL
+      ...
+       ISCRF = 3
+  or   FF = 1
+      ..
+       $END
+
+       $SCRFIN
+          3    
+        0.000000  0.000000  0.020000           <----A field of 0.02 a.u. in
+       $END                                         the Z direction
+  or
+       $CONTRL
+       ....
+        ISCRF = 10
+       ....
+       $END
+
+       $SCRFIN
+        THEORY = B                    <--- Theory B for excited states
+        EPS = 3.0
+        N_D = 1.414
+        CAVITY=ELLIPS  RHO=1.0        <--- an ellipse, generate shape
+                                           automatically, assume density
+                                           equals 1. for the volume.
+					   The default cavity type is SPHERE.
+     $END
+
+       $CONTRL
+      ...
+       ISCRF = 16        <-----C1 relaxed theory
+      ..
+       $END
+
+       $SCRFIN
+
+          16   0   0  2.000000 78.500000  1.332870<--The solvent is water
+           1   2                                  <-- The state 'n'  
+                                                      fully relaxed, state 'm'
+                                                      only electronically 
+                                                      relaxed. In the example
+                                                      n =1 the grd state, and 
+                                                      m = 2, corresponding to
+                                                      absoprtion.
+
+       $END                                      molecule has radius 2.0A
+
+       $CONTRL
+       ....
+       ISCRF = 50      <----  AMSOL-CM2 THEORY
+       ....
+       $END
+
+       $SCRFIN
+
+        JSCRF=1       <---- Refers to parameters for a given model
+        IDOSOL=0      <---- = 0 first gas phase, then solvent calculation
+                            = 1 only the solvent calculation
+        ICMD=13       <---- Can be defaulted 11 = AM1, 12 = PM3, 13 = INDO
+        EOPT=1.80     <---- Optical dielectric, also can be given as N_D
+                            that is, EOPT = N_D**2 (N_D = 1.34 or EOPT=1.80)
+        DIELEC=78.3   <----  Bulk dielectric
+        ICREAD=0      <---- { power users options to reset parameters,
+        ICSAVE=0            { see setsol.f 
+       $END           
+
+In the $SCRFIN block, Key words may also be used to replace formatted input:
+    a) see above   -- summarized
+        First line; in (format 3I5,6F10.6,F5.3)
+        iscrf,nmu,idisp,a0,eps,xnd,densv,amusv,dipsv,fnoden
+        if iscrf=3 then the next line contains as 3f10.6: dipgr(1:3)
+        if iscrf =  11-16, the next line contains as 2I5: iexstate, and
+        jexstate
+        if idisp =1 or 2, the next line contains an assignment in the form:
+        SOLNAM=XXXXX where XXXXX is the name of the solvent file for
+        dispersion calculation.        
+
+ $SCRFIN
+    2    2    2  0.000000  2.280000  1.500000  0.876500  78.1100
+    SOLNAM = benzene
+ $END                  
+        The above is an example of a calculation in which ISCRF = 2,
+        using dipole and quadropole, default radius of the solute to
+        mass density, dielectric constant, index of refraction, density
+        of the solvent(benzene) = 0.8765, and the molar mass of benzene 
+        is 78.11 amu.  Note that the benzene_solvent.file is already
+        present, calculated from a previous benzene CI calculation using
+        See RADTYPE below.
+
+ $SCRFIN
+    2    2    1  0.000000  2.280000  1.500000  0.876500  78.1100
+    SOLNAM = benzene
+ $END                  
+        
+     b) new, names-based version. The general format is the same as
+        for $CONTRL block (Name-value pairs). If the first
+        non-blank character in $SCRFIN is numeric, old format is
+        assumed, else new format is assumed.
+
+     PLEASE NOTE THAT NOT ALL COMBINATIONS OF KEYWORDS WORK. THE KEY-
+     WORDS MARKED WITH (*) ARE GOOD FOR THE MULTI-CAVITY/ELLIPSOIDAL
+     (THE SCRF-2 PACKAGE, ISCRF=9,10,19,20) ONLY!
+
+      FF = 0    DEFAULT
+      FF = 1    static field as above.  With this option a static
+                electric field and the self consitent reaction field 
+                can be simultaneously applied. The ISCRF = anything
+       $SCRFIN
+
+          2    2   0  2.000000 78.500000  1.332870<--The solvent is water
+        0.000000  0.000000  0.001000             The field is 0.001 along z
+
+       $END      
+      
+       $SCRFIN
+
+         THEORY = A
+         CAVITY = MULTI
+         EPS = 80.0
+         N_D = 1.34
+         NMOLEC = 2
+         A0(1) = 0.37  1.00
+         FRAG(1) = 1  2 
+         OVERLAP = .F.
+
+       $END
+
+     The following variable names are recognized in the new format:
+
+     ISCRF =  sets the default value for ISCRF. Please note that:
+              1) ISCRF in $SCRFIN overrides any value assigned in $CONTRL
+              2) THEORY, CAVITY, and RELAX are mutually exclusive with ISCRF
+
+              The recommended practice is to use only ISCRF, _or_ use the
+              combination of the model-specific keywords as described next:
+
+     THEORY=  A B C A1 B1 C1   This sets the basic theory. Default=A
+              AMSOL, DRF, COSMO
+     CAVITY=  SPHERE ELLIPS MULTI PCM  This sets the shape of the cavity.
+              Default=SPHERE
+
+     RELAX=   NONE INF-ABS INF-EMI Type of solvent relaxation for solvent
+              calculation. NONE is the default; INF-ABS is for infinite
+              relaxation, absorbtion; INF-EMI is for infinite relaxation,
+              emission.
+
+     NMOLEC=  Number of molecules (fragments, cavities) for the multi-cavity
+              theory; ignored otherwise.
+
+     NMU=     Highest multipole moment to be considered in reaction field.
+              0=charge only, 1=dipole, 2=quadrupole, 3=octupole, 4=hexa-
+              decapole.
+	      default=1
+
+     EPS=     The dielectric permittivity of the medium. For multi-cavity,
+              this may be input as an array, e.g. EPS(1)=78.5 EPS(2)=30.0
+
+     N_D=     The index of refraction of the medium. For multi-cavity, this
+              may be input as an array, just like EPS.
+
+     AMUSV=   Molar mass of solvent in a.m.u.
+
+     RHO=     Density of the solute (g/cm**3)
+
+     DENSV=   Density of the solvent (g/cm**3)
+
+     DIPSV=   Dipole moment of the solvent
+
+     FNODEN=  The number density of the solvent, defaults to 0.44
+              (hard spheres)
+
+     A0=      Radius or radii for the cavity(es). For a single spherical 
+              cavity, just the radius. For multi-cavity, input as an array
+              the radii for each cavity: a0(1)=2.5 3.4 6.7  . For ellipsoidal,
+              input the three half-axes in the order (x,y,z) as an array.
+              See also RADTYPE below.
+
+     FRAG(1)= Array designating atoms to specific fragments. For example,
+              if atoms 1 and 3 belong to fragment 1, and atom 2 belongs
+              to fragment 2, input as FRAG(1)=1 2 1
+ 
+     ALTDEN=  A logical value, .T. if an alternate mass-density formula 
+              is to be used in cavity size calculations. Default=.F.
+	
+     OVERLAP= A logical value, .T. if cavities are allowed to overlap in
+               multi-cavity model. Default=.F.
+
+    
+     MULTIPLY= A factor used to multiply all cavity sizes by. This can be used
+             for studies of cavity size; it is applied both to user inputted
+             and to auto-calculated cavities, including the PCM model.
+             Default=1.0 .
+
+     CENTER= MASS CORE VOLUME - which factor is used to locate the centres
+             of cavities for the multi-cavity & ellispoidal approcahes.
+             Dipole integrals are re-calculated relative to these centers.
+             default=MASS .
+
+     IDISP=  Flag for dispersion calculations:
+             0 - ignore dispersion (default)
+             1 - estimate dispersion (calculating solvent)
+             2 - use dispersion results from a previous run (calcu-
+                 lating solute)
+             For options 1 and/or 2 the following data are necessary:
+     SOLNAM= name of the 'solvent file' where information about the states
+             is stored.
+
+     IEXSTATE= The number of the selected excited state.
+              This is needed for the infinite realaxed models on
+              state IEXSTATE.
+
+
+----  Polarizable Continuum Model for Solvation ----------------
+   
+   If the Polarizable Continuum Model for solvation is used, an additional
+   set of keywords is recognized in $SCRFIN. 
+
+   Reminder: ISCRF=4 for PCM.
+   If the PCM model is used, the electrostatic potential will be calculated
+   from the one center charges and dipoles as default.  If only the charges
+   are used the keyword 
+     ZDO_CHARGES 
+   must be used. The default is 
+     POINT_DIPOLES.
+   Mulliken charges can be used in stead of the ZDO moment expansion, and this
+   is  
+     MULLIKEN
+   either ZDO_CHARGES, or MULLIKEN or PINT_DIPOLES 
+
+   Keywords:
+
+        LOOP=INSIDE (def) - the surface charges are converged as part 
+                            if the SCF procedure
+        LOOP=OUTSIDE      - looping around calls to SCF procedure in
+                            order to converge the charges
+
+        SELFPOL=.T. (def) - self-polarization is performed
+        SELFPOL=.F.       - self-polarization is omitted
+
+        SELFLOOP=.T.      - inside each PCM call, internal loops are
+                            used to self-polarize charges
+        SELFLOOP=.F. (def) - the self-polarization of the charges is
+                            assumed to take place as part of the overall 
+                            procedure
+         
+        FIELD=MULLIKEN    - use Mulliken charges to generate field
+                            This forces LOOP=OUTSIDE
+        FIELD=ZDO         - use ZDO charges to generate field
+        FIELD=ZDO+DIP     - use ZDO charges + point dipoles to generate
+                            field (default)
+
+        NORMALIZ=BEFORE   - charges are renormalized before the self-
+                            -polarization procedure is started.
+        NORMALIZ=AFTER(def)-charges are renormalized after being
+                            self-polarized.
+        NORMALIZ=NEVER    - charges are never renormalized
+
+        Please note that the default is not to loop around neither
+        inside, use ZDO+dipole field, include self-polarization, and
+        normalize after looping (on every cycle in case of in-loop PCM)
+
+   Please note that Mulliken charges are available only with loop=outside
+   approach at this time.
+
+   The additional input block, $GEPOL, may be present to directly interact
+   with the GEPOL93 cavity-generation algorithm. The options are documented
+   in the GEPOL93 manual and source code. No blank lines or free format;
+   the block is scanned starting from the very first line by GEPOL itself.
+
+   A typical set may include:
+
+ $GEPOL
+LPRIN
+TESSE
+ $END
+
+----  COSMO solvent Model --------------------------------------
+
+	The COSMO Solvent model was implemenmted into ZINDO by
+Greg Pearl, Andras Klamt, and Michael Zerner...  This Solvent model
+is still being tested and should not be used for Reseach...  06-21-97
+
+	The COSMO solvent model is set with ISCRF = 30 or theory = COSMO
+Then using the normal solvent model switchs allowed in the SCRFIN, in
+addition to these switches there are 2 new keyword used specifically 
+by COSMO.
+
+NSPA		--	Number of Segments per Atom
+			DEFAULT (NSPA = 42)
+
+NPPA		--	Number of Basic grid points per atom
+			DEFAULT (NPPA = 1082)
+
+COSMO Currently is not prop[erly implemented into the memory managment
+of ZINDO and therefore requires a minimum of 210 Meg of RAM under SunOS2.6
+The current implementation of COSMO is also extremely slow using the
+defualt value for NSPA and NPPA...
+
+----  Projected UHF --------------------------------------------
+
+
+    there are 7 additional input switches that append what RUNTYP=PUHF
+    calculates/reports. these are PUHFST and AISO found in the $CONTROL
+    section of the input deck and, PUHF_MULPOP, PRNT_SPINDN, PUHF_NOAISO
+    and PUHF_OVLAP and PUHF_BONDOR found in the $OUTPUT section of the 
+    input deck.
+
+    a straight RUNTYP=PUHF run will output the weights and energies of all
+    multiplets whose weight > 10**(-8), as well as <S**2> for the unprojected
+    UHF wavefunction. (regardless of the values of the 4 output control
+    switches the weights and <S**2> are always reported.)
+
+    PUHFST:
+    this switch allows the selection of which multiplet/s to analyze by
+    energy. i.e. PUHFST=ABCD will select multiplets AB through CD to be
+    analyzed by energy. e.g. PUHFST=0103=103=0301=301 will cause multiplets
+    1-3 to be analyzed by energy, or PUHFST=02=2 will cause multiplet 2 to
+    be so analyzed. if PUHFST=-1 then only the weights and <S**2> are
+    reported. the program default is PUHFST=0    (for larger systems the
+    determination of the energy can be very time consuming, PUHFST is used
+    to eliminate the needless computation of unwanted energies)
+
+    PRNT_SPINDN:
+    this switch is dependent on AISO and IPRINT, if AISO is set then the
+    spin density matrices for the components requested by AISO will be
+    printed out if PRNT_SPINDN is found in the $OUTPUT section of the input
+    deck. If(IPRINT.GE.1) then the full matrix is written out,
+    if (IPRINT.LE.0) then only the diagonal elements are written out.
+
+    PUHF_OVLAP:
+    this switch will cause the dominant UHF overlaps to be printed out.
+    i.e. the overlap between each occupied alpha MO and whichever
+    occupied beta MO that has the maximum overlap with it is outputted.
+
+    PUHF_BNDODR:
+    this switch is dependent on AISO , if AISO is set then the
+    bond index matrices for the components requested by AISO will be
+    printed out if PUHF_BDNODR is found in the $OUTPUT section of the input
+    deck.
+---------------------------------------------------------------------------
+
+     if AISO.NE.0 in the $CONTROL input section then logical AISO is set to
+     .true. and turns on calculation of the isotropic hf splittings:
+
+     if PUHF_MULPOP and PUHF_NOAISO are found in the $outout section
+     of the input deck then MULISO is set to .false.
+
+---- Resonance Integrals: --------------------------------------
+
+       It is possible to alter Beta values for a calculation by
+       using the keywords -
+
+                 LBETA(1) = a1  a2   a3   a4   a5   a6   a7
+                  BETA(1) = sp1 sp2  sp3  sp4  sp5  d    f
+
+       The ai are the atomic numbers of the centers to be
+       changed and the spi, di, and fi are the new beta values
+       to be used.  Note that the first three positions are
+       reserved for beta(s,p), the fourth for 
+       beta(d) and the fifth for beta(f).  This option is for ease 
+       in reparameterisation of the resonance integral. If the values
+       for a1, a2 or a3 are greater than 1000, the the beta(p) of
+       atomic number (a3 - 1000) is set.
+       i.e.
+                LBETA(1) =   6     1006  0     0     0      26    0
+                BETA(1)  = -17.0  -12.0  0.00  0.00  0.00  -23.0  0.00
+
+       or if only one value is changed, can use:
+	     
+                 LBETA(6) = 26    <----- Iron
+                  BETA(6) = -23.0 <----- Beta value for iron in ev.
+
+       For a more systematic study of parameters there is the 
+       For IBETA = 0 (Default) or IBETA = 1
+ $BETAIN
+!    s    s     s    s     p     p     p     p     d     d     f     f
+! atomic numbers - THERE MUST BE 12
+     6    7     0    0     6     7     0     0     0     0     0     0
+! THe 12 beta values corresponing to the above atomic numbers  (eV)
+ $END
+       For IBETA = 5
+ $BETAIN
+!    s    s     s    s     p     p     p     p     d     d     f     f
+! atomic numbers - THERE MUST BE 12
+     6    7     0    0     6     7     0     0     0     0     0     0
+! THe 12 beta values corresponing to the above atomic numbers  (eV)
+ -17.0 -26.0 -0.00 -0.00 -17.0 -26.0 -0.00 -0.00 -0.00 -0.00 -0.00 -0.00
+! The fkappa values fk(1,1) fk(1,2) fk(2,2): If one value is given, all
+!   three must be given, else all three are defaulted.
+  0.000000  0.000000  25.00000
+! the fkappa values fk(1,3) fk(2,3) fk(3,3). If one value is given, all
+!   three must be given, else all are defaulted. If these values are
+!   given the previous fk(1,1) fk(1,2) fk(2,2) must have been given.
+  10.00000  10.00000  25.00000       
+ $END
+       If IBETA = 6, then the exponents and the power can also be added
+ $BETAIN
+!   First the beta values, B(i)
+!    ssig s-sig s-sig p-sig p-sig p-sig p-pi p-pi p-pi d-sig d-pi  d-del 
+! atomic numbers - there must be 12
+      6    7     0      6     7     0     6     7     0     0     0    0
+! The 12 beta values corresponding to the above atomic numbers  (eV)
+ -17.0  -26.0  -0.00 -17.0 -26.0 -0.00 -17.0 -26.0 -0.00 -0.00 -0.00 -0.00
+! Now the exponents,a(i)
+! atomic numbers - there must be 12
+      6    7     0      6     7     0     6     7     0     0     0    0
+! The 12 exponents corresponding to the above atomic numbers (Bohrs**-1)
+  0.10   0.10   0.00  0.10  0.10  0.00  0.10  0.10  0.00  0.00  0.00  0.00
+! The M value in H(IJ) = [R**M*(EXP(a(i)+a(j))*R**2)*(B(i)+B(j))/2]* S(ij)  
+     1.00  <---- a floating point number
+! If no value above is given it is defaulted to 0.5
+!
+! The fkappa values fk(1,1) fk(1,2) fk(2,2): If one value is given, all
+!   three must be given, else all three are defaulted.
+  0.000000  0.000000  -25.00000
+! the fkappa values fk(1,3) fk(2,3) fk(3,3). If one value is given, all
+!   three must be given, else all are defaulted. If these values are
+!   given the previous fk(1,1) fk(1,2) fk(2,2) must have been given.
+  10.00000  10.00000  -25.00000
+! the fkappa values fk(1,4) fk(2,4) fk(3,4) and fk(4,4). If one value is 
+! given, all four must be given, else all are defaulted. If these values are
+! given the previous fk(1,3) fk(2,3) fk(3,3) must have been given.
+ -5.000000 -5.000000 -5.000000 -15.00000
+ $END
+
+For testing additional empirical parameters, then the program will read
+
+                 LBETB(1) = a1  a2   a3 a4 a5
+                  BETB(1) = sp1 sp2  p3 d4 f5
+
+
+The same as it has read LBETA and BETA in the $CONTROL block. See
+subroutines paramd.f and paramx.f (in file paramd.f)
+
+**For the regular CNDO and INDO models this adds a term proportional
+to the weighted overlap to the one-electron matrix, but not the
+starting matrix.**
+
+---- Interaction Factors ----------------------------------------
+
+Generally the interaction factors are defaulted, as given above. 
+The defaults can be overwritten with:
+
+INTFA(1) = 1.00 1.267 0.585 1.00 1.00 1.00, etc. as given above.
+ If this is done the order is f<s|s>, f<psig|psig>, f<ppi|ppi>,
+ f<dsig|dsi>, f<dpi|dpi>, f<ddelta|ddelta>, with all other 
+ interactions taken = 1: i.e., f<s|psig> =1.0, etc.
+
+ For greater fleibility this can be overwritten as FACTR(1) =
+ 
+ $CONTRL
+     .
+     .
+!  INTFA(1)  = 1.000  1.2670  0.5850  1.000  1.000  1.000  1.000
+   FACTR(1)  = 1.0  1.00 1.267 1.0  1.0  1.0  1.0  1.0  1.0  1.00
+   FACTR(11) = 0.0  0.0  1.585 0.0  1.0  1.0  0.0  1.0  1.0  1.0 
+   FACTR(21) = 0.0  0.0  0.0   0.0  0.0  1.0  0.0  0.0  1.0  1.0 
+   FACTR(31) = 0.0  0.0  0.0   0.0  0.0  0.0  0.0  0.0  0.0  1.0 
+     .
+     .
+ $END     
+ The first ten entries are the sigma interactions
+    s-s s-psig psig-psig, s-dsig, psig-dsig, dsig-dsig, s-fsig, etc.
+ The next ten are the pi
+    spi-spi, spi-ppi, ppi-ppi, etc.  the first two are dummies
+ The next ten are the delta, the first five are dummies
+ The last ten are phi interactions, only the last is meaningful.
+      
+---- Localization: ----------------------------------------------
+ 
+   In the Control Section:
+
+     LOC = 0 <<<<< DEFAULT for normal calculations   
+         > 0 ----- Orbital Localization to be performed (See Below)
+ 
+   
+  The occupied orbitals of a molecule may be localized using a Boys, Fermi,
+  or double projector localization.  A four digit number controls the 
+  localization.
+
+       DIGIT-1: First occupied localization - (1) BOYS
+                                              (2) FERMI
+                                              (3) DOUBLE PROJECTOR
+                                              (5) BOYS WITH ORBITAL CULL
+                                              (6) FERMI WITH ORBITAL CULL
+                                              (7) PROJ. WITH ORBITAL CULL
+
+       DIGIT-2: Second occ. localization    - (1) BOYS
+                                              (2) FERMI
+
+       DIGIT-3: First virtual localization  - (1) BOYS
+                                              (2) FERMI
+                                              (3) DOUBLE PROJECTOR
+                                              (4) I.V.O.
+
+       DIGIT-4: Second virt. localization   - (1) BOYS
+                                              (2) FERMI
+                                              (4) I.V.O.
+
+  Example:  LOC = 3130 = double projector on occ. orbs followed by boys on
+                        occ. orbs then double projector on virtual orbs.
+
+  Orbital cull is set only once, orbitals will be culled for the first
+  and second localization, and any virtual orbital localization.
+  for the boys localization the ci switch (line #1 kci) must be set to 66
+  if more than 12 orbitals are to be localized using the boys method.
+  both the fermi, double projector localization and orbital culls(removal)
+  need additional data. this data is stored on unit four (name.int),
+  the same unit used FOR internal coordinate data.
+ 
+  CULL
+
+  for an orbital cull
+
+  Line (1) : ********CLOCAL (*******CLOCALV for the virtual orbitals)
+  Line (2) : # of culling orbitals (I5)
+  Line (3) : orbital range (2I5)
+  Line (4) : # of basis function types in culling orbital, that number
+             OF basis function type numbers. (13I5)
+  Lines (3) and (4) should be repeated as many times as needed.
+
+  Example:
+
+     $LOCINP
+    ********CLOCAL          <----Line(1)
+        2                   <----Line(2)
+        1   15              <----Line(3)
+        3    1    2    3    <----Line(4)
+       16   17              <----Line(3)
+        2    1    2         <----Line(4)
+     $END
+
+  NOTE: This orbital cull will remove orbital(s) OF px,py and pz
+        character from orbitals 1 thru 15, and remove orbital(s)
+        OF px, and py character from orbitals 16 and 17.
+
+  FERMI
+
+  for a Fermi localization:
+
+  Line (1) : ********LOCAL (*******LOCALV for the virtual orbitals)
+  Line (2-N) : X,Y,Z (3F10.6) probe electron coordinates (# OF occupied
+              orbitals - # projected)
+
+  Example:
+
+     $LOCINP
+    ********LOCAL                     <----Line(1)
+      1.200000  1.000000  2.300000    <----Line(2)
+      Line(2) is repeated as specified above.
+     $END
+
+  DOUBLE PROJECTOR
+
+  for a Double Projector localization:
+
+  Line (1) : ********PLOCAL (*******PLOCALV for the virtual orbitals)
+  Line (2) : # of projected orbitals (I5)
+  Line (3) : # of non-zero basis functions, b.f. #, b.f. coef
+             (I5,4(I5,F10.6))
+  Line (3A): continue line3 (first field blank) until # of non-zerO
+             basis functions is reached.
+  continue lines (3) and (3a) until # of projected orbitals is reached.
+ 
+  Example:
+
+     $LOCINP
+    ********PLOCAL                                                <----Line(1)
+        3                                                         <----Line(2)
+        2    1       1.0    2       1.0                           <----Line(3)
+        5    3       0.3    4       0.4    6      0.6     9       0.9 -Line(3)
+            10       0.8                                          <---Line(3a)
+        1   11       1.0                                          <----Line(3)
+     $END
+
+   In the above example three mo's are projected from those that are
+   occuppied. The first sought is that which is most like a 50%-50%
+   mix of a.o.'s 1 and 2, the next is an m.o. that is 0.3 a.o. #2,
+   0.4 a.o. #4, etc., and the last m.o. is as pure a.o. 11 as can be
+   projected. The remaining orbitals not projected are as much like the
+   original canonical m.o.'s as possible, with those specified projected
+   out.
+
+   If the double projector is used, there is the additioal option
+   of specifying a file produced by ZINDO from a previous run. The
+   file must be suffixed with .vec8, as is with the usual restart from
+   input vecors.  Below the file "test.vec8" supplies the vectors to be
+   projected from the current run.
+
+    $LOCINP
+   ********PLOCAL               <--- the occuppied set 2A8
+       FILE = test              <--- the vectors are in "test.vec8"
+       4                        <--- the homo to homo-3 mo in test.vec8, I5
+       8    5    1              <--- 8 basis fns in the projecting set, the,
+   ********PLOCALV                   homo is the 5th, ao #1 of this set is
+       FILE = test                   the #1 ao of the current calculation, 3I5.
+       3                        <--- In the virtual space the lumo to
+       8    5    1                   lumo + 3 will be used. Again 8 basis fns
+    $END                             in the.vec8 file, MO 5 is the homo, etc.
+         
+     After specifying which ao of the projecting orbitals match the ao
+     of the present run, the orbitals of the projecting and present runs
+     must be in the same order.
+
+    Current Run Ao.number
+    1  2  3  4  5  6  7  8  9 10 11  12  13  14  15  16  17
+    Saved on test.vec8
+    1  2  3  4  5  6  7  8
+    After the 8th ao in this case, no projecting orbitals are specified.
+     
+
+
+---- Dipole integrals -------------------------------------------------
+
+   In the $CONTRL block
+      DIPOLE = 1, is the default, and the dipole moments are calculated
+                with the one center charge and polarization integrals.
+      DIPOLE = 2, The dipole integrals are calculated including the two-
+                center bond terms, and these integrals are then sym.
+                orthogonalized if a ZDO model is used.
+      DIPOLE = 3, Only the one center diagonal (or charge term) is used.
+      DIPOLE =11,12,13 as above, but quadropole moment is also calculated
+      DIPOLE =21,22,23 as above, but octopole moment is also calculated
+
+---- Fragment Orbital Analysis: ---------------------------------------
+
+  First run the composite (super) molecule. This will require
+
+   In the $CONTRL   block:
+
+     FRAG = 0 <------ If none. This is the default.
+          = 1 this is a fragment orbital calculation
+          = 2 the fragment being calculated is an atom.
+    Additional input required.  
+
+   Then a FRAGIN block is required.
+
+  $FRAGIN
+   free ethylene <--- a title
+   ethyl         <-- The name of the data for the composite molecule that
+                     will be analized into fragments. This is the ONAME
+                     of this job, and will produce a file called "ethyl.frag"
+   methyl1       <--- the name of the first fragment, and this must be the
+                      ONAME of the ZINDO job that runs this fragment. The 
+                      output for the fragment analysis will be methyl1.frag.
+   methyl2       <--- the name of the second fragment: Give the names of
+                      all fragments
+  $END
+         NOTE: The composite (larger) molecule must be the first parameter
+         and the fragments must follow in the same order as they do in the
+         composite molecule.
+
+  This first job will output a ONAME.PMO (or, as above, ethyl.PMO).
+  Then each fragment must be calculated, with the same coordinates as
+  in the composite molecule. In the control block, FRAG =1 or 2 (see below)
+  and the FRAGIN block needs only a title. Each run will produce a 
+  ONAME.frag file. These names must agree with those supplied in the
+  FRAGIN block of the initial run.
+ 
+ 
+  If a fragment is a single atom then the switch must be 2,
+  this will ensure that the aos are in the correct order.
+  Otherwise use 1.
+ 
+  The actual fragment analysis is done by a separate program
+  called frganl.f.  It uses some files generated by the ZINDO
+  program.
+ 
+  Once you have obtained .frag files for the molecule and all
+  of its fragments you can start the analysis by entering
+ 
+         frganl < (moleculename).PMO <return>
+
+         Output will appear in a file   ONAME.fmout       
+         where ONAME is that of the compound molecule.
+ 
+ 
+  example:  Job 1.
+
+ $TITLEI
+
+ ethylene fragment test
+
+ $END
+
+ $CONTRL
+ 
+ SCFTYP     RHF      RUNTYP     ENERGY   ENTTYP     COORD    UNITS      ANGS
+ INTTYP          1   IAPX            3   NAT             6   NEL            12
+ MULT            1   ITMAX          30   FRAG            1
+ SCFTOL   0.000200
+ ONAME = ethyl
+ $END
+ $DATAIN
+
+ -2.000000  0.645000  0.000000    6
+ -2.000000  1.190000 -0.943968    1
+ -2.000000  1.190000  0.943968    1
+ -2.000000 -0.685000  0.000000    6
+ -2.000000 -1.230000  0.943968    1
+ -2.000000 -1.230000 -0.943968    1
+ $END
+
+ $FRAGIN
+ ! ***** Molecular fragmentation specification *****
+ free ethylene
+ ethyl
+ methyl1
+ methyl2
+ $END
+
+ Job 2.
+ $TITLEI
+       meth1 first fragment
+ $END
+
+ $CONTRL
+ SCFTYP     RHF      RUNTYP     ENERGY   ENTTYP     COORD    UNITS      ANGS
+ INTTYP          1   IAPX            3   NAT             3   NEL             6
+ MULT            1   ITMAX          30   FRAG            1
+ SCFTOL   0.000200
+ ONAME = methyl1
+    
+ $END
+    
+ $DATAIN
+    
+ -2.000000  0.645000  0.000000    6
+ -2.000000  1.190000 -0.943968    1
+ -2.000000  1.190000  0.943968    1
+    
+ $END
+    
+ $FRAGIN
+    
+! ***** Molecular fragmentation specification *****
+
+free ethylene
+methylene
+
+ $END
+
+ Job 3.
+
+ $TITLEI
+
+ meth2 second fragment
+
+ $END
+
+ $CONTRL
+
+ SCFTYP     RHF      RUNTYP     ENERGY   ENTTYP     COORD    UNITS      ANGS
+ INTTYP          1   IAPX            3   NAT             3   NEL             6
+ MULT            1   ITMAX          30   FRAG            1
+ SCFTOL   0.000200
+   DYNAL(1) =    0   2   1   0   0   0   0
+   ONAME = methyl2
+ $END
+ $DATAIN
+
+ -2.000000 -0.685000  0.000000    6
+ -2.000000 -1.230000  0.943968    1
+ -2.000000 -1.230000 -0.943968    1
+
+ $END
+
+ $FRAGIN
+
+! ***** Molecular fragmentation specification *****
+
+free ethylene
+methylene
+
+ $END
+
+ Job 4.
+
+    frganl < ethyl.PMO   &
+ 
+---- Partial, local or Projected Density of States: --------------------
+
+In the $CONTRL block the keyword LDOS  = 1 will cause a density of staes
+analysis to be performed directly after the Mulliken Population Analysis.
+The output contains the number of molecular orbitals within a mo energy
+interval, and how much s. p d and f character this band of mo's has.
+
+---- SUPER USER SECTION ------------------------------------------
+      In $CONTRL
+
+  NUCNUC = 0, choice of nuclear repulsion energy, default
+         this option will over-ride model specification. 
+         =1 1/r: =2, GAMMA;,= 3 AM1, PM3, MNDO: = 4 XINDO
+
+  NUCEL = 0 default, switch for nuclear electronic integral
+        = 1 use standard theory, but allows
+          V.NE.GAMMA via parameters PENA and COUL in $TABS
+        = 2, uses (I|1/R(J)|I) with pana depending only on ao I. 
+        = 5, ab-initio integral.
+        NOTE THAT IDD1 = 1 forces ab-initio integral
+
+---- Memory Management ------------------------------------------------
+
+By default, the program attempts to grab as much memory as possible for 
+various arrays, and internal I/O files. In many situations this may not
+be desirable. In such situations the user can limit the available
+memory by specifying MEMORY= in the $CONTRL block. This puts an upper
+limit (in bytes) on the memory the program can use. Please note that
+the executable itself, and statically allocated arrays take about 12
+megabytes (possibly more in the future), which comes in addition to
+the amount allowed by MEMORY switch.
+
+Various I/O units can also be either stored in the memory or on
+disk. The default is always in memory, if there is memory
+available. If there is a shortage of memory, the user can make
+possibly better choices than the primitive priority-based algorithm in
+fileop.f . For such purpose, add the block $EXTERN into the input
+file, and list the names of the units (omitting the initial IO_ and
+possibly some characters from the end - see program output!) which can
+be made external. The keyword 'ALL' makes all units external, thus
+conserving the most of memory. Please note that the latter may also
+make the program very slow.
+
+For more information about the I/O units, see programmers manual,
+units.doc, and study the relevant sections of output.
+
+---- Self Consistent Field Convergence ---------------------------------
+
+           In general, the SCF is accelerated by using the dynamic damping
+           of Zerner and Bacon, and Zerner and Hehenberger. If the program
+           detects a problem with convergence, the DIIS method of Pulay
+           is switched on. The default value for the DIIS to be put into
+           operation is when the DIFF in the energy from cycle to cycle 
+           is less than 10**(-7) Hartrees. The default is equivalent
+           to
+
+           DIIS = -7
+
+           in the $CONTRL section. This value can be changed: ie, 
+
+           DIIS = -6     <--- when DIFF = 10**(-6) start DIIS procedure.
+
+           etc.
+
+           IDD2 = 0 will shut the DIIS option off.  This is often a good
+           idea if the self consistent field calculation does not 
+           converge.
+           IDD2 = 1 is the default. See above for DIIS control.
+           IDD2 = 2 scales the density matrix elements for atoms further
+                  than 5 Angstroms for the first 14 SCF cycles.
+           IDD2 = 20 is level shifting, 1.0 Hartree/(cycle number) until
+                  the 10th cycle, then the level shift is cut off.
+                  The level shifting will not be followed by DIIS.
+                = 21 is level shifting as above.  If appropriate, DIIS
+                  will be invoked to accelerate convergence.
+
+---- ESR COUPLING -----------------------------------------------------
+CLOPPA J coupling manual
+(version 1)
+
+1) Line 1
+Molecule name (oname). It comes from ZINDO.
+
+2) Line 2
+a) To get the total coupling constants values write: 98-1
+   and go to 11) and do n=m=0.
+b) To localize write: II-1 where II is the total number of
+atomic orbitals (AOs).
+
+3) Line 3 and the following n
+Atoms with their corresponding AOs. Given by ZINDO.
+
+4) Line n+1
+Write IIJJKK where II is the number of occupied molecular
+orbitals (MOs), JJ the number of virtual MOs and KK the
+number of localizations. II and JJ can be chosen belonging
+to a fragment to calculate their contribution to total J orB
+they can be the total number (IPPP).
+
+5) Line n+2
+Write LLIIJJ where LL is the number of AOs used in this
+localization step and II and JJ the number asigned to the
+occupied and virtual MOs of this step. It is used a decreasing
+order.
+B
+6) Line n+3,......,n+m
+Atom numbers and its corresponding AO.
+
+7) Line n+m+1
+Blank
+
+8) Line n+m+2
+Repeat from 5) to 7) to complete the KK steps in line n+mm (last
+blank line).
+
+9) Line n+mm+1
+Occupied MOs from 01 to total number.
+
+10) Line n+m+2
+Virtual MOs from 01 to total number.
+
+11) Line n+m+3
+Keyword for propagator: propa3 for triplet and propa2 for singlet.
+
+12) Line n+m+4
+Write: 10001 AABB, where AA and BB are the atom numbers to get
+J(AA BB) CLOPPA.
+
+13) Line n+m+5
+Blank
+
+14) Line n+m+6
+Write 99.
+
+Example
+
+a)To calculate only total J values
+
+ch4                      line 1
+98-1
+propa3
+
+
+99                       line 6
+
+
+b)To get J CLOPPA values
+
+ch4                      line 1 (oname)
+08-1                     line 2
+    1     1
+    1     2
+    1     3
+    1     4
+    2     1
+    3     1
+    4     1
+    5     1
+040404
+050404
+    1     1
+    1     2
+    1     3
+    1     4
+    2     1
+
+050303
+    1     1
+    1     2
+    1     3
+    1     4
+    3     1
+
+050202
+    1     1
+    1     2
+    1     3
+    1     4
+    4     1
+
+050101
+    1     1
+    1     2
+    1     3
+    1     4
+    5     1
+
+01 02 03 04 05
+01 02 03 04 05
+propa3 propa2
+10001 0201
+000000
+99
+
+---- Linearization ---------------------------------------------------
+
+The fragments can be sepcified in the DATAIN block if ENTYP = PDB 
+in the $CONTROL BLOCK, ie.
+
+ $DATAIN
+   .
+   .
+ATOM     18  C6  GLU     1       3.175  -1.890  -0.745  0.266
+ATOM     19  O12 GLU     1       3.288  -1.675  -2.138 -0.528
+ATOM     20  H24 GLU     1       3.197  -2.532  -2.575  0.313
+ATOM     21  H18 GLU     1       4.168  -1.985  -0.297 -0.010
+ATOM     22  H19 GLU     1       2.628  -2.819  -0.545  0.011
+ATOM     23  O7  GLU     2       3.072  -1.648   2.435 -0.502
+ATOM     24  C1  GLU     2       2.170  -2.688   2.740  0.415
+ATOM     25 3H1  GLU     2       1.272  -2.586   2.120  0.030
+ATOM     26  O11 GLU     2       2.747  -3.969   2.492 -0.470
+ATOM     27  C2  GLU     2       1.780  -2.610   4.221 -0.040        
+    .                    ^
+    .                    |
+    .                 These 1's and 2's, etc. specify the fragment no.
+    .
+ $END
+
+Else the fragments are specified in $FRAGIN  (which will take priority
+over the ENTYP = PDB input).  The inout is not formatted:
+
+ fragment number,  first atom,  last atom,  est. charge of the fragment
+
+Each atom is in only one fragment, the atoms must be sequential, and the
+total charge must be the sum of the estimated charge.
+
+ $FRAGIN
+    1    1  255  0.00
+    2  256  510  0.00
+    3  511  765  0.00
+    4  766 1020  0.00
+    5 1021 1275  0.00
+    6 1276 1530  0.00
+    7 1531 1785  0.00
+    8 1786 2040  0.00
+ $END                       
+
+---- Spin Orbit Double Group ------------------------------------------
+
+     These are the switches defined in subroutine CIDG see above example
+     of double group CI.
+
+      NROOTS     NUMBER OF ROOTS OF THE CI MATRIX
+      ICIWRT     CI WRITE OPTION
+                      ICIWRT = 0     PRODUCTION RUN, MINIMUM OUTPUT
+                             = 1     PRINTS ALL OF CI VECTORS
+                             = 2     PRINTS THE CI MATRIX
+                             = 3     PRINTS THE COMPLETE LIST OF CI DATA
+      ICIPUN     CI PUNCH OPTION
+                      ICIPUN = 0     DO NOT WRITE THE CI VECTORS
+                             = 1     WRITE THE CI VECTORS ON IUNT2B
+      INTWRT     INTEGRAL WRITE OPTION
+                      INTWRT = 0     PRODUCTION RUN, MINIMUM OUTPUT
+                             = 1     WRITES OUT THE ONE-ELECTRON
+                                     INTEGRALS
+                             = 2     CALLS ANALYZ TO PERFORM
+                                     PERTURBATIVE ENERGY ANALYZATION
+                           --------- ORIGINALLY:
+                             = 2     WRITES OUT THE ONE- AND TWO-
+                                     ELECTRON INTEGRALS
+      IHAMRD     HAMILTONIAN READ OPTION
+                      IHAMRD = 0     THE HAMILTONIAN MATRIX IS COMPUTED
+                             = 1     THE HAMILTONIAN MATRIX IS READ
+                                     IN FROM IUNT2A
+      IANALZ     VECTOR AND ENERGY STATISTICS OPTION
+                      IANALZ = 0     NO VECTOR OR ENERGY BREAKDOWN
+                             = 1     PROVIDE VECTOR AND ENERGY BREAKDOWN
+      MAXNE0     MAXIMUM NUMBER OF NONZERO HAMILTONIAN MATRIX ELEMENTS
+                 PER ROW; IGNORED UNLESS IHAMRD = 1, IN WHICH CASE THE
+                 VALUE IS OBTAINED FROM THE PREVIOUS RUN'S OUTPUT
+      This ends the data on this line.
+
+      KSYM       DOUBLE-GROUP SYMMETRY OF STATE
+                      KSYM = 1 TO  5 FOR C2V, D2
+                      KSYM = 1 TO 10 FOR D2H
+      NTOTFG     NUMBER OF SPATIAL CONFIGURATIONS
+
+ 
+
+
+---- Historical switches (Probably not functional) ---------------------
+ 
+   ISAVE = 0 <<<<< DEFAULT Normal calculation                 
+         = 1 ----- Save density on unit ONAME.den8    
+         = 2 ----- Recall density on unit ONAME.den9  
+     NF  = 3 ----- Recall ground state calc. as above, and recover
+                   transformed integrals from Unit 2 (direct access)
+     NF  = 4 ----- Recall 1 AND 2 Electron files and calculate electroni
+                   energy.  Unit 11 and Unit 16 Must be saved.
+     NF  = 5 ----- AB INITIO...........
+                   Recall 1 and 2 electron files from MOLECULE program
+                   and calculate electronic energy.
+                   Unit 8 (MOLECULE integrals) must be saved.
+ 
+     IPUN = 0 <<<<< DEFAULT Normal calculation                    
+     NF   = 1 ----- Punch charge and bond order matrix (Unit 7)
+     NF   = 2 ----- Read previous density matrix to start iteration
+     NF   = 3 ----- Read previous density matrix to start iteration and
+                    punch the calculated density matrix (Unit 7)
+
+--------------------------------------------------------------------
+---- Some program arrays -------------------------------------------
+--------------------------------------------------------------------
+ 
+        NEL = Number of electrons in the molecule
+        NB = Number of basis orbitals
+        EIG = Eigenvalue vector
+        C(I,J) = Matrix of eigenvectors,  the I-th AO in the J-th MO
+                 is stored as C(L) where L=I+J(J-1)*NB
+        NU(I) = Atom to which the I-th orbital belongs
+        NW(I) = Type of atomic basis orbital of I-th Atomic orbital
+        CO(J,I) = Coordinates of atom I
+        NTYP(I) the type of I-th atom
+             TYPE=1 for nS basis
+                 =2 for nS,nP  basis
+                 =3 for nS,nP,nD basis
+                 =4 for nS,nP,(n-1)D basis.
+                 =5 for nS,nP,(n-1)D,(n-2)F 
+        NP(I) = Principal quantum number of I-th atomic orbital
+        ALPHA(I,J)=J-th orbital exponent of I-th AO
+                 J=4-6 expansion coefficient for I-th AO
+        NA=Number of atoms
+        KAN(I) = Atomic number of I-th atom
+ 
+--------------------------------------------------------------------
+---- Control words and data blocks ---------------------------------
+--------------------------------------------------------------------
+
+     The following describes the structure of the blocks in the data 
+     set. Note that most of them require the data in format once the
+     data begins.  That is, you can not put comments in the middle of
+     the cartesian coordinates for example.
+
+
+     The INPUT deck.
+
+                 col  12345678
+
+              BLOCKS: |$XXXXXX
+                      | 
+                      |NAME'separator'VALUE(S)
+                      | 
+                      |  valid 'separator' is an equal (=) sign
+                      |  or a space ( ).
+                      | 
+                      |ARRAYS are NAME(IND)'separator'a b c ... where
+                      |           NAME(IND)   = a,
+                      |           NAME(IND+1) = b, etc
+                      | 
+                      |LOGICAL VALUES are  .TRUE. .FALSE.
+                      | 
+                      |COMMENTS begin with "!", go to the
+                      |         end of the line and can occur
+                      |         anywhere in the INPUT deck, except
+                      |         inside of a bunch of formatted data.
+                      | 
+                      |$END
+
+     The BLOCK descriptor, $XXXXXX, must begin in column 2, NAMES can
+     occur anywhere followed by VALUES.
+
+
+     Here is a list of all WORDS which are recognized by the NAME directed
+     input routine of ZINDO and should be in the $CONTRL group.
+
+  (THE FOLLOWING LIST IS OUTDATED AND SHOULD BE CONSIDERED HISTORICAL)
+
+
+     Logicals:      LMASS   -|
+                    LEXACT   |   Geometry Optimization
+                    LINV    -|
+
+     Integers:      DYNAL( ) - Basis set definition + C.I. spec.
+                    PUN
+                    VEC      - Read or save vectors
+                    IDD1     =9 Calculates the kinetic energy
+                              AND TRANSFROM IT TO ZDO
+                             =1 Calculates the electron-nuclear attraction
+                                explicitly.
+                    IDD2     .ne. 0 => DIIS is possible.
+                             =2 Dynamic damping, of use in large systems
+                    IBETA    =0 Sum form for beta,default.
+                             =1, product form for beta
+                             =2, sum form with a+b/R
+                             =3, product form with a+b/R
+                             =5, beta is of pair type.
+                             =6, beta = r**n(exp(a*r**2)*betave
+                    INTTYP   - Integral type
+                    IAPX     - Approximate theory
+                    III     -|
+                    MODE     |   Geometry Optimization
+                    ITYPE    |
+                    ISRCH   -|
+
+                    IPRINT   - Print switch
+                    NAT      - number of atoms
+                    NEL      - number of electrons
+                    IELEC    - electrostatic potentials
+                    MULT     - multiplicity
+                    ITRIP    - triplet parametrization
+                    ISW2     - type of configuration mixing
+                    ICHARG
+                    NMR      - nmr option
+                    PTCG     - number of point charges
+                    SPNORB   - spin orbit option
+                    ITMAX    - maximum number of iterations
+                    DIIS     - scf convergence needed before DIIS is used
+                    ISCRF    - self consistent reaction field
+                    NMU      - scrf
+                    LOC      - localization
+                    FRAG     - molecular fragmentation
+                    NOP      - number of open shell orbitals.
+                    NDT      - default coupling constants for ROHF or not
+                    MIM( )   - total number of orbitals per open shell
+                    LBETA( ) - atomic number of atom for new betas
+		    POLAR    - the switch for calculating polarizabilities.
+                    DIPOLE   - 1=Default=1-center integrals,2=two-center
+                               integrals.
+
+      Reals:        SCFTOL   - convergence criteria
+                    RHO     -|
+                    SIGMA    | Geometry optimization
+                    PHASE    |
+                    STPTOL   |
+                    STPTLD  -|
+                    A0      -|
+                    EPS      |
+                    XND      | Self consistent reaction field
+                    RHO      |
+                    AMUSV    |
+                    DIPSV    |
+                    DIGPR( )-|
+                    INTFA( ) - interaction factors
+                    FOP( )   - number of closed shell electrons, # e/open shell
+                    AR( )    - alpha coupling contants
+                    BR( )    - beta coupling constants
+                    BETA( )  - new beta parameters
+
+     Characters:    SCFTYP   - RHF etc
+                    RUNTYP   - ENERGY etc
+                    ENTTYP   - atomic coordinates or zmatrix
+                    UNITS    - angstroms or bohr
+                    ASYM     - molecular symmetry
+                    ONAME    - output file name
+                    FNAME    - fragment name
+
+
+
+     Recognized BLOCKS in the data set are -
+
+         $TITLEI
+         $CONTRL
+         $DATAIN - formatted
+         $CIINPU - formatted
+         $ASSINP - formatted
+         $LOCINP - formatted
+         $FIXCOR - formatted
+         $MIXCOF - formatted
+         $PTCHGI - formatted
+         $FRAGIN - formatted
+         $SCRFIN - formatted
+
+-------------------------------------------------------------------
+-------------------------------------------------------------------
