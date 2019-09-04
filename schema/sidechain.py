@@ -6,9 +6,26 @@ from schema.msitelist import MSitelist
 class Sidechain(MSitelist):
 
     def __init__(self, sc_msites, bone_joint, scid, rankmap, angle_vp, hasring=False):
+        """
+
+        bone_joint(backbone) -- side_joint(sidechain)
+
+        :param sc_msites: msites on the sidechain
+        :param bone_joint:
+        :param scid: id of this sidechain in the omol
+        :param rankmap:
+        :param angle_vp:
+        :param hasring: inner loop within the side chain
+        """
         if len(sc_msites) < 1:
-            warnings.warn('Sidechain obj must be init with at least 1 sc msite!')
+            warnings.warn('W: Sidechain obj must be init with at least 1 sc msite!')
         super().__init__(sc_msites)
+        self.omol_init = True
+        for ms in sc_msites:
+            if ms.siteid == -1:
+                warnings.warn('W: you are init a ring with sites not in an omol obj')
+                self.omol_init = False
+                break
         self.scid = scid
         self.bone_joint = bone_joint
         self.side_joint = self.msites[0]

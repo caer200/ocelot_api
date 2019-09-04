@@ -8,15 +8,17 @@ class Bond(MSitelist):
 
     def __init__(self, sitea, siteb):
         super().__init__([sitea, siteb])
+        self.omol_init = True
         for ms in self.msites:
             if ms.siteid == -1:
                 warnings.warn('W: you are init a bond with sites not in an omol obj')
+                self.omol_init = False
                 break
         self.a = sitea
         self.b = siteb
 
     @property
-    def order(self):
+    def order(self):  # self.omol_init = True
         if self.a.element.valence == 1 or self.b.element.valence == 1:
             return 1
         return min([s.insaturation for s in self.msites])
@@ -31,7 +33,7 @@ class Bond(MSitelist):
 
     @property
     def elements(self):
-        return {self.a.element, self.b.element}
+        return tuple(sorted([self.a.element.name, self.b.element.name]))
 
     def __eq__(self, other):
         # using center should be enough for msites in a mol

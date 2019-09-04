@@ -9,9 +9,12 @@ from schema.bond import Bond
 class Ring(MSitelist):
 
     def __init__(self, msites):
+        self.omol_init = True
         for ms in msites:
             if ms.siteid == -1:
                 warnings.warn('W: you are init a ring with sites not in an omol obj')
+                self.omol_init = False
+                break
         super().__init__(msites)
         self.n_member = len(self)
         self.idx = [s.siteid for s in self.msites]
@@ -86,7 +89,7 @@ class Ring(MSitelist):
 
     def isconnected_with(self, other):
         """
-        if two rings are connected by a bond
+        if two rings are at least connected by a bond, returns true if fused or interscet
         :param other:
         :return:
         """
@@ -102,11 +105,15 @@ class Ring(MSitelist):
         return False
 
     def interscet(self, other):
-        # only used after init id
+        """
+        get idx of shared sites
+        :param other:
+        :return:
+        """
         if isinstance(other, Ring):
             return list(set(self.idx) & set(other.idx))
         else:
-            warnings.warn('intersceting ring with another non-ring obj!')
+            warnings.warn('W: intersceting ring with another non-ring obj!')
             return None
 
     def __eq__(self, other):
@@ -146,6 +153,10 @@ class Ring(MSitelist):
 
     @property
     def ring_insaturation(self):
+        """
+        avg site insaturation
+        :return:
+        """
         insaturated_sites = 0
         for s in self.msites:
             if s.insaturation > 0:

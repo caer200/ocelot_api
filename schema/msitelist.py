@@ -2,7 +2,7 @@ import numpy as np
 import warnings
 from copy import deepcopy
 from routines.geometry import rotate_along_axis, rotation_matrix
-from scipy.spatial.distance import pdist, squareform
+from scipy.spatial.distance import pdist, squareform, cdist
 from pymatgen.core.structure import Molecule
 from routines.xyz2mol import xyz2mol  # https://github.com/jensengroup/xyz2mol
 from schema.msite import MSite
@@ -151,6 +151,25 @@ class MSitelist:
     @staticmethod
     def get_distmat(coordmat):
         return squareform(pdist(coordmat))
+
+    def get_closest_sites(self, other):
+        """
+        other_sites -- self_border_site ----- distmin ----- other_border_site --- other_sites
+        :param other:
+        :return:
+        """
+        distmat = cdist(self.coordmat, other.coordmat)
+        minid = np.unravel_index(np.argmin(distmat, axis=None), distmat.shape)
+        self_border_site = distmat[minid[0]]
+        other_border_site = distmat[minid[1]]
+        distmin = distmat[minid]
+        return self_border_site, other_border_site, distmin
+
+    def get_site_by_coords(self, coords):
+        for s in self.msites:
+            if np.allclose(s.coords, coords):
+                return s
+        return None
 
     @staticmethod
     def get_bondmat(msites, distmat, co=1.3):
@@ -321,14 +340,13 @@ class MSitelist:
         end2 = np.array(end2)
         for s in self.msites:
             v = s.coords - end1
-            s.coords = end1 + rotate_along_axis(v, end2-end1, theta, thetaunit=unit)
+            s.coords = end1 + rotate_along_axis(v, end2 - end1, theta, thetaunit=unit)
 
     def rotate_along_de_matrix(self, theta, end1, end2, unit='degree'):
         end1 = np.array(end1)
         end2 = np.array(end2)
         axis = end2 - end1
         return rotation_matrix(axis, theta, thetaunit=unit)
-
 
     def rotate_along_with_matrix(self, matrix, end1):
         """

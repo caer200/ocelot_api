@@ -1,12 +1,11 @@
 from schema.element import Element
 import numpy as np
-from collections import Hashable
 from pymatgen.core.sites import Site
 import sys
 import warnings
 
 
-class MSite(Hashable):
+class MSite:
     def __init__(self, element_name, coords, siteid=-1):
         """
         :param element_name: string
