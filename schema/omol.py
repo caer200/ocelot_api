@@ -2,12 +2,12 @@ import warnings
 import sys
 from copy import deepcopy
 from pymatgen.core.structure import Molecule
-from api.routines.loop import Loopsearcher
-from api.schema.msitelist import MSitelist
-from api.schema.msite import MSite
-from api.schema.ring import Ring
-from api.schema.backbone import Backbone
-from api.schema.sidechain import Sidechain
+from routines.loop import Loopsearcher
+from schema.msitelist import MSitelist
+from schema.msite import MSite
+from schema.ring import Ring
+from schema.backbone import Backbone
+from schema.sidechain import Sidechain
 
 
 class OMol(MSitelist):
@@ -34,20 +34,20 @@ class OMol(MSitelist):
             if isinstance(self.msites[i].element.valence, int):
                 self.msites[i].insaturation = self.msites[i].element.valence - self.msites[i].num_nbs
                 if self.msites[i].insaturation < 0:
-                    warnings.warn('when init mol site {} has {} nbs but only {} valence electrons'.format(
+                    warnings.warn('W: when init mol site {} has {} nbs but only {} valence electrons'.format(
                         self.msites[i].siteid, len(self.msites[i].nbs), self.msites[i].element.valence))
             else:
                 self.msites[i].insaturation = None
 
         rs = Loopsearcher(self.nbrmap)
         self.rings = []
-        for ring_size in range(3, 9):
+        for ring_size in range(3, 9):  # 3-8 member rings
             idxlsts = rs.alex_method(ring_size)
             self.rings += [Ring.from_idxlst(idxlst, self.msites) for idxlst in idxlsts]
 
         self.fused_rings_list = self.get_fused_rings_list()  # [[r1, r2, r3], [r5, r6], [r4]...]
 
-        if len(self.rings) <= 1:  # we think this is a solvent
+        if len(self.rings) <= 1:  # we think this omol is a solvent
             self.largest_fused_ring = None
             self.is_solvent = True
             self.backbone = None

@@ -19,6 +19,8 @@ class Bond(MSitelist):
 
     @property
     def order(self):  # self.omol_init = True
+        if not self.omol_init:
+            return None
         if self.a.element.valence == 1 or self.b.element.valence == 1:
             return 1
         return min([s.insaturation for s in self.msites])

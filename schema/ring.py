@@ -43,6 +43,8 @@ class Ring(MSitelist):
         bond objects can be extracted from this ring
         :return:
         """
+        if not self.omol_init:
+            return None
         bonds = []
         for si in self.idx:
             sa = self.get_site_byid(si)
@@ -93,6 +95,8 @@ class Ring(MSitelist):
         :param other:
         :return:
         """
+        if not self.omol_init:
+            return None
         nbs_idx_of_ring = []
         for s in self.msites:
             nbs_idx_of_ring += s.nbs_idx
@@ -157,6 +161,8 @@ class Ring(MSitelist):
         avg site insaturation
         :return:
         """
+        if not self.omol_init:
+            return None
         insaturated_sites = 0
         for s in self.msites:
             if s.insaturation > 0:
