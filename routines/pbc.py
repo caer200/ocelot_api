@@ -1,6 +1,6 @@
 import math
-from api.schema.element import Element
-from api.schema.omol import OMol
+from schema.element import Element
+from schema.omol import OMol
 from pymatgen.util.coord import pbc_shortest_vectors
 from pymatgen.core.structure import Site, PeriodicSite, IMolecule, IStructure, Molecule, Structure
 from pymatgen.io.cif import CifFile
@@ -61,6 +61,13 @@ class CIFparser(MSONable):
         s = CIFparser.get_config_dict_string(d)
         with open(cifn, 'w') as f:
             f.write(s)
+
+    def get_clean_cifs_stringlist(self):
+        res = []
+        for i in range(len(self.clean_dicts)):
+            cleandict = self.clean_dicts[i]
+            res.append(self.get_config_dict_string(cleandict))
+        return res
 
     def write_clean_cifs(self, prefix='cleanconfig'):
         fns = []
@@ -218,6 +225,11 @@ class PBCparser:
 
     @staticmethod
     def squeeze(pstructure):
+        """
+        after unwrapping, the mols can be far away from each other, this tries to translate them s.t. they stay together
+        :param pstructure:
+        :return:
+        """
         mols, unwrap_structure, psiteblocks = PBCparser.unwrap(pstructure)
 
         omols = []

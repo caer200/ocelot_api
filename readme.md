@@ -8,19 +8,9 @@ dependencies
 
 
 
-schema
+schema 
 ---
+*status*: dev finished, doc finished, ready for testing
 
-task
----
-- packing identification
-- ec calculator
-- hopping percolation
-- aw tuning
-- bands
-- geo descriptors
-- emc
-- massage
-- nics scan
-- homa
-- box fitting
+see `./schema/__init__.py` for more info
+

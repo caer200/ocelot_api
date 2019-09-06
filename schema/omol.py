@@ -1,6 +1,7 @@
 import warnings
+# import sys
+# from copy import deepcopy
 import sys
-from copy import deepcopy
 from pymatgen.core.structure import Molecule
 from routines.loop import Loopsearcher
 from schema.msitelist import MSitelist
@@ -15,7 +16,7 @@ class OMol(MSitelist):
     siteid is set only once when init this obj
     """
 
-    def __init__(self, msites):
+    def __init__(self, msites, keepsiteid=False):
         # mss = [MSite(ms.element.name, deepcopy(ms.coords)) for ms in msites]
         # super().__init__(mss)
 
@@ -27,7 +28,11 @@ class OMol(MSitelist):
 
         # set mol site attributes
         for i in range(len(self)):
-            self.msites[i].siteid = i
+            if keepsiteid:
+                if self.msites[i].siteid == -1:
+                    sys.exit('E: you want to keep site id when init an omol but there is at least one site with site_id as -1')
+            else:
+                self.msites[i].siteid = i
             self.msites[i].nbs = [self.msites[j] for j in self.nbrmap[i]]  # do not change connection table in a mol
             self.msites[i].nbs_idx = self.nbrmap[i]
             self.msites[i].num_nbs = len(self.msites[i].nbs)
@@ -47,7 +52,7 @@ class OMol(MSitelist):
 
         self.fused_rings_list = self.get_fused_rings_list()  # [[r1, r2, r3], [r5, r6], [r4]...]
 
-        if len(self.rings) <= 1:  # we think this omol is a solvent
+        if len(self.rings) <= 1:  # we think this omol is a solvent if it only has one or zero ring
             self.largest_fused_ring = None
             self.is_solvent = True
             self.backbone = None

@@ -13,3 +13,9 @@ Keep lic issues in mind.
 ### zindo
 
 ### molpac
+
+### multwfn
+
+### acid
+
+

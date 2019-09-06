@@ -2,9 +2,9 @@ import numpy as np
 from pymatgen.core.sites import PeriodicSite
 import itertools
 from copy import deepcopy
-from api.routines.pbc import PBCparser
-from api.schema.dimer import Dimer
-from api.schema.omol import OMol
+from routines.pbc import PBCparser
+from schema.dimer import Dimer
+from schema.omol import OMol
 from pymatgen.core.structure import Structure
 
 
@@ -13,7 +13,7 @@ class Config:
     def __init__(self, pstructure):
         self.pstructure = pstructure
         self.mols, self.omols, self.unwrap_structure = PBCparser.squeeze(self.pstructure)
-        self.z = len(self.omols)  # no solvent!
+        self.z = len([omol for omol in self.omols if not omol.is_solvent])  # no solvent!
         for i in range(self.z):
             self.omols[i].comment = {'index in the cell': i}
         # self.dimers_array, self.transv_fcs = self.get_dimers_array(2)
@@ -35,7 +35,17 @@ class Config:
         d['dimers_dict_array'] = dimers_dictarray
         return d
 
+    @classmethod
+    def from_dict(cls, d):
+        pstructure = Structure.from_dict(d['pymatgen_structure'])
+        return cls(pstructure)
+
     def get_dimers_array(self, maxfold=2):
+        """
+        an array of possible dimers
+        :param maxfold:
+        :return:
+        """
         transv_1d = range(-maxfold, maxfold + 1)
         transv_fcs = list(v for v in itertools.product(transv_1d, transv_1d, transv_1d))
         dimers = np.empty((self.z, self.z, len(transv_fcs)), dtype=Dimer)
@@ -50,11 +60,15 @@ class Config:
                     for h in range(len(msites)):
                         msites[h].coords += transv
                     # dimer_ijk = Dimer(deepcopy(ref_omol), OMol(msites), self, label="{}-{}_{}".format(i, j, k))
-                    dimer_ijk = Dimer(ref_omol, OMol(msites), self, label="{}-{}_{}".format(i, j, k))
+                    dimer_ijk = Dimer(ref_omol, OMol(msites), label="{}-{}_{}".format(i, j, k))
                     dimers[i][j][k] = dimer_ijk
         return dimers, transv_fcs
 
     def get_bone_config(self):
+        """
+        get configuration that has only terminated backbones
+        :return:
+        """
 
         terminated_backbones_sites = [m.backbone.terminate() for m in self.omols]
         backbone_sites = []

@@ -5,4 +5,8 @@ hierarchy as:
 element -- > msite --> msitelist --> bond --> ring/sidechain/backbone --> omol --> dimer/config
 
 one should try not to init anything lower than omol individually as they rely heavily on the omol (site_id)
+
+functions need to be added (to msitelist mostly): shape similarity, chemical graph --> conformation gen
+
+better: granular sim?
 """

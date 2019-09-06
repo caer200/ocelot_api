@@ -1,7 +1,7 @@
 import numpy as np
 import warnings
 from copy import deepcopy
-from routines.geometry import rotate_along_axis, rotation_matrix
+from routines.geometry import rotate_along_axis, rotation_matrix, coord_transform
 from scipy.spatial.distance import pdist, squareform, cdist
 from pymatgen.core.structure import Molecule
 from routines.xyz2mol import xyz2mol  # https://github.com/jensengroup/xyz2mol
@@ -150,6 +150,11 @@ class MSitelist:
 
     @staticmethod
     def get_distmat(coordmat):
+        """
+        distanct matrix, distmat[i][j] is the euclid distance between coordmat[i] and coordmat[j]
+        :param coordmat:
+        :return:
+        """
         return squareform(pdist(coordmat))
 
     def get_closest_sites(self, other):
@@ -324,6 +329,11 @@ class MSitelist:
         m = Molecule.from_sites(pymatgen_sites)
         m.to('xyz', fname)
 
+    @property
+    def pmgmol(self):
+        pymatgen_sites = [s.to_pymatgen_site() for s in self.msites]
+        return Molecule.from_sites(pymatgen_sites)
+
     def rotate_along(self, theta, end1, end2, unit='degree'):
         """
         rotate the vectors defined by (site.coords - end1) along (end2 - end1)
@@ -359,3 +369,21 @@ class MSitelist:
         for s in self.msites:
             v = s.coords - end1
             s.coords = end1 + np.dot(matrix, v)
+
+    @classmethod
+    def orient(cls, msitelist, pqo):
+        """
+        p, q, o are 3 orthonormal vectors in x, y, z basis
+        basis transformation from xyz to pqo
+        :param pqo:
+        :return:
+        """
+        pqo = np.array(pqo)
+        p, q, o = pqo
+        nmsites = []
+        for s in msitelist.msites:
+            ns = deepcopy(s)
+            ns.coords = coord_transform(p, q, o, s.coords - msitelist.geoc)
+            nmsites.append(ns)
+        return cls(nmsites)
+

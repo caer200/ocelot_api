@@ -3,16 +3,21 @@ from scipy.spatial.distance import cdist
 from pymatgen.core.sites import Site
 import sys
 from pymatgen.core.structure import Molecule
-from api.routines.geometry import norm, angle_btw, get_proj_point2plane, coord_transform, alpha_shape
+from routines.geometry import norm, angle_btw, get_proj_point2plane, coord_transform, alpha_shape
 from shapely.geometry import Polygon
+from schema.omol import OMol
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 
 
 class Dimer:
 
-    def __init__(self, omol_ref, omol_var, config, label=""):
-        self.config = config
+    def __init__(self, omol_ref, omol_var, label=""):
+        """
+        :param omol_ref:
+        :param omol_var:
+        :param label:
+        """
         self.omol_ref = omol_ref
         self.omol_var = omol_var
         self.label = label
@@ -52,6 +57,13 @@ class Dimer:
         d['omol_var'] = self.omol_var.as_dict()
         return d
 
+    @classmethod
+    def from_dict(cls, d):
+        omol_ref = OMol.from_dict(d['omol_ref'])
+        omol_var = OMol.from_dict(d['omol_var'])
+        label = d['label']
+        return cls(omol_ref, omol_var, label)
+
     def to_xyz(self, fn):
         sites = [s.to_pymatgen_site() for s in self.omol_ref.sites]
         sites += [s.to_pymatgen_site() for s in self.omol_var.sites]
@@ -83,6 +95,12 @@ class Dimer:
         return np.min(distmat)
 
     def plt_bone_overlap(self, algo='concave', output='bone_overlap.eps'):
+        """
+        plot a 2d graph of how backbones overlap
+        :param algo:
+        :param output:
+        :return:
+        """
         ref_o = self.omol_ref.backbone.vo_fit
         ref_p = self.omol_ref.backbone.vp_fit
         ref_q = self.omol_ref.backbone.vq_fit
@@ -117,7 +135,7 @@ class Dimer:
 
     def mol_overlap(self, algo='concave'):
         """
-        project var backbone onto the plane of ref backbone
+        project var mol onto the plane of ref mol
         :return:
         :param algo:
         :return:
@@ -173,7 +191,7 @@ class Dimer:
             ref_hull = Polygon(ref_2dpts).convex_hull
             var_hull = Polygon(var_2dpts).convex_hull
         else:
-            sys.exit('bone_overlap receive a wrong algo spec')
+            sys.exit('E: bone_overlap receive a wrong algo spec')
 
         mindist2d = ref_hull.distance(var_hull)
 

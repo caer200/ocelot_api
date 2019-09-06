@@ -9,8 +9,8 @@ class MSite:
     def __init__(self, element_name, coords, siteid=-1):
         """
         :param element_name: string
-        :param coords: 3*1 list, cart always
-        :param siteid: -1, this should be set to non-negative only once when a Mol obj is initiated
+        :param coords: 3*1 np array, cart always
+        :param siteid: int, default -1, this should be set to non-negative only once when a Mol obj is initiated
         """
         self.element = Element(element_name)
         self._siteid = int(siteid)
@@ -51,10 +51,16 @@ class MSite:
             self._coords[i] = float(vs[i])
 
     def distance(self, other):
-        # TODO cythonize
+        # TODO profile
         return np.linalg.norm(self.coords - other.coords)
 
     def __eq__(self, other):
+        """
+        two msites are equal if they have the same element and are close in cart system
+        this is useful for set or unique list
+        :param other:
+        :return:
+        """
         if self.element == other.element and np.allclose(self.coords, other.coords) and self.siteid == other.siteid:
             return 1
         return 0
@@ -63,6 +69,10 @@ class MSite:
         return not self.__eq__(other)
 
     def __hash__(self):
+        """
+        rarely used, just in case
+        :return:
+        """
         return hash((self.element, self.x, self.y, self.z))
 
     def __contains__(self, item):
@@ -81,7 +91,7 @@ class MSite:
 
     def as_dict(self):
         """
-        Json-serializable dict representation for Site.
+        Json-serializable dict representation for MSite.
         """
         d = {"element": self.element.name,
              "xyz": self.coords.tolist(),
@@ -93,7 +103,7 @@ class MSite:
     @classmethod
     def from_dict(cls, d):
         """
-        Create Site from dict representation
+        Create MSite from dict representation
         """
         try:
             return cls(d["element"], d["xyz"], d["siteid"])

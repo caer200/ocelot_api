@@ -7,128 +7,64 @@ from scipy import optimize
 import shutil
 import time
 from pymatgen.io.gaussian import GaussianInput
+from collections import OrderedDict
+import os
 """
-originally written by Sean M. Ryno, Cheng Zhong, Haitao Sun
+originally written by Sean M. Ryno, Cheng Zhong, Haitao Sun, see /legacy/aw_tuning.py
 for a certain mol, get tuned a or w
+
+default keywords for gaussian
+'scf=(xqc,fermi,noincfock,ndamp=35,conver=6,vshift=500,novaracc)'
 """
+
+SUGGESTED_route_parameters = {
+    'scf':{
+        'xqc':'',
+        'fermi':'',
+        'noincfock':'',
+        'novaracc':'',
+        'ndamp':'35',
+        'conver':'6',
+        'vshift':'500'
+    }
+}
+SUGGESTED_route_parameters = OrderedDict(SUGGESTED_route_parameters)
+
+
+
+def input_gen_gauss(
+        charge=None, spin_multiplicity=None, title=None, functional='HF', basis_set='6-31G(d)',
+        route_parameters=SUGGESTED_route_parameters, input_parameters=None, link0_parameters=None, dieze_tag='#P',
+        gen_basis=None
+):
+
+    ginobj_mono_a = GaussianInput(self.mono_a, charge, spin_multiplicity, title, functional, basis_set,
+                                  route_parameters, input_parameters, link0_parameters, dieze_tag, gen_basis)
+
+    ginobj_mono_b = GaussianInput(self.mono_a, charge, spin_multiplicity, title, functional, basis_set,
+                                  route_parameters, input_parameters, link0_parameters, dieze_tag, gen_basis)
+
+    dimer_sites = self.mono_a.sites + self.mono_b.sites
+    dimer_pmgmol = Molecule.from_sites(dimer_sites)
+    ginobj_dimer = GaussianInput(dimer_pmgmol, charge, spin_multiplicity, title, functional, basis_set,
+                                 route_parameters, input_parameters, link0_parameters, dieze_tag, gen_basis)
+    return ginobj_mono_a.to_string(cart_coords=True), ginobj_mono_b.to_string(
+        cart_coords=True), ginobj_dimer.to_string(cart_coords=True)
+
+
+
 
 class GaussTuning:
 
-    def __init__(self, omol, gparams):
+    def __init__(self, mol, wdir, tuning_what='w', tuning_scheme='gap'):
 
-        self.omol = omol
-        self.inp = GaussianInput(self.omol.to_pymatgen_mol(), charge=omol.charge, spin_multiplicity=omol.multiplicity)
-
-
-
-
-
-
-
-
-
-
-
-class tuningGaussian():
-    def __init__(self, filename, nproc='', mem='', level='', addKeyWords='', criterion='', program=''):
-        suffix = filename.split('.').pop().lower()
-        if (suffix == 'gjf') or (suffix == 'com'):
-            self.filename = filename
-        else:
-            print("Filename should end with .gjf or .com", file=sys.stderr)
-            print("Exiting...", file=sys.stderr)
-            sys.exit(1)
-
-        print("Filename:", filename, file=sys.stdout)
-
-        try:
-            self.inputFile = open(filename, 'r')
-        except IOError:
-            print("Cannot open file:", filename, file=sys.stderr)
-            print("Exiting...", file=sys.stderr)
-            sys.exit(1)
-
-        # Read nproc, mem, methods, and coordinates from input file.
-        self.coord = []
-        readCoord = 0
-        keywordLine = 0
-
-        # Read Input file first
-        for line in self.inputFile:
-            if re.search('nproc', line):
-                nprocInFile = line.split('=')[1].strip('\n')
-            if re.search('nprocshared', line):
-                nprocInFile = line.split('=')[1].strip('\n')
-            if re.search('CPU', line):
-                nprocInFile = line.split('=')[1].strip('\n')
-            if re.search('mem', line):
-                memInFile = line.split('=')[1].strip('\n')
-            if re.search('#', line):
-                keywordLine = keywordLine + 1
-                if keywordLine > 1:
-                    print("Only a single keyword line is allowed and must begin with functional/basisset.",
-                          file=sys.stderr)
-                    print("Exiting...", file=sys.stderr)
-                    sys.exit(1)
-                try:
-                    levelInFile = line.split(None, 2)[1].strip('\n')
-                except IndexError:
-                    levelInFile = ''
-                try:
-                    addKeyWordsInFile = line.split(None, 2)[2].strip('\n')
-                except IndexError:
-                    addKeyWordsInFile = ''
-            if re.search(r'^-?[0-9] +[0-9] *$', line):
-                self.charge = line.split()[0]
-                self.spin = line.split()[1]
-                readCoord = 1
-                continue
-            if readCoord == 1:
-                self.coord.append(line)
-            else:
-                readCoord = 0
-
-        # Set number of processors to use. Default: 1
-        if nproc != '':
-            self.nrpoc = nproc
-        elif nprocInFile != '':
-            self.nproc = nprocInFile
-        else:
-            self.nproc = '1'
-
-        # Set amount of memory to use. Default: 500MB
-        if mem != '':
-            self.mem = mem
-        elif memInFile != '':
-            self.mem = memInFile
-        else:
-            self.mem = '500MB'
-
-        # Set the level of the calculations. Default: LC-wPBE/6-31G(d)
-        if level != '':
-            self.level = level
-        elif levelInFile != '':
-            self.level = levelInFile
-        else:
-            self.level = 'LC-wPBE/6-31G(d)'
-
-        # Include any additional keywords that have been specified
-        if addKeyWords != '':
-            self.addKeyWords = addKeyWords
-        elif addKeyWordsInFile.strip() != '':
-            self.addKeyWords = addKeyWordsInFile
-        else:
-            self.addKeyWords = 'scf=(xqc,fermi,noincfock,ndamp=35,conver=6,vshift=500,novaracc)'
-
-        # Set the program to be used
-        if program != '':
-            self.program = program
-        else:
-            self.program = 'g09'
-
-        # Set other variables needed for the tuning procedure
+        self.mol = mol
+        self.tuning_what = 'w'
+        self.tuning_scheme = tuning_scheme
+        self.wdir = wdir
+        os.chdir(self.wdir)
         self.currentDIR = os.getcwd()
-        self.criterion = criterion
+        self.criterion = self.tuning_scheme
         self.workingDIR = self.filename.rpartition('.')[0]
         self.originFilename = ''.join(re.split('[/.]', self.filename)[-2:-1])
         self.startTime = time.time()
@@ -137,10 +73,15 @@ class tuningGaussian():
         self.alphaConver = 4
         self.omega = '-----'
         self.alpha = '-----'
-        self.infoTable = ''.join(re.split('[/.]', self.filename)[-2:-1]) + '_' + re.sub('[+)(,]', '',
-                                                                                        self.level).replace('/',
-                                                                                                            '_') + '_' + self.criterion + '_awDATA'
+        self.infoTable = ''.join(re.split('[/.]', self.filename)[-2:-1]) + '_' + re.sub('[+)(,]', '', self.level).replace('/', '_') + '_' + self.criterion + '_awDATA'
 
+
+
+
+
+    def run(self):
+
+        # Set other variables needed for the tuning procedure
     # Generate Gaussian input file, run Gaussian, and extract the necessary data.
     def genGJF(self, tuningInput, tuningNameSuffix, noGuess=0):
 
