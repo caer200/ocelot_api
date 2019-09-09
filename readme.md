@@ -2,6 +2,8 @@
 
 API for dealing conjugate organic molecules.
 
+[current docs](./docs/_build/html/index.html)
+
 dependencies
 ---
 
