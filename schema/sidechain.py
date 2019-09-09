@@ -14,19 +14,13 @@ class Sidechain(MSitelist):
         :param sc_msites: msites on the sidechain, start from side_joint
         :param bone_joint: the msite obj of bone_joint
         :param scid: id of this sidechain in the omol
-        :param rankmap: rankmap is a list, always rankmap[0] = rankmap[1] = None,
-        note bone_joint has rank as 1 but is not included here,
-        rankmap[i] with i > 1 is a list of sites with rank i,
-        rankmap[2] is side_joint msite
+        :param rankmap: rankmap is a list, always rankmap[0] = rankmap[1] = None, note bone_joint has rank as 1 but is not included here, rankmap[i] with i > 1 is a list of sites with rank i, rankmap[2] is side_joint msite
         :param angle_vp: the angle between v(bone_geoc --> bone_jopint) and v()
-        :param hasring: boolean, inner loop within the side chain  #TODO DAG?
+        :param hasring: boolean, inner loop within the side chain  TODO DAG?
 
-        self.umbrella:
-        a msitelist,
-        considering a sidechain like -=-TIPS, the umbrella means the msites with rank that is equal or larger than Si
+        :var umbrella: a msitelist, considering a sidechain like -=-TIPS, the umbrella means the msites with rank that is equal or larger than Si
+        :var branch_msite: Si in -=-TIPS
 
-        self.branch_msite:
-        Si in -=-TIPS
         """
         if len(sc_msites) < 1:
             warnings.warn('W: Sidechain obj must be init with at least 1 sc msite!')
@@ -59,6 +53,11 @@ class Sidechain(MSitelist):
                 break
 
     def as_dict(self):
+        """
+        keys are
+
+        can, volume, msites, max_rank, branch_rank, is_hydrogen, has_ring, scid, angle_vp, bone_joint, rankmap
+        """
         d = {
             "@module": self.__class__.__module__,
             "@class": self.__class__.__name__,
@@ -78,6 +77,11 @@ class Sidechain(MSitelist):
 
     @classmethod
     def from_dict(cls, d):
+        """
+        keys are
+
+        msites, bone_joint, scid, rankmap, angle_vp, hasring
+        """
         sc_msites = [MSite.from_dict(sitedict) for sitedict in d['msites']]
         bone_joint = MSite.from_dict(d['bone_joint'])
         scid = d['scid']
@@ -90,20 +94,27 @@ class Sidechain(MSitelist):
 
     @property
     def ishydrogen(self):
+        """
+        :return: bool
+        """
         return len(self.msites) == 1 and self.msites[0].element.name == 'H'
 
     @classmethod
     def from_omol(cls, msties, scid, omol):
         """
         this method assigns several attributes to msites on the side_chain and bone_joint
+
         site.rank, again bone_joint has rank=1
+
         site.lower_rank_nbs, a list of msites
-        site.higher_rank_nbs,
-        site.eq_rank_nbs
+
+        site.higher_rank_nbs, a list of msites
+
+        site.eq_rank_nbs, a list of msites
+
         :param msties: including the bone-joint site
         :param scid: sidechain_id
-        :param omol:
-        :return:
+        :param omol: parent omol obj
         """
         hasring = False  # inner loop
         sc_msites = msties[1:]
@@ -155,4 +166,7 @@ class Sidechain(MSitelist):
 
     @property
     def maxrank(self):
+        """
+        :return: int, max rank of this sidechain after assigning rank to each site
+        """
         return max([s.rank for s in self.msites])

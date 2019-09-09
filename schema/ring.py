@@ -9,6 +9,17 @@ from schema.bond import Bond
 class Ring(MSitelist):
 
     def __init__(self, msites):
+        """
+        try not to init it outside an omol
+
+        :var n1: first normal vector
+        :var n2: second normal vector
+        :var pl_error: plane fitting error
+        :var ptsmean: cart geo center of fitted plane
+        :var int n_member: # of sites
+        :var idx: a list of siteid
+        :param list msites: a list of msites
+        """
         self.omol_init = True
         for ms in msites:
             if ms.siteid == -1:
@@ -25,6 +36,12 @@ class Ring(MSitelist):
         self.n2 = -normal
 
     def as_dict(self):
+        """
+        keys are
+
+        can, msites, n_member, volume, bonds, ring_insaturation
+        :return:
+        """
         d = {
             "@module": self.__class__.__module__,
             "@class": self.__class__.__name__,
@@ -41,7 +58,8 @@ class Ring(MSitelist):
     def bonds(self):
         """
         bond objects can be extracted from this ring
-        :return:
+
+        :return: a list of bonds
         """
         if not self.omol_init:
             return None
@@ -58,9 +76,10 @@ class Ring(MSitelist):
         """
         get the n1 or n2 that is along the direction of refnormal within a certain tol
         this is useful to identify 2 plane normals for a partially-bent structure
-        :param refnormal:
-        :param tol:
-        :return:
+
+        :param refnormal: 3x1 array
+        :param float tol: default 60 in degree
+        :return: None if no normal along refnormal found
         """
         for n in [self.n1, self.n2]:
             if abs(angle_btw(n, refnormal)) < np.radians(tol):
@@ -68,9 +87,17 @@ class Ring(MSitelist):
         warnings.warn('W: no normal along this direction!')
         return None
 
-    def iscoplane_with(self, other, tol=20.0, tolunit='degrees'):
+    def iscoplane_with(self, other, tol=20.0, tolunit='degree'):
+        """
+        whether two rings are on the same plane with tol
+
+        :param Ring other:
+        :param tol: degree default 20
+        :param tolunit: degree/radian
+        :return: bool
+        """
         angles = []
-        if tolunit == 'degrees':
+        if tolunit == 'degree':
             tol = np.radians(tol)
         for v1 in [self.n1, self.n2]:
             for v2 in [other.n1, other.n2]:
@@ -82,8 +109,9 @@ class Ring(MSitelist):
     def isfused_with(self, other):
         """
         'fused' means the two rings share at least 2 sites
-        :param other:
-        :return:
+
+        :param Ring other:
+        :return: bool
         """
         if len(self.interscet(other)) > 1:
             return 1
@@ -92,8 +120,9 @@ class Ring(MSitelist):
     def isconnected_with(self, other):
         """
         if two rings are at least connected by a bond, returns true if fused or interscet
-        :param other:
-        :return:
+
+        :param Ring other:
+        :return: bool
         """
         if not self.omol_init:
             return None
@@ -111,8 +140,9 @@ class Ring(MSitelist):
     def interscet(self, other):
         """
         get idx of shared sites
-        :param other:
-        :return:
+
+        :param Ring other:
+        :return: a list of siteid
         """
         if isinstance(other, Ring):
             return list(set(self.idx) & set(other.idx))
@@ -145,6 +175,11 @@ class Ring(MSitelist):
 
     @classmethod
     def from_idxlst(cls, idxlst, msites):
+        """
+
+        :param idxlst: a list of siteid
+        :param msites: all sites (in an omol)
+        """
         rs = []
         msites_idx = [s.siteid for s in msites]
         if not set(idxlst).issubset(set(msites_idx)):
@@ -158,8 +193,9 @@ class Ring(MSitelist):
     @property
     def ring_insaturation(self):
         """
-        avg site insaturation
-        :return:
+        avg site insaturation based on msite.insaturation
+
+        :return: a float
         """
         if not self.omol_init:
             return None

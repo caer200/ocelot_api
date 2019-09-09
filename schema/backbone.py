@@ -6,7 +6,7 @@ from schema.msitelist import MSitelist
 from schema.msite import MSite
 from schema.ring import Ring
 
-_coplane_cutoff = 25.0
+_coplane_cutoff = 25.0  # in degrees
 
 
 class Backbone(MSitelist):
@@ -15,8 +15,8 @@ class Backbone(MSitelist):
         """
         backbone within a omol object, again build it from omol
 
-        :param msites:
-        :param lfit_linearity:
+        :param msites: a list of msites
+        :param lfit_linearity: error from linear fit
         :param pfit_vp: long axis vector from plane_fit
         :param pfit_vq: short axis vector
         :param pfit_vo: normal vector
@@ -39,6 +39,12 @@ class Backbone(MSitelist):
 
     @classmethod
     def from_dict(cls, d):
+        """
+        keys are
+
+        msites, linearity, vp, vq, vo, plane_fit_error, backbone_rings
+        :param dict d:
+        """
         msites = [MSite.from_dict(sdict) for sdict in d['msites']]
         lfit_linearity = d['linearity']
         pfit_vp = d['vp']
@@ -49,6 +55,11 @@ class Backbone(MSitelist):
         return cls(msites, lfit_linearity, pfit_vp, pfit_vq, pfit_vo, pfit_error, backbone_rings)
 
     def as_dict(self):
+        """
+        keys are
+
+        msites, linearity, vp, vq, vo, plane_fit_error, backbone_rings, n_backbone_rings, p_length, q_length, can, volume
+        """
         d = {
             "@module": self.__class__.__module__,
             "@class": self.__class__.__name__,
@@ -70,8 +81,9 @@ class Backbone(MSitelist):
     @property
     def lq(self):
         """
-        mdiff( (s.coord - ref) proj at vq )
-        :return:
+        maxdiff( (s.coord - ref) proj at vq )
+
+        :return: long axis length
         """
         ref = self.backbone_rings[0].geoc
         projs = [np.dot(s.coords - ref, self.vq_fit) for s in self.msites]
@@ -79,6 +91,11 @@ class Backbone(MSitelist):
 
     @property
     def lp(self):
+        """
+        maxdiff( (s.coord - ref) proj at vp )
+
+        :return: short axis length
+        """
         ref = self.backbone_rings[0].geoc
         projs = [np.dot(s.coords - ref, self.vp_fit) for s in self.msites]
         return max(projs) - min(projs)
@@ -90,8 +107,10 @@ class Backbone(MSitelist):
         without appending non-ring insaturated sites
 
         e.g.
+
         TIPS-fusedring1-fusedring2=o will have a backbone as fusedring1-fusedring2
-        if the angle < _coplane_cutoff (25.0 degrees)
+        if the angle < _coplane_cutoff (25.0 degrees default)
+
         otherwise it gives fusedring2 since it contains more INDIVIDUAL rings than fusedring1
         """
         fused_rings_list = omol.fused_rings_list  # [[r1, r2, r3], [r5, r6], [r4]...]
@@ -140,10 +159,14 @@ class Backbone(MSitelist):
     def terminate(self):
         """
         basically add-H
+
         only terminate those have nbs different from what they had in omol
         (+1 or +2, otherwise do nothing--deepcopy only),
+
         this means your cif should be legit
+
         the H added wiill have siteid as -10
+
         :return: a list of msites
         """
         terminated_sites = deepcopy(self.msites)
@@ -171,11 +194,3 @@ class Backbone(MSitelist):
                 terminated_sites.append(MSite('H', coords_2, siteid=-10))
         return terminated_sites  # TODO maybe it's better to return a backbone obj
 
-    # @classmethod
-    # def orient(cls, obb):
-    #     nss = []
-    #     for s in obb.sites:
-    #         ns = deepcopy(s)
-    #         ns.coords = coord_transform(obb.vp, obb.vq, obb.vo, s.coords - obb.geoc)
-    #         nss.append(ns)
-    #     return cls(nss, obb.mol)

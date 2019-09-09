@@ -2,10 +2,14 @@ class Loopsearcher:
 
     def __init__(self, nbmap):
         """
-        smallest set of smallest rings
         giving a connection table, find all possible loops with a certain loop size
+
         nbmap[i] does not contain i itself
+
+        useful to consider smallest set of smallest rings (sssr) problem
+
         check 10.1073pnas.0813040106 for a better solution
+
         :param nbmap: connection table
         """
         self.nbmap = nbmap
@@ -36,8 +40,9 @@ class Loopsearcher:
     def alex_method(self, loopsize):
         """
         I figured this out but I'm sure I'm not the first
-        :param loopsize:
-        :return:
+
+        :param int loopsize: ring size to look for
+        :return: a list of index
         """
         all_idx = list(self.nbmap.keys())
         loop_found = []

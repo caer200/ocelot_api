@@ -8,9 +8,9 @@ import warnings
 class MSite:
     def __init__(self, element_name, coords, siteid=-1):
         """
-        :param element_name: string
-        :param coords: 3*1 np array, cart always
-        :param siteid: int, default -1, this should be set to non-negative only once when a Mol obj is initiated
+        :param str element_name: case sensitive
+        :param np.ndarray coords: 3*1, cart always
+        :param int siteid: default -1, this should be set to non-negative only once when a OMol obj is initiated
         """
         self.element = Element(element_name)
         self._siteid = int(siteid)
@@ -57,9 +57,10 @@ class MSite:
     def __eq__(self, other):
         """
         two msites are equal if they have the same element and are close in cart system
+
         this is useful for set or unique list
-        :param other:
-        :return:
+
+        :param MSite other:
         """
         if self.element == other.element and np.allclose(self.coords, other.coords) and self.siteid == other.siteid:
             return 1
@@ -71,7 +72,6 @@ class MSite:
     def __hash__(self):
         """
         rarely used, just in case
-        :return:
         """
         return hash((self.element, self.x, self.y, self.z))
 
@@ -91,7 +91,11 @@ class MSite:
 
     def as_dict(self):
         """
-        Json-serializable dict representation for MSite.
+        keys are
+
+        element, xyz, siteid
+        :return: json-serializable representation for MSite.
+        :rtype: dict
         """
         d = {"element": self.element.name,
              "xyz": self.coords.tolist(),
@@ -103,7 +107,13 @@ class MSite:
     @classmethod
     def from_dict(cls, d):
         """
-        Create MSite from dict representation
+        create MSite from dict representation, return None if failed
+
+        keys are
+
+        element, xyz, siteid
+        :param dict d: representation of a MSite
+        :return: MSite, or None if keys not found
         """
         try:
             return cls(d["element"], d["xyz"], d["siteid"])
@@ -113,8 +123,17 @@ class MSite:
 
     @classmethod
     def from_pymatgen_site(cls, pymatgen_site):
+        """
+        create MSite from a pmg Site obj, the coords for that pmg site should be in cart and siteid is set to -1
+        :param pmg_site pymatgen_site: the pmg site that will be converted
+        :return: MSite
+        """
         return cls(pymatgen_site.species_string, pymatgen_site.coords)
 
     def to_pymatgen_site(self):
+        """
+        notice the siteid info is lost in this conversion
+        :return: a pmg_site
+        """
         # return Site(self.element.name, self.coords, properties={"siteid": self.siteid})
         return Site(str(self.element.name), self.coords)

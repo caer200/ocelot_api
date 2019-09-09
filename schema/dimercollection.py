@@ -4,14 +4,18 @@ from pymatgen.core.structure import Molecule
 
 
 class DimerCollection:
-    """
-    they share the same ref_mol
-    """
-
     def __init__(self, dimers):
+        """
+        just a list of dimers, they should share the same ref_mol
+        """
         self.dimers = dimers
 
     def get_xyz_string(self):
+        """
+        put a La atom at the center of omol_ref, used for visualization
+
+        :return: xyz string to be written
+        """
         sites = []
         for d in self.dimers:
             sites += [s.to_pymatgen_site() for s in d.omol_var.msites]
@@ -22,6 +26,11 @@ class DimerCollection:
         return str(xyz)
 
     def to_xyz(self, fn):
+        """
+        put a La atom at the center of omol_ref, used for visualization
+
+        :param fn: xyz file name, with extension
+        """
         sites = []
         for d in self.dimers:
             sites += [s.to_pymatgen_site() for s in d.omol_var.msites]

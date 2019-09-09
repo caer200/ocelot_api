@@ -7,6 +7,12 @@ from schema.msitelist import MSitelist, MSite
 class Bond(MSitelist):
 
     def __init__(self, sitea, siteb):
+        """
+        try not to init it outside an omol
+
+        :param sitea: first site, self.a
+        :param siteb: second site, self.b
+        """
         super().__init__([sitea, siteb])
         self.omol_init = True
         for ms in self.msites:
@@ -18,7 +24,10 @@ class Bond(MSitelist):
         self.b = siteb
 
     @property
-    def order(self):  # self.omol_init = True
+    def order(self):
+        """
+        :return: int, bond order based on msite.insaturation, defined during omol init
+        """
         if not self.omol_init:
             return None
         if self.a.element.valence == 1 or self.b.element.valence == 1:
@@ -27,6 +36,9 @@ class Bond(MSitelist):
 
     @property
     def center(self):
+        """
+        :return: cart coords of geo center
+        """
         return (self.a.coords + self.b.coords) * 0.5
 
     @property
@@ -35,6 +47,9 @@ class Bond(MSitelist):
 
     @property
     def elements(self):
+        """
+        :return: 2x1 string tuple
+        """
         return tuple(sorted([self.a.element.name, self.b.element.name]))
 
     def __eq__(self, other):
@@ -51,6 +66,12 @@ class Bond(MSitelist):
         return 0
 
     def as_dict(self):
+        """
+        keys are
+
+        site_a, site_b, order, length, center
+        :return: a dict
+        """
         d = {
             "@module": self.__class__.__module__,
             "@class": self.__class__.__name__,
@@ -64,6 +85,11 @@ class Bond(MSitelist):
 
     @classmethod
     def from_dict(cls, d):
+        """
+        keys are
+
+        site_a, site_b
+        """
         sa = MSite.from_dict(d['site_a'])
         sb = MSite.from_dict(d['site_b'])
         return cls(sa, sb)

@@ -12,11 +12,23 @@ from schema.sidechain import Sidechain
 
 
 class OMol(MSitelist):
-    """
-    siteid is set only once when init this obj
-    """
-
     def __init__(self, msites, keepsiteid=False):
+        """
+        siteid is set only once when init this obj
+
+        :param msites: a list of msites
+        :param bool keepsiteid: rarely used, default Faluse
+
+        :var distmat: distance matrix, not a property!
+        :var bondmat: bond bool matrix, not a property!
+        :var nrnbrmap: index map as a dict, not a property!
+        :var rings: a list of Ring objs
+        :var fused_rings_list: [[r1, r2, r3], [r5, r6], [r4]...], rn is a Ring obj
+        :var is_solvent: True if there is only one ring in this omol
+        :var largest_fused_ring: None if solvent, otherwise a list of Ring objs
+        :var backbone: Backbone obj, None if solvent
+        :var sidechains: a list of sc objs, None if solvent
+        """
         # mss = [MSite(ms.element.name, deepcopy(ms.coords)) for ms in msites]
         # super().__init__(mss)
 
@@ -64,6 +76,15 @@ class OMol(MSitelist):
             self.sidechains = self.get_sidechains()
 
     def as_dict(self):
+        """
+        keys are
+
+        msites, can, volume, is_solvent
+
+        if not solvent, additional:
+
+        backbone, sidechains, rings, largest_fused_ring
+        """
         d = {
             "@module": self.__class__.__module__,
             "@class": self.__class__.__name__,
@@ -99,9 +120,17 @@ class OMol(MSitelist):
 
     @staticmethod
     def get_shortest_path(s1id, s2id, nbrmap):
+        """
+        dijsktra algo as in http://benalexkeen.com/implementing-djikstras-shortest-path-algorithm-with-python/
 
-        # dijsktra algo as in http://benalexkeen.com/implementing-djikstras-shortest-path-algorithm-with-python/
-        # looks like percolation to me
+        looks like percolation to me
+
+        :param s1id: siteid of site1
+        :param s2id: siteid of site2
+        :param nbrmap: nb map of this omol
+        :return: "Route Not Possible" if disconnected, a list of idx if connected
+        """
+
         shortest_paths = {s1id: (None, 0)}
         current_node = s1id
         visited = set()
@@ -138,7 +167,13 @@ class OMol(MSitelist):
         return path
 
     def get_fused_rings_list(self):
-        # sorted fused rings, [[r1, r2, r3], [r5, r6], [r4]...]
+        """
+        sorted (number of rings!) fused rings, [[r1, r2, r3], [r5, r6], [r4]...]
+
+        TODO what if [[r1, r2, r3], [r4, r5, r6]] ?
+
+        :return: a list of list of rings
+        """
         indices = range(len(self.rings))
         block_list = []
         visited = []
@@ -159,6 +194,9 @@ class OMol(MSitelist):
         return block_list
 
     def get_sidechains(self):
+        """
+        :return: a list of sc objs, notice sc.scid will be set here
+        """
         bs = self.backbone.msites
         bsids = []
         nbsids = []

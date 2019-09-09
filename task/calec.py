@@ -1,8 +1,3 @@
-"""
-electronic coupling calculator with
-1. gaussian
-2. zindo
-"""
 import sys
 import re
 import numpy as np
@@ -15,7 +10,11 @@ from pymatgen.io.gaussian import GaussianInput
 from pymatgen.core.structure import Molecule
 
 '''
-1. gaussian code comes from Sean M. Ryno, see original code at /legacy/sean-electronic_coupling.py for citation suggestion
+electronic coupling calculator with
+
+1. gaussian, code comes from Sean M. Ryno, see original code at /legacy/sean-electronic_coupling.py for citation suggestions
+
+2. zindo, under dev
 '''
 
 SUGGESTED_route_parameters = {
@@ -30,13 +29,21 @@ SUGGESTED_route_parameters = OrderedDict(SUGGESTED_route_parameters)
 class ElectronicCoupling:
     """
     class to calculate electronic couplings from Gaussian w. fmo formalism
+
     micro wf:
+
     1. get 2 monomer structure in cart coords, label them mono_a and mono_b
+
     2. concatenate 2 input structure to give dimer structure, fmo requires site sequence remains intact
-    3. run calculations to give mono_a_fchk, mono_b_fchk, dimer_fchk, dimer_log
+
+    3. run calculations to give mono_a_fchk, mono_b_fchk, dimer_fchk, dimer_log.
+
     suggested keywords `nosymm pop=full iop(3/33=1,3/59=8) int(acc2e=12)`
+
     4. four files in 3. will be used to give ec, the results is a list of lists,
+
     fields are ['#mo_a', '#mo_b', 'e_mo_a', 'e_mo_b', 'J_12', 'S_12', 'e^eff_1', 'e^eff_2', 'J^eff_12', 'dE_12']
+
     all in eV
     """
 
@@ -73,10 +80,9 @@ class ElectronicCoupling:
         return ginobj_mono_a.to_string(cart_coords=True), ginobj_mono_b.to_string(
             cart_coords=True), ginobj_dimer.to_string(cart_coords=True)
 
-
     @staticmethod
     def calculate_coupling_gauss(mono_a_fchk_string, mono_b_fchk_string, dimer_fchk_string, dimer_log_string,
-                           homo1=0, lumo1=0, homo2=0, lumo2=0):
+                                 homo1=0, lumo1=0, homo2=0, lumo2=0):
         monomer_a_fchk_lines = mono_a_fchk_string.split('\n')
         monomer_b_fchk_lines = mono_b_fchk_string.split('\n')
         dimer_fchk_lines = dimer_fchk_string.split('\n')
@@ -270,15 +276,19 @@ class ElectronicCoupling:
 
     @staticmethod
     def create_matrix(matrix, elements, nbf):
-        """ create lower triangular matrix from list of matrix elements
-        indexed like so:
+        """
+        create lower triangular matrix from list of matrix elements indexed like so:
+
             [[0,0,0,...,0],
             [1,2,0,...,0],
             [3,4,5,...,0]]
+
         nbf is number of basis functions
-        elements is a list of matrix elements indexed like above, e.g.
-            [0,1,2,3,...]
+
+        elements is a list of matrix elements indexed like above, e.g. [0,1,2,3,...]
+
         Gaussian prints every 5 columns, so the mod5 accounts for this
+
         """
         count = 0  # count is our index
         # fill the main block, leaving remainder for triangle fill

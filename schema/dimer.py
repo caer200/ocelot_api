@@ -14,9 +14,20 @@ class Dimer:
 
     def __init__(self, omol_ref, omol_var, label=""):
         """
-        :param omol_ref:
-        :param omol_var:
-        :param label:
+        basically 2 omols
+
+        :param omol_ref: first omol obj
+        :param omol_var: second omol obj
+        :param str label: mainly used to distinguish
+        :var vslip: slip vector in cart
+        :var vslipnorm: normalized vslip
+        :var pslip: projection of vslip along vp
+        :var qslip: projection of vslip along vq
+        :var oslip: projection of vslip along vo
+        :var pangle: angle btw vps
+        :var qangle: angle btw vps
+        :var oangle: angle btw vps, always acute
+        :var jmol: jmol draw arrow string in console
         """
         self.omol_ref = omol_ref
         self.omol_var = omol_var
@@ -40,6 +51,11 @@ class Dimer:
                                                                                                   *var_bone.geoc)
 
     def as_dict(self):
+        """
+        keys are
+
+        vslipnorm, pslip, qslip, oslip, pangle, qangle, oangle, jmol, label, omol_ref, omol_var
+        """
         d = {
             "@module": self.__class__.__module__,
             "@class": self.__class__.__name__,
@@ -59,6 +75,11 @@ class Dimer:
 
     @classmethod
     def from_dict(cls, d):
+        """
+        keys are
+
+        omol_ref, omol_var, label
+        """
         omol_ref = OMol.from_dict(d['omol_ref'])
         omol_var = OMol.from_dict(d['omol_var'])
         label = d['label']
@@ -72,6 +93,9 @@ class Dimer:
 
     @property
     def is_identical(self):
+        """
+        whether two omols are identical, based on norm(vslip) < 1e-5
+        """
         return np.linalg.norm(self.vslip) < 1e-5
 
     @property
@@ -80,6 +104,14 @@ class Dimer:
 
     @property
     def is_close(self, cutoff=5.5):
+        """
+        use to identify whether this dimer can have minimum wf overlap
+
+        this should be called is_not_faraway...
+
+        :param cutoff: minbonedist less than which will be considered close
+        :return: bool
+        """
         return self.minbonedist < cutoff
 
     # @property
@@ -91,15 +123,20 @@ class Dimer:
 
     @property
     def minbonedist(self):
+        """
+        :return: minimum dist between sites on different bones
+        """
         distmat = cdist(self.omol_ref.backbone.coordmat, self.omol_var.backbone.coordmat)
         return np.min(distmat)
 
     def plt_bone_overlap(self, algo='concave', output='bone_overlap.eps'):
         """
         plot a 2d graph of how backbones overlap
-        :param algo:
-        :param output:
-        :return:
+
+        using concave or convex hull
+
+        :param algo: concave/convex
+        :param output: output filename
         """
         ref_o = self.omol_ref.backbone.vo_fit
         ref_p = self.omol_ref.backbone.vp_fit
@@ -136,9 +173,9 @@ class Dimer:
     def mol_overlap(self, algo='concave'):
         """
         project var mol onto the plane of ref mol
-        :return:
-        :param algo:
-        :return:
+
+        :param algo: concave/convex
+        :return: area of the overlap, ref omol area, var omol area
         """
         ref_o = self.omol_ref.backbone.vo_fit
         ref_p = self.omol_ref.backbone.vp_fit
@@ -167,9 +204,9 @@ class Dimer:
     def bone_overlap(self, algo='concave'):
         """
         project var backbone onto the plane of ref backbone
-        :return:
-        :param algo:
-        :return:
+
+        :param algo: concave/convex
+        :return: area of the overlap, ref omol area, var omol area
         """
         ref_o = self.omol_ref.backbone.vo_fit
         ref_p = self.omol_ref.backbone.vp_fit

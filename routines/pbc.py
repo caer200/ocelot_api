@@ -4,7 +4,6 @@ from schema.omol import OMol
 from pymatgen.util.coord import pbc_shortest_vectors
 from pymatgen.core.structure import Site, PeriodicSite, IMolecule, IStructure, Molecule, Structure
 from pymatgen.io.cif import CifFile
-from monty.json import MSONable
 
 """
 CIFparser: parse cif file into a list of configurations with no disorder
@@ -12,7 +11,7 @@ PBCparser: get unwrapped structure and mols
 """
 
 
-class CIFparser(MSONable):
+class CIFparser:
 
     def __init__(self, cifstring, identifier, pymatgen_dict, clean_dicts, clean_cifstrings, nconfig, is_disorder):
 
@@ -165,6 +164,8 @@ class PBCparser:
     def get_dist_and_trans(lattice, fc1, fc2):
         """
         get the shortest distance and corresponding translation vector between two frac coords
+
+        :param lattice: pmg lattic obj
         :param fc1:
         :param fc2:
         :return:
@@ -177,6 +178,7 @@ class PBCparser:
     def unwrap(pstructure):
         """
         unwrap the structure, extract isolated mols
+
         :param pstructure: periodic structure obj from pymatgen
         :return:
         """
@@ -227,6 +229,7 @@ class PBCparser:
     def squeeze(pstructure):
         """
         after unwrapping, the mols can be far away from each other, this tries to translate them s.t. they stay together
+
         :param pstructure:
         :return:
         """

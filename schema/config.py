@@ -11,6 +11,16 @@ from pymatgen.core.structure import Structure
 class Config:
 
     def __init__(self, pstructure):
+        """
+        :var unwrap_structure: pmg Structure obj
+        :var mols: a list of pmg Molecule obj
+        :var omols: a list of omol obj
+        :var z: # of non-solvent omols
+        :var dimers_array: z x z x n array, dimers[i][j][k] is the dimer of omols[i], omols[j] with translation vector as transv_fcs[k]
+        :var transv_fcs: translation vector in fractional coords
+
+        :param pstructure: pmg Structure obj
+        """
         self.pstructure = pstructure
         self.mols, self.omols, self.unwrap_structure = PBCparser.squeeze(self.pstructure)
         self.z = len([omol for omol in self.omols if not omol.is_solvent])  # no solvent!
@@ -20,6 +30,11 @@ class Config:
         self.dimers_array, self.transv_fcs = self.get_dimers_array(1)
 
     def as_dict(self):
+        """
+        keys are
+
+        pymatgen_structure, mols, omols, z, dimers_dict_array
+        """
         d = {"@module": self.__class__.__module__,
              "@class": self.__class__.__name__}
         d['pymatgen_structure'] = self.pstructure.as_dict()
@@ -37,14 +52,20 @@ class Config:
 
     @classmethod
     def from_dict(cls, d):
+        """
+        keys are
+
+        pymatgen_structure
+        """
         pstructure = Structure.from_dict(d['pymatgen_structure'])
         return cls(pstructure)
 
     def get_dimers_array(self, maxfold=2):
         """
-        an array of possible dimers
-        :param maxfold:
-        :return:
+        see init for return details
+
+        :param maxfold: translation vector in fc can be [h, h, h] where maxfold <= h <= maxfold
+        :return: dimers_array, transv_fcs
         """
         transv_1d = range(-maxfold, maxfold + 1)
         transv_fcs = list(v for v in itertools.product(transv_1d, transv_1d, transv_1d))
@@ -66,8 +87,7 @@ class Config:
 
     def get_bone_config(self):
         """
-        get configuration that has only terminated backbones
-        :return:
+        :return: a configuration that has only terminated backbones
         """
 
         terminated_backbones_sites = [m.backbone.terminate() for m in self.omols]

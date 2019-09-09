@@ -15,5 +15,6 @@
 - ipae: calculate IP and AE, both intrinsic and apparent
 - escal: excited state calculations
 - defgen: generate defects
-- inspector: sanity check and inputs generation for other tasks
+- inspector: sanity check for raw data and inputs generation for other tasks
+
 """

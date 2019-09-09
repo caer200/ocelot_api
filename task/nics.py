@@ -34,6 +34,7 @@ class NICSjob:
         add hydrogen to all sites on lfr(largest fused rings), and sites that are connected to lfr with double bonds
         notice this could be different from backbone, as backbone contains other fr connected to lfr with single bond 
         (eg. BDT 3mer)
+
         :param normal_idx: 0, 1
         :return: a MSitelist objects
         """
@@ -82,15 +83,19 @@ class NICSjob:
 
     def nics_line_scan_path(self, step_size, nrings, height=1.7, normaldirection=0):
         """
-        pts, ring_idx, xnumbers, xticks
+        pts, n x 3 array, cart coords for path
+
+        ring_idx, n x 1 array, ring_idx[i] represents the ring idx of the ring in which pts[i] reside
+
+        xnumbers, the path travelled
+
+        xticks, seg ends position on path
+
         :param step_size: in \AA
         :param nrings: only look at this # of rings in lfr
         :param height: default 1.7 is suggested by Stanger, Chemistry–A European Journal 20.19 (2014): 5673-5688
         :param normaldirection: 0 or 1, as it's possible to have two different paths for bent molecules
-        :return: pts        n x 3 array, cart coords for path
-                 ring_idx   n x 1 array, ring_idx[i] represents the ring idx of the ring in which pts[i] reside
-                 xnumbers   the path travelled
-                 xticks     seg ends position on path
+        :return: pts, ring_idx, xnumbers, xticks
         """
         lgfr = self.omol.largest_fused_ring[:nrings]
         geocs = [r.geoc for r in lgfr]  # nx3
@@ -208,8 +213,8 @@ class NICSjob:
             link0_parameters=None, dieze_tag='#P', gen_basis=None
     ):
         """
-        this will return two lists of gauss input string
-        xticks, xnumbers, pt_idx(ring idx) for plotting
+        this will return two lists of gauss input string, xticks, xnumbers, pt_idx(ring idx) for plotting
+
         pts are cart coords for bqs
 
         return None if failed
@@ -217,7 +222,6 @@ class NICSjob:
         one problem is if the number of ghost atoms cannot be too large, so the param maxnbq is introduced as
         the max number of ghost atoms that is allowed to show in one input file
         for other param docs see nics_line_scan_path and pymatgen.io.gassian
-        :return:
         """
         pts, pt_idx, xnumbers, xticks = self.nics_line_scan_path(step_size, nrings, height, normaldirection)
         sigma_mol_msites = self.nics_sigma_structure(normal_idx=1 - normaldirection)
@@ -255,10 +259,9 @@ class NICSjob:
     @staticmethod
     def get_zzmstensor(logstring, tensor_kw='GIAO Magnetic shielding tensor'):
         """
-        retuen zz components of magnetic shield tensor from log string
-        :param logstring:
+        :param logstring: string of gauss log file
         :param tensor_kw: default 'GIAO Magnetic shielding tensor'
-        :return:
+        :return: a list of floats, zz components of magnetic shield tensor from log string
         """
         lines = logstring.split('\n')
         ns = 0

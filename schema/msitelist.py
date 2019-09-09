@@ -1,7 +1,8 @@
 import numpy as np
 import warnings
+import itertools
 from copy import deepcopy
-from routines.geometry import rotate_along_axis, rotation_matrix, coord_transform
+from routines.geometry import rotate_along_axis, rotation_matrix, coord_transform, norm
 from scipy.spatial.distance import pdist, squareform, cdist
 from pymatgen.core.structure import Molecule
 from routines.xyz2mol import xyz2mol  # https://github.com/jensengroup/xyz2mol
@@ -15,13 +16,13 @@ import rdkit.Chem.Descriptors3D as descriptors3d
 
 
 class MSitelist:
-    """
-    this is the parent obj for backbone, sidegroups, omol, ring, bond
-    """
-
     def __init__(self, msites):
         """
-        :param msites: a *list* of unique msites
+        this is the parent obj for backbone, sidegroups, omol, ring, bond.
+
+        duplicate msite will be discarded
+
+        :param list msites: a *list* of msites
         """
         unique_sites = []
         for ms in msites:
@@ -32,7 +33,7 @@ class MSitelist:
     def __len__(self):
         return len(self.msites)
 
-    def __contains__(self, msite):
+    def __contains__(self, msite):  # TODO necessary?
         for s in self.msites:
             if np.allclose(msite.coords, s.coords) and s.element == msite.element:
                 return True
@@ -53,7 +54,11 @@ class MSitelist:
     @property
     def rdkit_mol(self):
         """
-        return a rdkit mol object using the code from https://github.com/jensengroup/xyz2mol
+        return a rdkit mol object using the code from
+
+        https://github.com/jensengroup/xyz2mol
+
+        #TODO lic issue
         :return:
         """
         atomic_number_list = [Element.atomic_numbers[name] for name in self.elementarray]
@@ -65,22 +70,20 @@ class MSitelist:
     def shape_descriptors(self):
         """
         using methods from rdkit
+
         https://www.rdkit.org/docs/source/rdkit.Chem.Descriptors3D.html
 
-        Asphericity:    0 corresponds to spherical top molecules and 1 to linear molecules,
-                        For prolate (cigar-sh aped) molecules, ~ 0.25, whereas
-                        for oblate (disk-shaped) molecules, ~ 1.
+        Asphericity: 0 corresponds to spherical top molecules and 1 to linear molecules, For prolate (cigar-sh aped) molecules, ~ 0.25, whereas for oblate (disk-shaped) molecules, ~ 1.
 
-        Eccentricity:   0 corresponds to spherical top molecules and 1 to linear molecules.
+        Eccentricity: 0 corresponds to spherical top molecules and 1 to linear molecules.
 
-        RadiusOfGyration:   a size descriptor based on the distribution of atomic masses in a molecule,
-                            a measure o f molecular compactness for long-chain molecules and, specifically,
-                            small values are obtained when most o f the atoms are close to the center of mass
+        RadiusOfGyration: a size descriptor based on the distribution of atomic masses in a molecule, a measure of molecular compactness for long-chain molecules and, specifically, small values are obtained when most o f the atoms are close to the center of mass
 
-        SpherocityIndex:  spherosity index varies from zero for flat molecules, such as benzene, to unity
-                            for totally spherical molecules
+        SpherocityIndex: spherosity index varies from zero for flat molecules, such as benzene, to unity for totally spherical molecules
 
-        :return:
+        :key: Asphericity, Eccentricity, InertialShapeFactor, NPR1, NPR2, PMI1, PMI2, PMI3, RadiusOfGyration, SpherocityIndex
+
+        :return: dict
         """
         mol = self.rdkit_mol
         d = dict(
@@ -101,14 +104,11 @@ class MSitelist:
         """
         use RDK fingerprint similarity based on different metrics
 
-        # TODO add args to customize RDKfp
-        # see https://www.rdkit.org/docs/source/rdkit.Chem.rdmolops.html#rdkit.Chem.rdmolops.RDKFingerprint
+        TODO add args to customize RDKfp, see https://www.rdkit.org/docs/source/rdkit.Chem.rdmolops.html#rdkit.Chem.rdmolops.RDKFingerprint
 
         see Landrum2012 for more details
 
-        :param metric:
-            "Tanimoto", "Dice", "Cosine", "Sokal", "Russel", "RogotGoldberg", "AllBit", "Kulczynski",
-            "McConnaughey", "Asymmetric", "BraunBlanquet",
+        :param str metric: "Tanimoto", "Dice", "Cosine", "Sokal", "Russel", "RogotGoldberg", "AllBit", "Kulczynski", "McConnaughey", "Asymmetric", "BraunBlanquet",
         :return:
         """
         mol = self.rdkit_mol
@@ -124,6 +124,8 @@ class MSitelist:
     def coordmat(self):
         """
         coordinates matrix
+
+        :return: nx3 np array
         """
         coordmat = np.empty((len(self), 3))
         for i in range(len(self)):
@@ -134,8 +136,8 @@ class MSitelist:
     @staticmethod
     def get_nbrmap(bmat):
         """
-        :param bmat: bond matrix, i is not bonded to itself
-        :return:
+        :param np.ndarray bmat: bool bond matrix, i is not bonded to itself
+        :return: nbmap[i] is the index list of i's neighbors
         """
         # TODO profile
         ma = {}
@@ -151,17 +153,19 @@ class MSitelist:
     @staticmethod
     def get_distmat(coordmat):
         """
-        distanct matrix, distmat[i][j] is the euclid distance between coordmat[i] and coordmat[j]
-        :param coordmat:
-        :return:
+        distanct matrix
+
+        :param coordmat: coordinates matrix nx3
+        :return: distmat[i][j] is the euclid distance between coordmat[i] and coordmat[j]
         """
         return squareform(pdist(coordmat))
 
     def get_closest_sites(self, other):
         """
         other_sites -- self_border_site ----- distmin ----- other_border_site --- other_sites
-        :param other:
-        :return:
+
+        :param MSitelist other:
+        :return: self_border_site, other_border_site, distmin
         """
         distmat = cdist(self.coordmat, other.coordmat)
         minid = np.unravel_index(np.argmin(distmat, axis=None), distmat.shape)
@@ -181,8 +185,9 @@ class MSitelist:
         """
         Bij = whether there is a bond between si and sj
         i is NOT bonded with itself
-        :param co: coefficient for cutoff
-        :return:
+
+        :param co: coefficient for cutoff, default 1.3, based on covalent rad
+        :return: bool matrix
         """
         numsites = len(msites)
         mat = np.ones((numsites, numsites), dtype=bool)
@@ -196,6 +201,9 @@ class MSitelist:
 
     @property
     def elementarray(self):
+        """
+        :return: a nx1 string np array
+        """
         arr = []
         for i in range(len(self)):
             arr.append(self[i].element.name)
@@ -205,7 +213,8 @@ class MSitelist:
     def geoc(self):
         """
         geometric center
-        :return:
+
+        :return: 3x1 np array
         """
         v = np.zeros(3)
         for s in self.msites:
@@ -214,46 +223,63 @@ class MSitelist:
 
     @property
     def canonical_smiles(self):
+        """
+        :return: smiles string, using rdkit Chem.MolToSmiles, isomericSmiles=False
+        """
         return Chem.MolToSmiles(self.rdkit_mol, isomericSmiles=False)
+
+    @property
+    def volume_slow(self, boxdensity=0.2):
+        """
+        http://wiki.bkslab.org/index.php/Calculate_volume_of_the_binding_site_and_molecules
+
+        First, Lay a grid over the spheres.
+
+        Count the number or points contained in the spheres (Ns).
+
+        Count the number of points in the grid box (Ng).
+
+        Calculate the volume of the grid box (Vb).
+
+        don't use this as it's slow, use `volume` as implemented in rdkit
+
+        :return: volume in \AA^3
+        """
+        mat = np.empty((len(self.msites), 4))
+        for i in range(len(self.msites)):
+            for j in range(3):
+                mat[i][j] = self.msites[i].coords[j]
+            mat[i][3] = self.msites[i].element.covrad
+
+        box_min = np.floor(min(itertools.chain.from_iterable(mat))) - 2
+        box_max = np.ceil(max(itertools.chain.from_iterable(mat))) + 2
+        axis = np.arange(box_min, box_max + boxdensity, boxdensity)
+        grid = np.array(np.meshgrid(axis, axis, axis)).T.reshape(-1, 3)
+        ngps_total = len(grid)
+        ngps_occu = 0
+        for igp in range(len(grid)):
+            for iap in range(len(mat)):
+                dist = norm(grid[igp] - mat[iap][:3])
+                if dist < mat[iap][3]:
+                    ngps_occu += 1
+                    break
+        v = (ngps_occu / ngps_total) * ((box_max - box_min) ** 3)
+        return v
+
 
     @property
     def volume(self):
         """
-        # http://wiki.bkslab.org/index.php/Calculate_volume_of_the_binding_site_and_molecules
-        # First, Lay a grid over the spheres.
-        # Count the number or points contained in the spheres (Ns).
-        # Count the number of points in the grid box (Ng).
-        # Calculate the volume of the grid box (Vb).
-        #
-        # the following are deprecated as rdkit is faster
-        #
-        # mat = np.empty((len(self.msites), 4))
-        # for i in range(len(self.msites)):
-        #     for j in range(3):
-        #         mat[i][j] = self.msites[i].coords[j]
-        #     mat[i][3] = self.msites[i].element.covrad
-        #
-        # box_min = math.floor(min(itertools.chain.from_iterable(mat))) - 2
-        # box_max = math.ceil(max(itertools.chain.from_iterable(mat))) + 2
-        # axis = np.arange(box_min, box_max + boxdensity, boxdensity)
-        # grid = np.array(np.meshgrid(axis, axis, axis)).T.reshape(-1, 3)
-        # ngps_total = len(grid)
-        # ngps_occu = 0
-        # for igp in range(len(grid)):
-        #     for iap in range(len(mat)):
-        #         dist = norm(grid[igp] - mat[iap][:3])
-        #         if dist < mat[iap][3]:
-        #             ngps_occu += 1
-        #             break
-        # v = (ngps_occu / ngps_total) * ((box_max - box_min) ** 3)
-        #     return v
+        AllChem.ComputeMolVolume in rdkit
+
+        :return: volume in \AA^3
         """
         return AllChem.ComputeMolVolume(self.rdkit_mol, confId=-1, gridSpacing=0.2, boxMargin=2.0)
 
     def intersection(self, other, copy=False):
         """
-        :param other:
-        :param copy: whether generate a list of deepcopied sites or not
+        :param MSitelist other:
+        :param bool copy: whether generate a list of deepcopied sites or not
         :return: a list of msites in self that belong to both Sitelists
         """
         r = []
@@ -268,6 +294,11 @@ class MSitelist:
         return r
 
     def get_site_byid(self, siteid, multimatch=False):
+        """
+        :param int siteid:
+        :param bool multimatch: if Ture, return a list, otherwise a msite
+        :return: (a list of) msite obj
+        """
         if multimatch:
             sites_matches = []
             for s in self.msites:
@@ -283,9 +314,22 @@ class MSitelist:
                     return s
 
     def issubset(self, other):
+        """
+        based on msite.coords and msite.element, see __eq__ in msite
+
+        :param MSitelist other:
+        :rtype: bool
+        """
         return len(self.msites) == len(self.intersection(other))
 
     def as_dict(self):
+        """
+        keys are
+
+        msites, can, volume
+
+        :return: a dict representation
+        """
         d = {
             "msites": [s.as_dict() for s in self.msites],
             "can": self.canonical_smiles,
@@ -297,16 +341,21 @@ class MSitelist:
 
     @classmethod
     def from_dict(cls, d):
+        """
+        keys are
+
+        msites
+
+        :param dict d: d['msites'] is a list of msites' dicts
+        """
         return cls([MSite.from_dict(entry) for entry in d["msites"]])
 
     @classmethod
     def from_coordmat_and_elementlst_and_siteidlst(cls, mat, elementlst, ids=None):
         """
-
-        :param mat:
-        :param elementlst: a list of string as element_name
-        :param ids:
-        :return:
+        :param np.ndarray mat: coords matrix nx3
+        :param list elementlst: a list of string as element_name
+        :param list ids: siteid list
         """
         if ids is None:
             ids = np.ones(len(elementlst))
@@ -321,16 +370,32 @@ class MSitelist:
 
     @classmethod
     def from_file(cls, fname):
+        """
+        using pmg molecule
+
+        :param str fname:
+        """
         m = Molecule.from_file(fname)
         return cls([MSite.from_pymatgen_site(s) for s in m.sites])
 
-    def to_xyz(self, fname):
+    def to(self, ftype, fname):
+        """
+        using pmg molecule
+
+        :param str ftype: 'xyz', 'gjf', etc.
+        :param str fname: with extension
+        """
         pymatgen_sites = [s.to_pymatgen_site() for s in self.msites]
         m = Molecule.from_sites(pymatgen_sites)
-        m.to('xyz', fname)
+        m.to(ftype, fname)
 
     @property
     def pmgmol(self):
+        """
+        notice siteid info lost here
+
+        :return: pymatgen molecule obj
+        """
         pymatgen_sites = [s.to_pymatgen_site() for s in self.msites]
         return Molecule.from_sites(pymatgen_sites)
 
@@ -338,13 +403,22 @@ class MSitelist:
         """
         rotate the vectors defined by (site.coords - end1) along (end2 - end1)
 
-        end2  site
-        |   /
-        |  /
-        | /
+        end2 ------ site
+
+        \|
+
+        \|
+
+        \|
+
         end1
 
-        notice the coords are changed in-place
+        notice the coords are changed in-situ
+
+        :param theta: angle of rotation
+        :param end1: 3x1 float list/array
+        :param end2: 3x1 float list/array
+        :param str unit: degree/radian
         """
         end1 = np.array(end1)
         end2 = np.array(end2)
@@ -353,6 +427,9 @@ class MSitelist:
             s.coords = end1 + rotate_along_axis(v, end2 - end1, theta, thetaunit=unit)
 
     def rotate_along_de_matrix(self, theta, end1, end2, unit='degree'):
+        """
+        rotation matrix for :func:`~msitelist.MSitelist.rotate_along`
+        """
         end1 = np.array(end1)
         end2 = np.array(end2)
         axis = end2 - end1
@@ -360,10 +437,7 @@ class MSitelist:
 
     def rotate_along_with_matrix(self, matrix, end1):
         """
-        a quicker version rotate_along if we konw the rotation matrix
-        :param matrix:
-        :param origin:
-        :return:
+        a quicker version rotate_along if we konw the rotation matrix, end2 is included in the matrix
         """
         end1 = np.array(end1)
         for s in self.msites:
@@ -374,9 +448,10 @@ class MSitelist:
     def orient(cls, msitelist, pqo):
         """
         p, q, o are 3 orthonormal vectors in x, y, z basis
+
         basis transformation from xyz to pqo
-        :param pqo:
-        :return:
+
+        :param pqo: 3x3 array
         """
         pqo = np.array(pqo)
         p, q, o = pqo

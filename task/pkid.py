@@ -1,22 +1,26 @@
-"""
-identify packing pattern
-the input should be a pbc config of H terminated backbones
-
-1. heuristic rules 10.1039/c7tc02553j, that worked only for small acenes, we want more
-
-2. finger print Hirshfield 10.1039/c1ce05763d
-"""
-
 from collections import OrderedDict
 # from schema.dimercollection import DimerCollection
 
 class PackingIdentifier:
 
     def __init__(self, boneconfig):
+        """
+        identify packing pattern
+
+        the input should be a pbc config of terminated backbones
+
+        1. heuristic rules 10.1039/c7tc02553j, that worked only for small acenes, we want more
+
+        2. finger print Hirshfield 10.1039/c1ce05763d
+        """
         self.boneconfig = boneconfig
 
     def identify_heuristic(self):
         """
+        return a dictionary, keys are
+
+
+        n_close_azm_and_parallel, n_close_azm_and_notparallel, n_close_vertical_and_parallel, n_close_vertical_and_notparallel, n_parallel_and_overlap, n_notparallel_and_overlap, packing
         :return:
         """
         bc_dimers, bc_dimers_transv_fcs = self.boneconfig.dimers_array, self.boneconfig.transv_fcs
@@ -103,6 +107,7 @@ class PackingIdentifier:
         # return [report[i]['packing'] for i in report.keys()]
 
     def identify_hirshfield(self):
-        # TODO use multwfn to generate hirshfield finger print, then analysze it based on
-        # 10.1039/c1ce05763d
+        """
+        TODO use multwfn to generate hirshfield finger print, then analysze it based on 10.1039/c1ce05763d
+        """
         pass

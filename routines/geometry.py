@@ -23,6 +23,7 @@ def are_collinear(v1, v2):
 def angle_btw(v1, v2, output='radian'):
     """
     get angle between two vectors
+
     :param v1:
     :param v2:
     :param output:
@@ -46,6 +47,7 @@ def unify(v):
 def dist_pt2line(p, q, r):
     """
     https://stackoverflow.com/questions/50727961/
+
     :param p: end of segment
     :param q: end of segment
     :param r: the point
@@ -66,6 +68,7 @@ def genlinepts(a, b, stepsize):
 def coord_transform(p, q, o, coords):
     """
     get the new coord under kart system defined by p, q, o as mutual ort unit vectors
+
     :param p:
     :param q:
     :param o:
@@ -84,6 +87,7 @@ def coord_reverse(p, q, o, coords):
 def cart2frac(coords, pbc):
     """
     convert to frac
+
     :param coords:
     :param pbc: a 3x3 mat, [a, b, c]
     :return:
@@ -139,12 +143,12 @@ def abcabg2pbc(abcabg):
 
 def rotate_along_axis(v, axis, theta, thetaunit='degree'):
     """
-    rotate v along axis counterclockwise
     :param v:
     :param axis:
     :param theta:
     :param thetaunit:
-    :return:
+    :return: rotate v along axis counterclockwise
+
     """
     return np.dot(rotation_matrix(axis, theta, thetaunit), v)
 
@@ -153,11 +157,14 @@ def rotation_matrix(axis, theta, thetaunit='degree'):
     """
     Return the rotation matrix associated with counterclockwise rotation about
     the given axis by theta.
+
     np.dot(rotation_matrix(axis,theta_d), v)
+
     https://stackoverflow.com/questions/6802577/rotation-of-3d-vector
+
     :param axis: a list of 3 floats
-    :param theta
-    :param thetaunit
+    :param theta:
+    :param thetaunit:
     """
     if thetaunit == 'degree':
         theta = np.deg2rad(theta)
@@ -182,6 +189,7 @@ def rotation_matrix(axis, theta, thetaunit='degree'):
 def get_plane_param(normal, pt):
     """
     ax + by + cz + d = 0
+
     :param normal:
     :param pt:
     :return:
@@ -203,10 +211,10 @@ def arbitrary_noraml(v):
 
 def get_proj_point2plane(pt, normal, ptonplane):
     """
-    :param pt:
-    :param normal:
-    :param ptonplane:
-    :return:
+    :param pt: input point coords
+    :param normal: plane normal
+    :param ptonplane: a point that is on the plane, a part of plane definition
+    :return: the projection of input point on the plane
     """
     v_ptonplane2pt = pt - ptonplane
     angle1 = angle_btw(v_ptonplane2pt, normal)
@@ -220,14 +228,13 @@ def get_proj_point2plane(pt, normal, ptonplane):
 def alpha_shape(points, alpha=0.7):
     """
     0.7 seems work for adt
+
     https://gist.github.com/dwyerk/10561690
-    Compute the alpha shape (concave hull) of a set
-    of points.
-    @param points: Iterable container of points.
-    @param alpha: alpha value to influence the
-        gooeyness of the border. Smaller numbers
-        don't fall inward as much as larger numbers.
-        Too large, and you lose everything!
+
+    Compute the alpha shape (concave hull) of a set of points.
+
+    :param points: Iterable container of points.
+    :param alpha: alpha value to influence the gooeyness of the border. Smaller numbers don't fall inward as much as larger numbers. Too large, and you lose everything!
     """
     from shapely.ops import cascaded_union, polygonize
     from scipy.spatial import Delaunay
@@ -259,9 +266,13 @@ def alpha_shape(points, alpha=0.7):
 class Fitter:
     """
     default for 3d
+
     https://www.ltu.se/cms_fs/1.51590!/svd-fitting.pdf
+
     https://stackoverflow.com/questions/2298390/fitting-a-line-in-3d
+
     https://math.stackexchange.com/questions/2378198/computing-least-squares-error-from-plane-fitting-svd
+
     https://stackoverflow.com/questions/12299540/plane-fitting-to-4-or-more-xyz-points
     """
 
@@ -282,8 +293,9 @@ class Fitter:
     def linear_fit(pts):
         """
         vector * t + ptsmean = pt on fitted line
+
         :param pts: a (n, 3) array
-        :return:
+        :return: vector, ptsmean, error
         """
         if len(pts) < 2:
             sys.exit('less than 2 pts to fit a line!')
@@ -297,8 +309,9 @@ class Fitter:
     def plane_fit(pts):
         """
         this only returns a normal, we do not have a plane equation here
-        :param pts:
-        :return:
+
+        :param pts: a (n, 3) array
+        :return: normal, ptsmean, error
         """
         if len(pts) < 3:
             sys.exit('less than 3 pts to fit a plane!')

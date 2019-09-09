@@ -2,6 +2,11 @@ import warnings
 
 
 class Element:
+    """
+    periodic table for elements in organics
+
+    #TODO citation for the numbers...
+    """
     covalent_radii = {'H': 0.31, 'He': 0.28, 'Li': 1.28, 'Be': 0.96, 'B': 0.84, 'C': 0.73, 'N': 0.71, 'O': 0.66,
                       'F': 0.57, 'Ne': 0.58, 'Na': 1.66, 'Mg': 1.41, 'Al': 1.21, 'Si': 1.11, 'P': 1.07, 'S': 1.05,
                       'Cl': 1.02, 'Ar': 1.06, 'K': 2.03, 'Ca': 1.76, 'Sc': 1.70, 'Ti': 1.60, 'V': 1.53, 'Cr': 1.39,
@@ -56,6 +61,10 @@ class Element:
     }
 
     def __init__(self, name):
+        """
+        an immutable element object
+        :param str name: the name of this element, it's fine if it's not a key in the predefined dictionaries (e.g. ghost atom)
+        """
         self.name = str(name)
 
     def __eq__(self, other):
@@ -77,32 +86,48 @@ class Element:
 
     @property
     def covrad(self):
+        """
+        :return: covalent rad
+        :rtype: float, None if self.name is not recognized
+        """
         try:
             return self.covalent_radii[self.name]
         except KeyError:
-            warnings.warn('element covrad is not defined!')
+            warnings.warn('W: element valence is not defined for {}!'.format(self.name))
             return None
 
     @property
     def vanrad(self):
+        """
+        :return: vdw rad
+        :rtype: float, None if self.name is not recognized
+        """
         try:
             return self.vdw_radii[self.name]
         except KeyError:
-            warnings.warn('element vanrad is not defined!')
+            warnings.warn('W: element valence is not defined for {}!'.format(self.name))
             return None
 
     @property
     def atomic_number(self):
+        """
+        :return: atomic number
+        :rtype: int, None if self.name is not recognized
+        """
         try:
             return self.atomic_numbers[self.name]
         except KeyError:
-            warnings.warn('element atomic_number is not defined!')
+            warnings.warn('W: element valence is not defined for {}!'.format(self.name))
             return None
 
     @property
     def valence(self):
+        """
+        :return: max bonds that an atom can have, see `valence_dict`
+        :rtype: int, None if self.name is not recognized
+        """
         try:
             return self.valence_dict[self.name]
         except KeyError:
-            warnings.warn('element valence is not defined for {}!'.format(self.name))
+            warnings.warn('W: element valence is not defined for {}!'.format(self.name))
             return None
