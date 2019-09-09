@@ -4,6 +4,10 @@ API for dealing conjugate organic molecules.
 
 doc built following https://daler.github.io/sphinxdoc-test/includeme.html
 
+doc built
+```
+sphinx-apidoc . --full -o doc -H 'ocelot' -A 'Ai, Qianxiang' -V '0.01'
+```
 
 dependencies
 ---
