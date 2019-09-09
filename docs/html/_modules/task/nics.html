@@ -1,0 +1,502 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>task.nics &mdash; ocelot 0.01 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> ocelot
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.01
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../routines.html">routines package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../schema.html">schema package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../task.html">task package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">ocelot</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>task.nics</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for task.nics</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">copy</span> <span class="k">import</span> <span class="n">deepcopy</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">routines.geometry</span> <span class="k">import</span> <span class="n">genlinepts</span><span class="p">,</span> <span class="n">angle_btw</span>
+<span class="kn">from</span> <span class="nn">scipy.spatial.distance</span> <span class="k">import</span> <span class="n">pdist</span><span class="p">,</span> <span class="n">squareform</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">from</span> <span class="nn">pymatgen.core.structure</span> <span class="k">import</span> <span class="n">Molecule</span>
+<span class="kn">from</span> <span class="nn">pymatgen.io.gaussian</span> <span class="k">import</span> <span class="n">GaussianInput</span>
+<span class="kn">from</span> <span class="nn">schema.msite</span> <span class="k">import</span> <span class="n">MSite</span>
+<span class="kn">from</span> <span class="nn">schema.msitelist</span> <span class="k">import</span> <span class="n">MSitelist</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">given a non-solvent omol, generate input for nics scan, parse output</span>
+<span class="sd">the omol should be reoriented </span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<div class="viewcode-block" id="NICSjob"><a class="viewcode-back" href="../../task.html#task.nics.NICSjob">[docs]</a><span class="k">class</span> <span class="nc">NICSjob</span><span class="p">:</span>
+
+<div class="viewcode-block" id="NICSjob.__init__"><a class="viewcode-back" href="../../task.html#task.nics.NICSjob.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">omol</span><span class="p">,</span> <span class="n">nmrscheme</span><span class="o">=</span><span class="s1">&#39;GIAO&#39;</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">omol</span> <span class="o">=</span> <span class="n">omol</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nmrscheme</span> <span class="o">=</span> <span class="n">nmrscheme</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">omol</span><span class="o">.</span><span class="n">is_solvent</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;W: trying to do NICS job for a solvent-like molecule&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="NICSjob.plot_path"><a class="viewcode-back" href="../../task.html#task.nics.NICSjob.plot_path">[docs]</a>    <span class="k">def</span> <span class="nf">plot_path</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        # TODO plot the chemical structure of self.omol and show a path projection there</span>
+<span class="sd">        :return: </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="NICSjob.nics_sigma_structure"><a class="viewcode-back" href="../../task.html#task.nics.NICSjob.nics_sigma_structure">[docs]</a>    <span class="k">def</span> <span class="nf">nics_sigma_structure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">normal_idx</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        add hydrogen to all sites on lfr(largest fused rings), and sites that are connected to lfr with double bonds</span>
+<span class="sd">        notice this could be different from backbone, as backbone contains other fr connected to lfr with single bond </span>
+<span class="sd">        (eg. BDT 3mer)</span>
+
+<span class="sd">        :param normal_idx: 0, 1</span>
+<span class="sd">        :return: a MSitelist objects</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">omol</span><span class="o">.</span><span class="n">largest_fused_ring</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;W: nics_sigma_structure is not working for solvent-like omol&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="n">lgfr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">omol</span><span class="o">.</span><span class="n">largest_fused_ring</span>
+        <span class="n">geocs</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span><span class="o">.</span><span class="n">geoc</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">lgfr</span><span class="p">]</span>  <span class="c1"># nx3</span>
+        <span class="n">dmat</span> <span class="o">=</span> <span class="n">squareform</span><span class="p">(</span><span class="n">pdist</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">geocs</span><span class="p">)))</span>
+        <span class="n">maxi</span><span class="p">,</span> <span class="n">maxj</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unravel_index</span><span class="p">(</span><span class="n">dmat</span><span class="o">.</span><span class="n">argmax</span><span class="p">(),</span> <span class="n">dmat</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>  <span class="c1"># idx for rings at two ends</span>
+        <span class="n">fr</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">lgfr</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">r</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">geoc</span> <span class="o">-</span> <span class="n">lgfr</span><span class="p">[</span><span class="n">maxi</span><span class="p">]</span><span class="o">.</span><span class="n">geoc</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">normal_idx</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">ref_normal</span> <span class="o">=</span> <span class="n">fr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">n1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ref_normal</span> <span class="o">=</span> <span class="n">fr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">n2</span>
+        <span class="n">normals</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span><span class="o">.</span><span class="n">normal_along</span><span class="p">(</span><span class="n">ref_normal</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">fr</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">any</span><span class="p">([</span><span class="n">n</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">normals</span><span class="p">]):</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;W: nics_sigma_structure failed as largest_fused_ring maybe too twisted&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="n">frsites</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">lgfr</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">msites</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">s</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">frsites</span><span class="p">:</span>
+                    <span class="n">frsites</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+
+        <span class="n">sigma_sites</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">omol</span><span class="o">.</span><span class="n">msites</span><span class="p">)</span>
+
+        <span class="n">terminated_sites_id</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">added_hydrogens</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">lgfr</span><span class="p">)):</span>
+            <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">lgfr</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">msites</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">insaturation</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">s</span><span class="o">.</span><span class="n">siteid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">terminated_sites_id</span><span class="p">:</span>
+                    <span class="n">terminated_sites_id</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">siteid</span><span class="p">)</span>
+                    <span class="n">hs</span> <span class="o">=</span> <span class="n">MSite</span><span class="p">(</span><span class="s1">&#39;H&#39;</span><span class="p">,</span> <span class="mf">1.0</span> <span class="o">*</span> <span class="n">normals</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">s</span><span class="o">.</span><span class="n">coords</span><span class="p">,</span> <span class="n">siteid</span><span class="o">=-</span><span class="mi">10</span><span class="p">)</span>
+                    <span class="n">added_hydrogens</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">hs</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">nb</span> <span class="ow">in</span> <span class="n">s</span><span class="o">.</span><span class="n">nbs</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">nb</span><span class="o">.</span><span class="n">siteid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">terminated_sites_id</span> <span class="ow">and</span> <span class="n">nb</span><span class="o">.</span><span class="n">insaturation</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">nb</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">frsites</span> <span class="ow">and</span> <span class="nb">all</span><span class="p">(</span>
+                            <span class="p">[</span><span class="n">nb</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ring</span><span class="o">.</span><span class="n">msites</span> <span class="k">for</span> <span class="n">ring</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">omol</span><span class="o">.</span><span class="n">rings</span><span class="p">]):</span>
+                        <span class="n">terminated_sites_id</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nb</span><span class="o">.</span><span class="n">siteid</span><span class="p">)</span>
+                        <span class="n">hs</span> <span class="o">=</span> <span class="n">MSite</span><span class="p">(</span><span class="s1">&#39;H&#39;</span><span class="p">,</span> <span class="mf">1.0</span> <span class="o">*</span> <span class="n">normals</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">nb</span><span class="o">.</span><span class="n">coords</span><span class="p">,</span> <span class="n">siteid</span><span class="o">=-</span><span class="mi">10</span><span class="p">)</span>
+                        <span class="n">added_hydrogens</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">hs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">MSitelist</span><span class="p">(</span><span class="n">sigma_sites</span> <span class="o">+</span> <span class="n">added_hydrogens</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="NICSjob.nics_line_scan_path"><a class="viewcode-back" href="../../task.html#task.nics.NICSjob.nics_line_scan_path">[docs]</a>    <span class="k">def</span> <span class="nf">nics_line_scan_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">step_size</span><span class="p">,</span> <span class="n">nrings</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">1.7</span><span class="p">,</span> <span class="n">normaldirection</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        pts, n x 3 array, cart coords for path</span>
+
+<span class="sd">        ring_idx, n x 1 array, ring_idx[i] represents the ring idx of the ring in which pts[i] reside</span>
+
+<span class="sd">        xnumbers, the path travelled</span>
+
+<span class="sd">        xticks, seg ends position on path</span>
+
+<span class="sd">        :param step_size: in \AA</span>
+<span class="sd">        :param nrings: only look at this # of rings in lfr</span>
+<span class="sd">        :param height: default 1.7 is suggested by Stanger, Chemistry–A European Journal 20.19 (2014): 5673-5688</span>
+<span class="sd">        :param normaldirection: 0 or 1, as it&#39;s possible to have two different paths for bent molecules</span>
+<span class="sd">        :return: pts, ring_idx, xnumbers, xticks</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">lgfr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">omol</span><span class="o">.</span><span class="n">largest_fused_ring</span><span class="p">[:</span><span class="n">nrings</span><span class="p">]</span>
+        <span class="n">geocs</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span><span class="o">.</span><span class="n">geoc</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">lgfr</span><span class="p">]</span>  <span class="c1"># nx3</span>
+        <span class="n">dmat</span> <span class="o">=</span> <span class="n">squareform</span><span class="p">(</span><span class="n">pdist</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">geocs</span><span class="p">)))</span>
+        <span class="n">maxi</span><span class="p">,</span> <span class="n">maxj</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unravel_index</span><span class="p">(</span><span class="n">dmat</span><span class="o">.</span><span class="n">argmax</span><span class="p">(),</span> <span class="n">dmat</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="n">fr</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">lgfr</span><span class="p">,</span>
+                    <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">r</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">geoc</span> <span class="o">-</span> <span class="n">lgfr</span><span class="p">[</span><span class="n">maxi</span><span class="p">]</span><span class="o">.</span><span class="n">geoc</span><span class="p">))</span>  <span class="c1"># sorted based on dist from the edge ring</span>
+        <span class="n">available_normals</span> <span class="o">=</span> <span class="p">[</span><span class="n">fr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">n1</span><span class="p">,</span> <span class="n">fr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">n2</span><span class="p">]</span>
+        <span class="n">normals</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span><span class="o">.</span><span class="n">normal_along</span><span class="p">(</span><span class="n">available_normals</span><span class="p">[</span><span class="n">normaldirection</span><span class="p">])</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">fr</span><span class="p">]</span>
+
+        <span class="n">pts</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">ring_idx</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">xnumbers</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">xticks</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">cross_point</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">fr</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">ring</span> <span class="o">=</span> <span class="n">fr</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">nb_ring</span> <span class="o">=</span> <span class="n">fr</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+            <span class="n">segend1</span> <span class="o">=</span> <span class="n">ring</span><span class="o">.</span><span class="n">geoc</span>
+            <span class="n">segend2</span> <span class="o">=</span> <span class="n">nb_ring</span><span class="o">.</span><span class="n">geoc</span>
+            <span class="c1"># nb_ring center -- cross_pt -- ring center -- prev_cross_pt -- prev ring center</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">bond_centers</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">([</span><span class="n">b</span><span class="o">.</span><span class="n">center</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">ring</span><span class="o">.</span><span class="n">bonds</span><span class="p">],</span>
+                                      <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">bc</span><span class="p">:</span> <span class="n">angle_btw</span><span class="p">(</span><span class="n">segend2</span> <span class="o">-</span> <span class="n">segend1</span><span class="p">,</span> <span class="n">bc</span> <span class="o">-</span> <span class="n">segend1</span><span class="p">))</span>
+                <span class="n">cross_point</span><span class="p">,</span> <span class="n">start_point</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">([</span><span class="n">bond_centers</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">bond_centers</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]],</span>
+                                                  <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">c</span> <span class="o">-</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">segend2</span> <span class="o">+</span> <span class="n">segend1</span><span class="p">)))</span>
+                <span class="n">subpath</span> <span class="o">=</span> <span class="n">genlinepts</span><span class="p">(</span><span class="n">start_point</span><span class="p">,</span> <span class="n">ring</span><span class="o">.</span><span class="n">geoc</span><span class="p">,</span> <span class="n">step_size</span><span class="p">)</span>
+                <span class="n">xnumbers</span> <span class="o">+=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">p</span> <span class="o">-</span> <span class="n">subpath</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="n">xticks</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">subpath</span><span class="p">]</span>
+                <span class="n">xticks</span> <span class="o">+=</span> <span class="p">[</span><span class="n">xticks</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">ring</span><span class="o">.</span><span class="n">geoc</span> <span class="o">-</span> <span class="n">start_point</span><span class="p">)]</span>
+                <span class="n">subpath</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span> <span class="o">+</span> <span class="n">normals</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">height</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">subpath</span><span class="p">]</span>
+                <span class="n">pts</span> <span class="o">+=</span> <span class="n">subpath</span>
+                <span class="n">ring_idx</span> <span class="o">+=</span> <span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">subpath</span><span class="p">)</span>
+
+                <span class="n">subpath</span> <span class="o">=</span> <span class="n">genlinepts</span><span class="p">(</span><span class="n">ring</span><span class="o">.</span><span class="n">geoc</span><span class="p">,</span> <span class="n">cross_point</span><span class="p">,</span> <span class="n">step_size</span><span class="p">)</span>
+                <span class="n">xnumbers</span> <span class="o">+=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">p</span> <span class="o">-</span> <span class="n">subpath</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="n">xticks</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">subpath</span><span class="p">]</span>
+                <span class="n">xticks</span> <span class="o">+=</span> <span class="p">[</span><span class="n">xticks</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">ring</span><span class="o">.</span><span class="n">geoc</span> <span class="o">-</span> <span class="n">cross_point</span><span class="p">)]</span>
+                <span class="n">subpath</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span> <span class="o">+</span> <span class="n">normals</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">height</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">subpath</span><span class="p">]</span>
+                <span class="n">pts</span> <span class="o">+=</span> <span class="n">subpath</span>
+                <span class="n">ring_idx</span> <span class="o">+=</span> <span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">subpath</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">i</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">i</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">fr</span><span class="p">)</span> <span class="o">-</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="n">prev_cross_point</span> <span class="o">=</span> <span class="n">cross_point</span>
+                <span class="n">bond_centers</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">([</span><span class="n">b</span><span class="o">.</span><span class="n">center</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">ring</span><span class="o">.</span><span class="n">bonds</span><span class="p">],</span>
+                                      <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">bc</span><span class="p">:</span> <span class="n">angle_btw</span><span class="p">(</span><span class="n">segend2</span> <span class="o">-</span> <span class="n">segend1</span><span class="p">,</span> <span class="n">bc</span> <span class="o">-</span> <span class="n">segend1</span><span class="p">))</span>
+                <span class="n">cross_point</span><span class="p">,</span> <span class="n">start_point</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">([</span><span class="n">bond_centers</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">bond_centers</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]],</span>
+                                                  <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">c</span> <span class="o">-</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">segend2</span> <span class="o">+</span> <span class="n">segend1</span><span class="p">)))</span>
+                <span class="n">subpath</span> <span class="o">=</span> <span class="n">genlinepts</span><span class="p">(</span><span class="n">prev_cross_point</span><span class="p">,</span> <span class="n">ring</span><span class="o">.</span><span class="n">geoc</span><span class="p">,</span> <span class="n">step_size</span><span class="p">)</span>
+                <span class="n">xnumbers</span> <span class="o">+=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">p</span> <span class="o">-</span> <span class="n">subpath</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="n">xticks</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">subpath</span><span class="p">]</span>
+                <span class="n">xticks</span> <span class="o">+=</span> <span class="p">[</span><span class="n">xticks</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">prev_cross_point</span> <span class="o">-</span> <span class="n">ring</span><span class="o">.</span><span class="n">geoc</span><span class="p">)]</span>
+                <span class="n">subpath</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span> <span class="o">+</span> <span class="n">normals</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">height</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">subpath</span><span class="p">]</span>
+                <span class="n">pts</span> <span class="o">+=</span> <span class="n">subpath</span>
+                <span class="n">ring_idx</span> <span class="o">+=</span> <span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">subpath</span><span class="p">)</span>
+
+                <span class="n">subpath</span> <span class="o">=</span> <span class="n">genlinepts</span><span class="p">(</span><span class="n">ring</span><span class="o">.</span><span class="n">geoc</span><span class="p">,</span> <span class="n">cross_point</span><span class="p">,</span> <span class="n">step_size</span><span class="p">)</span>
+                <span class="n">xnumbers</span> <span class="o">+=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">p</span> <span class="o">-</span> <span class="n">subpath</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="n">xticks</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">subpath</span><span class="p">]</span>
+                <span class="n">xticks</span> <span class="o">+=</span> <span class="p">[</span><span class="n">xticks</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">cross_point</span> <span class="o">-</span> <span class="n">ring</span><span class="o">.</span><span class="n">geoc</span><span class="p">)]</span>
+                <span class="n">subpath</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span> <span class="o">+</span> <span class="n">normals</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">height</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">subpath</span><span class="p">]</span>
+                <span class="n">pts</span> <span class="o">+=</span> <span class="n">subpath</span>
+                <span class="n">ring_idx</span> <span class="o">+=</span> <span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">subpath</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">i</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">fr</span><span class="p">)</span> <span class="o">-</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="n">prev_cross_point</span> <span class="o">=</span> <span class="n">cross_point</span>
+                <span class="n">bond_centers</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">([</span><span class="n">b</span><span class="o">.</span><span class="n">center</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">ring</span><span class="o">.</span><span class="n">bonds</span><span class="p">],</span>
+                                      <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">bc</span><span class="p">:</span> <span class="n">angle_btw</span><span class="p">(</span><span class="n">segend2</span> <span class="o">-</span> <span class="n">segend1</span><span class="p">,</span> <span class="n">bc</span> <span class="o">-</span> <span class="n">segend1</span><span class="p">))</span>
+                <span class="n">cross_point</span><span class="p">,</span> <span class="n">start_point</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">([</span><span class="n">bond_centers</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">bond_centers</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]],</span>
+                                                  <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">c</span> <span class="o">-</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">segend2</span> <span class="o">+</span> <span class="n">segend1</span><span class="p">)))</span>
+                <span class="n">subpath</span> <span class="o">=</span> <span class="n">genlinepts</span><span class="p">(</span><span class="n">prev_cross_point</span><span class="p">,</span> <span class="n">ring</span><span class="o">.</span><span class="n">geoc</span><span class="p">,</span> <span class="n">step_size</span><span class="p">)</span>
+                <span class="n">xnumbers</span> <span class="o">+=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">p</span> <span class="o">-</span> <span class="n">subpath</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="n">xticks</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">subpath</span><span class="p">]</span>
+                <span class="n">xticks</span> <span class="o">+=</span> <span class="p">[</span><span class="n">xticks</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">prev_cross_point</span> <span class="o">-</span> <span class="n">ring</span><span class="o">.</span><span class="n">geoc</span><span class="p">)]</span>
+                <span class="n">subpath</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span> <span class="o">+</span> <span class="n">normals</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">height</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">subpath</span><span class="p">]</span>
+                <span class="n">pts</span> <span class="o">+=</span> <span class="n">subpath</span>
+                <span class="n">ring_idx</span> <span class="o">+=</span> <span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">subpath</span><span class="p">)</span>
+
+                <span class="n">subpath</span> <span class="o">=</span> <span class="n">genlinepts</span><span class="p">(</span><span class="n">ring</span><span class="o">.</span><span class="n">geoc</span><span class="p">,</span> <span class="n">cross_point</span><span class="p">,</span> <span class="n">step_size</span><span class="p">)</span>
+                <span class="n">xnumbers</span> <span class="o">+=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">p</span> <span class="o">-</span> <span class="n">subpath</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="n">xticks</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">subpath</span><span class="p">]</span>
+                <span class="n">xticks</span> <span class="o">+=</span> <span class="p">[</span><span class="n">xticks</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">cross_point</span> <span class="o">-</span> <span class="n">ring</span><span class="o">.</span><span class="n">geoc</span><span class="p">)]</span>
+                <span class="n">subpath</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span> <span class="o">+</span> <span class="n">normals</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">height</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">subpath</span><span class="p">]</span>
+                <span class="n">pts</span> <span class="o">+=</span> <span class="n">subpath</span>
+                <span class="n">ring_idx</span> <span class="o">+=</span> <span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">subpath</span><span class="p">)</span>
+
+                <span class="n">subpath</span> <span class="o">=</span> <span class="n">genlinepts</span><span class="p">(</span><span class="n">cross_point</span><span class="p">,</span> <span class="n">nb_ring</span><span class="o">.</span><span class="n">geoc</span><span class="p">,</span> <span class="n">step_size</span><span class="p">)</span>
+                <span class="n">xnumbers</span> <span class="o">+=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">p</span> <span class="o">-</span> <span class="n">subpath</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="n">xticks</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">subpath</span><span class="p">]</span>
+                <span class="n">xticks</span> <span class="o">+=</span> <span class="p">[</span><span class="n">xticks</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">cross_point</span> <span class="o">-</span> <span class="n">nb_ring</span><span class="o">.</span><span class="n">geoc</span><span class="p">)]</span>
+                <span class="n">subpath</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span> <span class="o">+</span> <span class="n">normals</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">height</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">subpath</span><span class="p">]</span>
+                <span class="n">pts</span> <span class="o">+=</span> <span class="n">subpath</span>
+                <span class="n">ring_idx</span> <span class="o">+=</span> <span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">subpath</span><span class="p">)</span>
+
+                <span class="n">bond_centers</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">([</span><span class="n">b</span><span class="o">.</span><span class="n">center</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">nb_ring</span><span class="o">.</span><span class="n">bonds</span><span class="p">],</span>
+                                      <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">bc</span><span class="p">:</span> <span class="n">angle_btw</span><span class="p">(</span><span class="n">segend1</span> <span class="o">-</span> <span class="n">segend2</span><span class="p">,</span> <span class="n">bc</span> <span class="o">-</span> <span class="n">segend2</span><span class="p">))</span>
+                <span class="n">cross_point</span><span class="p">,</span> <span class="n">end_point</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">([</span><span class="n">bond_centers</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">bond_centers</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]],</span>
+                                                <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">c</span> <span class="o">-</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">segend2</span> <span class="o">+</span> <span class="n">segend1</span><span class="p">)))</span>
+                <span class="n">subpath</span> <span class="o">=</span> <span class="n">genlinepts</span><span class="p">(</span><span class="n">nb_ring</span><span class="o">.</span><span class="n">geoc</span><span class="p">,</span> <span class="n">end_point</span><span class="p">,</span> <span class="n">step_size</span><span class="p">)</span>
+                <span class="n">xnumbers</span> <span class="o">+=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">p</span> <span class="o">-</span> <span class="n">subpath</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="n">xticks</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">subpath</span><span class="p">]</span>
+                <span class="n">xticks</span> <span class="o">+=</span> <span class="p">[</span><span class="n">xticks</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">end_point</span> <span class="o">-</span> <span class="n">nb_ring</span><span class="o">.</span><span class="n">geoc</span><span class="p">)]</span>
+                <span class="n">subpath</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span> <span class="o">+</span> <span class="n">normals</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">height</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">subpath</span><span class="p">]</span>
+                <span class="n">pts</span> <span class="o">+=</span> <span class="n">subpath</span>
+                <span class="n">ring_idx</span> <span class="o">+=</span> <span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">subpath</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">pts</span><span class="p">,</span> <span class="n">ring_idx</span><span class="p">,</span> <span class="n">xnumbers</span><span class="p">,</span> <span class="n">xticks</span></div>
+
+<div class="viewcode-block" id="NICSjob.add_bqlines"><a class="viewcode-back" href="../../task.html#task.nics.NICSjob.add_bqlines">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">add_bqlines</span><span class="p">(</span><span class="n">stringinput</span><span class="p">,</span> <span class="n">pts</span><span class="p">):</span>
+        <span class="n">i_lastnonempty_line</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">ls</span> <span class="o">=</span> <span class="n">stringinput</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ls</span><span class="p">)):</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="n">ls</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">i_lastnonempty_line</span> <span class="o">=</span> <span class="n">i</span>
+        <span class="n">ls</span> <span class="o">=</span> <span class="n">ls</span><span class="p">[:</span><span class="n">i_lastnonempty_line</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">pt</span> <span class="ow">in</span> <span class="n">pts</span><span class="p">:</span>
+            <span class="n">bqline</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="se">\t</span><span class="si">{}</span><span class="se">\t</span><span class="si">{}</span><span class="se">\t</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">&#39;bq&#39;</span><span class="p">,</span> <span class="o">*</span><span class="n">pt</span><span class="p">)</span>
+            <span class="n">ls</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bqline</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ls</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1"> </span><span class="se">\n</span><span class="s1"> &#39;</span></div>
+
+<div class="viewcode-block" id="NICSjob.gen_input"><a class="viewcode-back" href="../../task.html#task.nics.NICSjob.gen_input">[docs]</a>    <span class="k">def</span> <span class="nf">gen_input</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span> <span class="n">step_size</span><span class="p">,</span> <span class="n">nrings</span><span class="p">,</span> <span class="n">maxnbq</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">1.7</span><span class="p">,</span> <span class="n">normaldirection</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">spin_multiplicity</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">functional</span><span class="o">=</span><span class="s1">&#39;HF&#39;</span><span class="p">,</span> <span class="n">basis_set</span><span class="o">=</span><span class="s1">&#39;6-31G(d)&#39;</span><span class="p">,</span> <span class="n">route_parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">input_parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">link0_parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dieze_tag</span><span class="o">=</span><span class="s1">&#39;#P&#39;</span><span class="p">,</span> <span class="n">gen_basis</span><span class="o">=</span><span class="kc">None</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        this will return two lists of gauss input string, xticks, xnumbers, pt_idx(ring idx) for plotting</span>
+
+<span class="sd">        pts are cart coords for bqs</span>
+
+<span class="sd">        return None if failed</span>
+
+<span class="sd">        one problem is if the number of ghost atoms cannot be too large, so the param maxnbq is introduced as</span>
+<span class="sd">        the max number of ghost atoms that is allowed to show in one input file</span>
+<span class="sd">        for other param docs see nics_line_scan_path and pymatgen.io.gassian</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pts</span><span class="p">,</span> <span class="n">pt_idx</span><span class="p">,</span> <span class="n">xnumbers</span><span class="p">,</span> <span class="n">xticks</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nics_line_scan_path</span><span class="p">(</span><span class="n">step_size</span><span class="p">,</span> <span class="n">nrings</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="n">normaldirection</span><span class="p">)</span>
+        <span class="n">sigma_mol_msites</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nics_sigma_structure</span><span class="p">(</span><span class="n">normal_idx</span><span class="o">=</span><span class="mi">1</span> <span class="o">-</span> <span class="n">normaldirection</span><span class="p">)</span>
+        <span class="n">sigma_pmgmol</span> <span class="o">=</span> <span class="n">Molecule</span><span class="o">.</span><span class="n">from_sites</span><span class="p">([</span><span class="n">ms</span><span class="o">.</span><span class="n">to_pymatgen_site</span><span class="p">()</span> <span class="k">for</span> <span class="n">ms</span> <span class="ow">in</span> <span class="n">sigma_mol_msites</span><span class="p">])</span>
+        <span class="n">total_pmgmol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">omol</span><span class="o">.</span><span class="n">to_pymatgen_mol</span><span class="p">()</span>
+        <span class="n">chunksize</span> <span class="o">=</span> <span class="n">maxnbq</span>
+
+        <span class="n">total_ginobj</span> <span class="o">=</span> <span class="n">GaussianInput</span><span class="p">(</span><span class="n">total_pmgmol</span><span class="p">,</span> <span class="n">charge</span><span class="p">,</span> <span class="n">spin_multiplicity</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">functional</span><span class="p">,</span> <span class="n">basis_set</span><span class="p">,</span>
+                                     <span class="n">route_parameters</span><span class="p">,</span> <span class="n">input_parameters</span><span class="p">,</span> <span class="n">link0_parameters</span><span class="p">,</span> <span class="n">dieze_tag</span><span class="p">,</span> <span class="n">gen_basis</span><span class="p">)</span>
+        <span class="n">sigma_ginobj</span> <span class="o">=</span> <span class="n">GaussianInput</span><span class="p">(</span><span class="n">sigma_pmgmol</span><span class="p">,</span> <span class="n">charge</span><span class="p">,</span> <span class="n">spin_multiplicity</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">functional</span><span class="p">,</span> <span class="n">basis_set</span><span class="p">,</span>
+                                     <span class="n">route_parameters</span><span class="p">,</span> <span class="n">input_parameters</span><span class="p">,</span> <span class="n">link0_parameters</span><span class="p">,</span> <span class="n">dieze_tag</span><span class="p">,</span> <span class="n">gen_basis</span><span class="p">)</span>
+
+        <span class="n">total_outs_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">sigma_outs_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pts</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">maxnbq</span><span class="p">:</span>
+            <span class="n">pts_sep_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">pts</span><span class="p">[</span><span class="n">i</span> <span class="o">*</span> <span class="n">chunksize</span><span class="p">:(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">chunksize</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span>
+                            <span class="nb">range</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">pts</span><span class="p">)</span> <span class="o">+</span> <span class="n">chunksize</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="n">chunksize</span><span class="p">)]</span>
+            <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">pts_sep_list</span><span class="p">)):</span>
+                <span class="n">total_outs</span> <span class="o">=</span> <span class="n">total_ginobj</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">cart_coords</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">total_outs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_bqlines</span><span class="p">(</span><span class="n">total_outs</span><span class="p">,</span> <span class="n">pts_sep_list</span><span class="p">[</span><span class="n">idx</span><span class="p">])</span>
+                <span class="n">sigma_outs</span> <span class="o">=</span> <span class="n">sigma_ginobj</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">cart_coords</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">sigma_outs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_bqlines</span><span class="p">(</span><span class="n">sigma_outs</span><span class="p">,</span> <span class="n">pts_sep_list</span><span class="p">[</span><span class="n">idx</span><span class="p">])</span>
+
+                <span class="n">total_outs_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">total_outs</span><span class="p">)</span>
+                <span class="n">sigma_outs_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sigma_outs</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>  <span class="c1"># is this redundant?</span>
+            <span class="n">total_outs</span> <span class="o">=</span> <span class="n">total_ginobj</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">cart_coords</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">total_outs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_bqlines</span><span class="p">(</span><span class="n">total_outs</span><span class="p">,</span> <span class="n">pts</span><span class="p">)</span>
+            <span class="n">sigma_outs</span> <span class="o">=</span> <span class="n">sigma_ginobj</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">cart_coords</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">sigma_outs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_bqlines</span><span class="p">(</span><span class="n">sigma_outs</span><span class="p">,</span> <span class="n">pts</span><span class="p">)</span>
+            <span class="n">total_outs_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">total_outs</span><span class="p">)</span>
+            <span class="n">sigma_outs_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sigma_outs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">sigma_outs_list</span><span class="p">,</span> <span class="n">total_outs_list</span><span class="p">,</span> <span class="n">xticks</span><span class="p">,</span> <span class="n">xnumbers</span><span class="p">,</span> <span class="n">pt_idx</span><span class="p">,</span> <span class="n">pts</span></div>
+
+<div class="viewcode-block" id="NICSjob.get_zzmstensor"><a class="viewcode-back" href="../../task.html#task.nics.NICSjob.get_zzmstensor">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">get_zzmstensor</span><span class="p">(</span><span class="n">logstring</span><span class="p">,</span> <span class="n">tensor_kw</span><span class="o">=</span><span class="s1">&#39;GIAO Magnetic shielding tensor&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param logstring: string of gauss log file</span>
+<span class="sd">        :param tensor_kw: default &#39;GIAO Magnetic shielding tensor&#39;</span>
+<span class="sd">        :return: a list of floats, zz components of magnetic shield tensor from log string</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="n">logstring</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">ns</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="s1">&#39;Charge&#39;</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="ow">and</span> <span class="s1">&#39;Multiplicity&#39;</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
+                <span class="n">cursor</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span>
+                <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">[</span><span class="n">cursor</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">())</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+                    <span class="n">ns</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="n">cursor</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">break</span>
+
+        <span class="n">tensor_zzs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="n">tensor_kw</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
+                <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">ns</span> <span class="o">*</span> <span class="mi">5</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="s1">&#39;Bq&#39;</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">[</span><span class="n">j</span><span class="p">]:</span>
+                        <span class="n">tensor_zzs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="o">-</span><span class="nb">float</span><span class="p">(</span><span class="n">lines</span><span class="p">[</span><span class="n">j</span> <span class="o">+</span> <span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+                <span class="k">break</span>
+        <span class="k">return</span> <span class="n">tensor_zzs</span></div>
+
+<div class="viewcode-block" id="NICSjob.plt_pizz_xypath"><a class="viewcode-back" href="../../task.html#task.nics.NICSjob.plt_pizz_xypath">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">plt_pizz_xypath</span><span class="p">(</span><span class="n">tensor_zzs_sigma</span><span class="p">,</span> <span class="n">tensor_zzs_total</span><span class="p">,</span> <span class="n">xnumbers</span><span class="p">,</span> <span class="n">xticks</span><span class="p">,</span> <span class="n">fn</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+
+        <span class="n">plt</span><span class="o">.</span><span class="n">switch_backend</span><span class="p">(</span><span class="s1">&#39;agg&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">&#39;font&#39;</span><span class="p">,</span> <span class="n">family</span><span class="o">=</span><span class="s1">&#39;Times New Roman&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s2">&quot;font.size&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">14</span>
+        <span class="n">vc</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;gray&#39;</span><span class="p">,</span> <span class="s1">&#39;black&#39;</span><span class="p">]</span>  <span class="c1"># gray vline is ring edge, black is ring center</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">for</span> <span class="n">xv</span> <span class="ow">in</span> <span class="n">xticks</span><span class="p">:</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">axvline</span><span class="p">(</span><span class="n">xv</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">vc</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="n">i</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">i</span>
+        <span class="n">ys_total</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">tensor_zzs_total</span><span class="p">)</span>
+        <span class="n">ys_sigma</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">tensor_zzs_sigma</span><span class="p">)</span>
+        <span class="n">ys_pi</span> <span class="o">=</span> <span class="n">ys_total</span> <span class="o">-</span> <span class="n">ys_sigma</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">xnumbers</span><span class="p">,</span> <span class="n">ys_pi</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;pi&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">xnumbers</span><span class="p">,</span> <span class="n">ys_total</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s1">&#39;k&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;total&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">xnumbers</span><span class="p">,</span> <span class="n">ys_sigma</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;sigma&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">xlim</span><span class="p">([</span><span class="n">xnumbers</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">xnumbers</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]])</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;scan path ($\rm{\AA}$)&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;NICSzz (ppm)&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">800</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">clf</span><span class="p">()</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Ai, Qianxiang
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
