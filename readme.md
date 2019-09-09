@@ -2,6 +2,8 @@
 
 API for dealing conjugate organic molecules.
 
+doc built following https://daler.github.io/sphinxdoc-test/includeme.html
+
 
 dependencies
 ---
