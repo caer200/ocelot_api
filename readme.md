@@ -25,4 +25,6 @@ use `sphinx` with
 sphinx-apidoc . --full -o doc -H 'ocelot' -A 'Ai, Qianxiang' -V '0.01'
 ```
 
+copy html to /docs if using git pages
+
 better method: https://daler.github.io/sphinxdoc-test/includeme.html
