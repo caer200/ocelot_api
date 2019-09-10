@@ -1,3 +1,12 @@
+"""
+originally written by Sean M. Ryno, Cheng Zhong, Haitao Sun, see /legacy/aw_tuning.py
+for a certain mol, get tuned w
+
+default keywords for gaussian
+'scf=(xqc,fermi,noincfock,ndamp=35,conver=6,vshift=500,novaracc)'
+
+dev-ing
+"""
 import sys
 import random
 import os
@@ -11,15 +20,6 @@ from pymatgen.io.gaussian import GaussianInput
 from collections import OrderedDict
 import os
 
-"""
-originally written by Sean M. Ryno, Cheng Zhong, Haitao Sun, see /legacy/aw_tuning.py
-for a certain mol, get tuned w
-
-default keywords for gaussian
-'scf=(xqc,fermi,noincfock,ndamp=35,conver=6,vshift=500,novaracc)'
-
-dev-ing
-"""
 
 # SUGGESTED_route_parameters = {
 #     'scf': {
