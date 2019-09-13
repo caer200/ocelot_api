@@ -1,0 +1,289 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Installation &mdash; ocelot 0.01 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="routines package" href="routines.html" />
+    <link rel="prev" title="Welcome to ocelot’s documentation!" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> ocelot
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.01
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#quick-start">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="routines.html">routines package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="schema.html">schema package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="task.html">task package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">ocelot</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Installation</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/quick_start.md.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="installation">
+<h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
+<ol>
+<li><p>clone the release branch (e.g. <code class="docutils literal notranslate"><span class="pre">v0.01</span></code>) by</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git clone --single-branch --branch v0.01 git@github.com:caer200/ocelot_api.git
+</pre></div>
+</div>
+</li>
+<li><p>make sure <code class="docutils literal notranslate"><span class="pre">conda</span></code> is working, create a new venv with</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda env create -f env.yml
+</pre></div>
+</div>
+</li>
+<li><p>this yields a folder called <code class="docutils literal notranslate"><span class="pre">ocelot_api</span></code>, run <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">setup.py</span> <span class="pre">install</span></code> there</p></li>
+</ol>
+<p>let’s say there’s a cif file here</p>
+</div>
+<div class="section" id="quick-start">
+<h1>Quick Start<a class="headerlink" href="#quick-start" title="Permalink to this headline">¶</a></h1>
+<p>Let’s say you have a CIF file as <code class="docutils literal notranslate"><span class="pre">tipgebw.cif</span></code>. It looks like this in <code class="docutils literal notranslate"><span class="pre">Jmol</span></code>.</p>
+<p><img alt="tipgebw" src="_images/tipgebw.png" /></p>
+<p>Such structure is not ready for any calculations as it contains disorder (at TIPS),
+if you look into the cif file you will find 2 disorder groups. So the first thing we want is to clean up disorder.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ocelot.routines.pbc</span> <span class="kn">import</span> <span class="n">CIFparser</span>
+
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;tipgebw.cif&#39;</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>  <span class="c1"># read cif file into string</span>
+    <span class="n">fs</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+    
+<span class="n">cp</span> <span class="o">=</span> <span class="n">CIFparser</span><span class="o">.</span><span class="n">from_cifstring</span><span class="p">(</span><span class="n">fs</span><span class="p">)</span>  <span class="c1"># create a parser object from cif string</span>
+
+<span class="n">clean_cif_strings</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">get_clean_cifs_stringlist</span><span class="p">()</span>  <span class="c1"># a list of cif strings without disorder</span>
+
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;tipgebw_clean_0.cif&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>  <span class="c1"># write the first cleaned cif string into file</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">clean_cif_strings</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>Here we created a <code class="docutils literal notranslate"><span class="pre">CIFparser</span></code> object, then used its <code class="docutils literal notranslate"><span class="pre">get_clean_cifs_stringlist</span></code> method to
+split a cif file with 2 disorder groups into 2 cif file strings with no disorder.</p>
+<p>Once we have a ‘cleaned’ cif file, we can now initiate a <code class="docutils literal notranslate"><span class="pre">Config</span></code> object to represent
+the periodic structure. <code class="docutils literal notranslate"><span class="pre">Config</span></code> is a component of <code class="docutils literal notranslate"><span class="pre">ocelot</span></code> schema.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ocelot.schema.config</span> <span class="kn">import</span> <span class="n">Config</span>
+
+<span class="c1"># init Config object from cleaned cif string</span>
+<span class="n">tipge_config</span> <span class="o">=</span> <span class="n">Config</span><span class="o">.</span><span class="n">from_cifstring</span><span class="p">(</span><span class="n">clean_cif_strings</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>  
+
+<span class="c1"># we can remove pbc and focus on the organic molecule in this configuration</span>
+<span class="c1"># OMol -- organic molecule -- is a list of MSites</span>
+<span class="n">omol_0</span> <span class="o">=</span> <span class="n">tipge_config</span><span class="o">.</span><span class="n">omols</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  
+<span class="k">print</span><span class="p">(</span><span class="n">omol_0</span><span class="p">)</span> 
+<span class="c1"># OMol:</span>
+<span class="c1"># MSite: Ge (1.8797, 1.8744, 14.3509) siteid: 0</span>
+<span class="c1"># MSite: C (2.7783, 2.5445, 12.7950) siteid: 1</span>
+<span class="c1"># MSite: C (0.0097, 2.4446, 14.2340) siteid: 2</span>
+<span class="c1"># ...</span>
+
+<span class="c1"># most of the time we just care conjugate backbone, is also a list of MSites</span>
+<span class="n">bone</span> <span class="o">=</span> <span class="n">omol_0</span><span class="o">.</span><span class="n">backbone</span>  
+<span class="k">print</span><span class="p">(</span><span class="n">bone</span><span class="p">)</span>
+<span class="c1"># Backbone:</span>
+<span class="c1"># MSite: C (3.8686, 3.3564, 10.5508) siteid: 15</span>
+<span class="c1"># MSite: C (4.5668, 2.4190, 9.7409) siteid: 34</span>
+<span class="c1"># MSite: C (3.7152, 4.7050, 10.1166) siteid: 35</span>
+<span class="c1"># ...</span>
+
+<span class="c1"># we can also check sidechains, notice even a single H is considered as one sidechain</span>
+<span class="c1"># again, sidechain is a list of MSites</span>
+<span class="n">sidechains</span> <span class="o">=</span> <span class="n">omol_0</span><span class="o">.</span><span class="n">sidechains</span>  
+<span class="k">print</span><span class="p">(</span><span class="nb">len</span><span class="p">([</span><span class="n">sc</span> <span class="k">for</span> <span class="n">sc</span> <span class="ow">in</span> <span class="n">sidechains</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">sc</span><span class="o">.</span><span class="n">ishydrogen</span><span class="p">]))</span>  <span class="c1"># how many non-H side chains?</span>
+<span class="c1"># 2</span>
+</pre></div>
+</div>
+<p>From above examples you may have noticed the structure of <code class="docutils literal notranslate"><span class="pre">ocelot</span></code> schema,
+it can be represented as something like this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Config</span>
+    <span class="o">-</span> <span class="n">OMol</span>              <span class="o">|</span>  <span class="o">-</span> <span class="n">Ring</span>
+        <span class="o">-</span> <span class="n">Backbone</span>      <span class="o">|</span>       <span class="o">-</span> <span class="n">Bond</span>
+        <span class="o">-</span> <span class="n">Sidechain</span>     <span class="o">|</span>
+    <span class="o">|--</span>       <span class="n">a</span> <span class="nb">list</span> <span class="n">of</span> <span class="n">MSites</span>       <span class="o">--|</span>
+</pre></div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="routines.html" class="btn btn-neutral float-right" title="routines package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="index.html" class="btn btn-neutral float-left" title="Welcome to ocelot’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Ai, Qianxiang
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
