@@ -11,8 +11,6 @@
 3. this yields a folder called `ocelot_api`, run `python setup.py install` there
 
 
-let's say there's a cif file here
-
 ## Quick Start
 
 Let's say you have a CIF file as `tipgebw.cif`. It looks like this in `Jmol`.
