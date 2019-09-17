@@ -1,10 +1,10 @@
 import sys
+sys.path.append('../../')
 from schema.config import Config
 from routines.pbc import CIFparser
 import glob
 from task.pkid import PackingIdentifier
 
-sys.path.append('../../')
 """
 this reads cif files from tipge-*.cif, identify packing patterns and write backbone-only configs
 """

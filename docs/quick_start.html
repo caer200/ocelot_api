@@ -163,12 +163,17 @@
 </pre></div>
 </div>
 </li>
-<li><p>make sure <code class="docutils literal notranslate"><span class="pre">conda</span></code> is working, create a new venv with</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda env create -f env.yml
+<li><p>create a virtual env and install</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda create --name ocelot
+conda activate ocelot
+conda install python
+conda install --file spec-file.txt
 </pre></div>
 </div>
+<p>in case you wonder, <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">env</span> <span class="pre">create</span> <span class="pre">-f</span> <span class="pre">env.yml</span></code> may not work as part of <code class="docutils literal notranslate"><span class="pre">pymatgen</span></code>
+uses pre-link scripts, see <a class="reference external" href="https://github.com/materialsproject/pymatgen/issues/555">this issue</a>.</p>
 </li>
-<li><p>this yields a folder called <code class="docutils literal notranslate"><span class="pre">ocelot_api</span></code>, run <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">setup.py</span> <span class="pre">install</span></code> there</p></li>
+<li><p>run <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">setup.py</span> <span class="pre">install</span></code></p></li>
 </ol>
 </div>
 <div class="section" id="quick-start">

@@ -4,14 +4,18 @@
     ```bash
     git clone --single-branch --branch v0.01 git@github.com:caer200/ocelot_api.git
     ```
-2. make sure `conda` is working, create a new venv with
-    ```bash
-    conda env create -f env.yml
-    ``` 
-3. this yields a folder called `ocelot_api`, run `python setup.py install` there
+2. create a virtual env and install
+   ```bash
+   conda create --name ocelot
+   conda activate ocelot
+   conda install python
+   conda install --file spec-file.txt
+   ```
+   in case you wonder, `conda env create -f env.yml` may not work as part of `pymatgen` 
+   uses pre-link scripts, see [this issue](https://github.com/materialsproject/pymatgen/issues/555).
 
+3. run `python setup.py install`
 
-let's say there's a cif file here
 
 ## Quick Start
 
