@@ -1,0 +1,624 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ocelot.task package &mdash; ocelot 0.01 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="ocelot.schema package" href="ocelot.schema.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> ocelot
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.01
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html#quick-start">Quick Start</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="ocelot.html">ocelot package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="ocelot.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="ocelot.routines.html">ocelot.routines package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ocelot.schema.html">ocelot.schema package</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">ocelot.task package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ocelot.task.calec">ocelot.task.calec module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ocelot.task.nics">ocelot.task.nics module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ocelot.task.pkid">ocelot.task.pkid module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ocelot.task.reciprocal">ocelot.task.reciprocal module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ocelot.task.wtuning">ocelot.task.wtuning module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ocelot.task">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="ocelot.html#module-ocelot">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">ocelot</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="ocelot.html">ocelot package</a> &raquo;</li>
+        
+      <li>ocelot.task package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/ocelot.task.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="ocelot-task-package">
+<h1>ocelot.task package<a class="headerlink" href="#ocelot-task-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-ocelot.task.calec">
+<span id="ocelot-task-calec-module"></span><h2>ocelot.task.calec module<a class="headerlink" href="#module-ocelot.task.calec" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ocelot.task.calec.ElectronicCoupling">
+<em class="property">class </em><code class="sig-prename descclassname">ocelot.task.calec.</code><code class="sig-name descname">ElectronicCoupling</code><span class="sig-paren">(</span><em class="sig-param">sysname</em>, <em class="sig-param">mono_a</em>, <em class="sig-param">mono_b</em>, <em class="sig-param">caltype='gauss'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/calec.html#ElectronicCoupling"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.calec.ElectronicCoupling" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>class to calculate electronic couplings from Gaussian w. fmo formalism</p>
+<p>micro wf:</p>
+<ol class="arabic simple">
+<li><p>get 2 monomer structure in cart coords, label them mono_a and mono_b</p></li>
+<li><p>concatenate 2 input structure to give dimer structure, fmo requires site sequence remains intact</p></li>
+<li><p>run calculations to give mono_a_fchk, mono_b_fchk, dimer_fchk, dimer_log.</p></li>
+</ol>
+<p>suggested keywords <cite>nosymm pop=full iop(3/33=1,3/59=8) int(acc2e=12)</cite></p>
+<ol class="arabic simple" start="4">
+<li><p>four files in 3. will be used to give ec, the results is a list of lists,</p></li>
+</ol>
+<p>fields are [‘#mo_a’, ‘#mo_b’, ‘e_mo_a’, ‘e_mo_b’, ‘J_12’, ‘S_12’, ‘e^eff_1’, ‘e^eff_2’, ‘J^eff_12’, ‘dE_12’]</p>
+<p>all in eV</p>
+<dl class="method">
+<dt id="ocelot.task.calec.ElectronicCoupling.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">sysname</em>, <em class="sig-param">mono_a</em>, <em class="sig-param">mono_b</em>, <em class="sig-param">caltype='gauss'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/calec.html#ElectronicCoupling.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.calec.ElectronicCoupling.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>setup ec calculations
+:param sysname:
+:param mono_a: pmg mol obj
+:param mono_b: pmg mol obj
+:param caltype: ‘gauss’ or ‘zindo’</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ocelot.task.calec.ElectronicCoupling.block_fill">
+<code class="sig-name descname">block_fill</code><a class="reference internal" href="_modules/ocelot/task/calec.html#ElectronicCoupling.block_fill"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.calec.ElectronicCoupling.block_fill" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ocelot.task.calec.ElectronicCoupling.calculate_coupling_gauss">
+<em class="property">static </em><code class="sig-name descname">calculate_coupling_gauss</code><span class="sig-paren">(</span><em class="sig-param">mono_a_fchk_string</em>, <em class="sig-param">mono_b_fchk_string</em>, <em class="sig-param">dimer_fchk_string</em>, <em class="sig-param">dimer_log_string</em>, <em class="sig-param">homo1=0</em>, <em class="sig-param">lumo1=0</em>, <em class="sig-param">homo2=0</em>, <em class="sig-param">lumo2=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/calec.html#ElectronicCoupling.calculate_coupling_gauss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.calec.ElectronicCoupling.calculate_coupling_gauss" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ocelot.task.calec.ElectronicCoupling.create_matrix">
+<em class="property">static </em><code class="sig-name descname">create_matrix</code><span class="sig-paren">(</span><em class="sig-param">matrix</em>, <em class="sig-param">elements</em>, <em class="sig-param">nbf</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/calec.html#ElectronicCoupling.create_matrix"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.calec.ElectronicCoupling.create_matrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>create lower triangular matrix from list of matrix elements indexed like so:</p>
+<blockquote>
+<div><p>[[0,0,0,…,0],
+[1,2,0,…,0],
+[3,4,5,…,0]]</p>
+</div></blockquote>
+<p>nbf is number of basis functions</p>
+<p>elements is a list of matrix elements indexed like above, e.g. [0,1,2,3,…]</p>
+<p>Gaussian prints every 5 columns, so the mod5 accounts for this</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ocelot.task.calec.ElectronicCoupling.g09_build_cfrag">
+<code class="sig-name descname">g09_build_cfrag</code><a class="reference internal" href="_modules/ocelot/task/calec.html#ElectronicCoupling.g09_build_cfrag"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.calec.ElectronicCoupling.g09_build_cfrag" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ocelot.task.calec.ElectronicCoupling.g09_calculate_coupling">
+<code class="sig-name descname">g09_calculate_coupling</code><a class="reference internal" href="_modules/ocelot/task/calec.html#ElectronicCoupling.g09_calculate_coupling"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.calec.ElectronicCoupling.g09_calculate_coupling" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>homo_monomer_a</strong> – </p></li>
+<li><p><strong>lumo_monomer_a</strong> – </p></li>
+<li><p><strong>homo_monomer_b</strong> – </p></li>
+<li><p><strong>lumo_monomer_b</strong> – </p></li>
+<li><p><strong>nbf_monomer_a</strong> – </p></li>
+<li><p><strong>f_d</strong> – </p></li>
+<li><p><strong>s_d</strong> – </p></li>
+<li><p><strong>cfrag</strong> – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>“MO 1”, “MO 2”, “e 1, eV”, “e 2, eV”, “J_12, eV”, “S_12”,
+“e^eff_1, eV”, “e^eff_2, eV”, “J^eff_12, eV”, “dE_12, eV”</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ocelot.task.calec.ElectronicCoupling.g09_calculate_fock">
+<code class="sig-name descname">g09_calculate_fock</code><a class="reference internal" href="_modules/ocelot/task/calec.html#ElectronicCoupling.g09_calculate_fock"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.calec.ElectronicCoupling.g09_calculate_fock" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ocelot.task.calec.ElectronicCoupling.g09_get_alpha_orbital_energies">
+<em class="property">static </em><code class="sig-name descname">g09_get_alpha_orbital_energies</code><span class="sig-paren">(</span><em class="sig-param">fchk_lines</em>, <em class="sig-param">nbf</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/calec.html#ElectronicCoupling.g09_get_alpha_orbital_energies"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.calec.ElectronicCoupling.g09_get_alpha_orbital_energies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ocelot.task.calec.ElectronicCoupling.g09_get_basis_functions">
+<em class="property">static </em><code class="sig-name descname">g09_get_basis_functions</code><span class="sig-paren">(</span><em class="sig-param">fchk_lines</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/calec.html#ElectronicCoupling.g09_get_basis_functions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.calec.ElectronicCoupling.g09_get_basis_functions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ocelot.task.calec.ElectronicCoupling.g09_get_homo_lumo">
+<em class="property">static </em><code class="sig-name descname">g09_get_homo_lumo</code><span class="sig-paren">(</span><em class="sig-param">fchk_lines</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/calec.html#ElectronicCoupling.g09_get_homo_lumo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.calec.ElectronicCoupling.g09_get_homo_lumo" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ocelot.task.calec.ElectronicCoupling.g09_get_mo_coefficients">
+<em class="property">static </em><code class="sig-name descname">g09_get_mo_coefficients</code><span class="sig-paren">(</span><em class="sig-param">fchk_lines</em>, <em class="sig-param">nbf</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/calec.html#ElectronicCoupling.g09_get_mo_coefficients"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.calec.ElectronicCoupling.g09_get_mo_coefficients" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ocelot.task.calec.ElectronicCoupling.get_overlap">
+<em class="property">static </em><code class="sig-name descname">get_overlap</code><span class="sig-paren">(</span><em class="sig-param">g09logstring</em>, <em class="sig-param">nbf</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/calec.html#ElectronicCoupling.get_overlap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.calec.ElectronicCoupling.get_overlap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extracts the overlap matrix from a Gaussian logfile string.
+Returns a numpy matrix.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ocelot.task.calec.ElectronicCoupling.input_gen_gauss">
+<code class="sig-name descname">input_gen_gauss</code><span class="sig-paren">(</span><em class="sig-param">charge=None</em>, <em class="sig-param">spin_multiplicity=None</em>, <em class="sig-param">title=None</em>, <em class="sig-param">functional='HF'</em>, <em class="sig-param">basis_set='6-31G(d)'</em>, <em class="sig-param">route_parameters={'int': {'acc2e': '12'}</em>, <em class="sig-param">'iop': {'3/33': '1'</em>, <em class="sig-param">'3/59': '8'}</em>, <em class="sig-param">'nosymm': ''</em>, <em class="sig-param">'pop': 'full'}</em>, <em class="sig-param">input_parameters=None</em>, <em class="sig-param">link0_parameters=None</em>, <em class="sig-param">dieze_tag='#P'</em>, <em class="sig-param">gen_basis=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/calec.html#ElectronicCoupling.input_gen_gauss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.calec.ElectronicCoupling.input_gen_gauss" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ocelot.task.calec.ElectronicCoupling.make_symmetric">
+<code class="sig-name descname">make_symmetric</code><a class="reference internal" href="_modules/ocelot/task/calec.html#ElectronicCoupling.make_symmetric"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.calec.ElectronicCoupling.make_symmetric" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ocelot.task.calec.ElectronicCoupling.triangle_fill">
+<code class="sig-name descname">triangle_fill</code><a class="reference internal" href="_modules/ocelot/task/calec.html#ElectronicCoupling.triangle_fill"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.calec.ElectronicCoupling.triangle_fill" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ocelot.task.nics">
+<span id="ocelot-task-nics-module"></span><h2>ocelot.task.nics module<a class="headerlink" href="#module-ocelot.task.nics" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ocelot.task.nics.NICSjob">
+<em class="property">class </em><code class="sig-prename descclassname">ocelot.task.nics.</code><code class="sig-name descname">NICSjob</code><span class="sig-paren">(</span><em class="sig-param">omol</em>, <em class="sig-param">nmrscheme='GIAO'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/nics.html#NICSjob"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.nics.NICSjob" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="ocelot.task.nics.NICSjob.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">omol</em>, <em class="sig-param">nmrscheme='GIAO'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/nics.html#NICSjob.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.nics.NICSjob.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize self.  See help(type(self)) for accurate signature.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ocelot.task.nics.NICSjob.add_bqlines">
+<em class="property">static </em><code class="sig-name descname">add_bqlines</code><span class="sig-paren">(</span><em class="sig-param">stringinput</em>, <em class="sig-param">pts</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/nics.html#NICSjob.add_bqlines"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.nics.NICSjob.add_bqlines" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ocelot.task.nics.NICSjob.gen_input">
+<code class="sig-name descname">gen_input</code><span class="sig-paren">(</span><em class="sig-param">step_size</em>, <em class="sig-param">nrings</em>, <em class="sig-param">maxnbq</em>, <em class="sig-param">height=1.7</em>, <em class="sig-param">normaldirection=0</em>, <em class="sig-param">charge=None</em>, <em class="sig-param">spin_multiplicity=None</em>, <em class="sig-param">title=None</em>, <em class="sig-param">functional='HF'</em>, <em class="sig-param">basis_set='6-31G(d)'</em>, <em class="sig-param">route_parameters=None</em>, <em class="sig-param">input_parameters=None</em>, <em class="sig-param">link0_parameters=None</em>, <em class="sig-param">dieze_tag='#P'</em>, <em class="sig-param">gen_basis=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/nics.html#NICSjob.gen_input"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.nics.NICSjob.gen_input" title="Permalink to this definition">¶</a></dt>
+<dd><p>this will return two lists of gauss input string, xticks, xnumbers, pt_idx(ring idx) for plotting</p>
+<p>pts are cart coords for bqs</p>
+<p>return None if failed</p>
+<p>one problem is if the number of ghost atoms cannot be too large, so the param maxnbq is introduced as
+the max number of ghost atoms that is allowed to show in one input file
+for other param docs see nics_line_scan_path and pymatgen.io.gassian</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ocelot.task.nics.NICSjob.get_zzmstensor">
+<em class="property">static </em><code class="sig-name descname">get_zzmstensor</code><span class="sig-paren">(</span><em class="sig-param">logstring</em>, <em class="sig-param">tensor_kw='GIAO Magnetic shielding tensor'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/nics.html#NICSjob.get_zzmstensor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.nics.NICSjob.get_zzmstensor" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>logstring</strong> – string of gauss log file</p></li>
+<li><p><strong>tensor_kw</strong> – default ‘GIAO Magnetic shielding tensor’</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a list of floats, zz components of magnetic shield tensor from log string</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="ocelot.task.nics.NICSjob.nics_line_scan_path">
+<code class="sig-name descname">nics_line_scan_path</code><span class="sig-paren">(</span><em class="sig-param">step_size</em>, <em class="sig-param">nrings</em>, <em class="sig-param">height=1.7</em>, <em class="sig-param">normaldirection=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/nics.html#NICSjob.nics_line_scan_path"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.nics.NICSjob.nics_line_scan_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>pts, n x 3 array, cart coords for path</p>
+<p>ring_idx, n x 1 array, ring_idx[i] represents the ring idx of the ring in which pts[i] reside</p>
+<p>xnumbers, the path travelled</p>
+<p>xticks, seg ends position on path</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>step_size</strong> – in AA</p></li>
+<li><p><strong>nrings</strong> – only look at this # of rings in lfr</p></li>
+<li><p><strong>height</strong> – default 1.7 is suggested by Stanger, Chemistry–A European Journal 20.19 (2014): 5673-5688</p></li>
+<li><p><strong>normaldirection</strong> – 0 or 1, as it’s possible to have two different paths for bent molecules</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>pts, ring_idx, xnumbers, xticks</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="ocelot.task.nics.NICSjob.nics_sigma_structure">
+<code class="sig-name descname">nics_sigma_structure</code><span class="sig-paren">(</span><em class="sig-param">normal_idx=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/nics.html#NICSjob.nics_sigma_structure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.nics.NICSjob.nics_sigma_structure" title="Permalink to this definition">¶</a></dt>
+<dd><p>add hydrogen to all sites on lfr(largest fused rings), and sites that are connected to lfr with double bonds
+notice this could be different from backbone, as backbone contains other fr connected to lfr with single bond 
+(eg. BDT 3mer)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>normal_idx</strong> – 0, 1</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a MSitelist objects</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="ocelot.task.nics.NICSjob.plot_path">
+<code class="sig-name descname">plot_path</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/nics.html#NICSjob.plot_path"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.nics.NICSjob.plot_path" title="Permalink to this definition">¶</a></dt>
+<dd><p># TODO plot the chemical structure of self.omol and show a path projection there
+:return:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ocelot.task.nics.NICSjob.plt_pizz_xypath">
+<em class="property">static </em><code class="sig-name descname">plt_pizz_xypath</code><span class="sig-paren">(</span><em class="sig-param">tensor_zzs_sigma</em>, <em class="sig-param">tensor_zzs_total</em>, <em class="sig-param">xnumbers</em>, <em class="sig-param">xticks</em>, <em class="sig-param">fn</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/nics.html#NICSjob.plt_pizz_xypath"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.nics.NICSjob.plt_pizz_xypath" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ocelot.task.pkid">
+<span id="ocelot-task-pkid-module"></span><h2>ocelot.task.pkid module<a class="headerlink" href="#module-ocelot.task.pkid" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ocelot.task.pkid.PackingIdentifier">
+<em class="property">class </em><code class="sig-prename descclassname">ocelot.task.pkid.</code><code class="sig-name descname">PackingIdentifier</code><span class="sig-paren">(</span><em class="sig-param">boneconfig</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/pkid.html#PackingIdentifier"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.pkid.PackingIdentifier" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="ocelot.task.pkid.PackingIdentifier.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">boneconfig</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/pkid.html#PackingIdentifier.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.pkid.PackingIdentifier.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>identify packing pattern</p>
+<p>the input should be a pbc config of terminated backbones</p>
+<ol class="arabic simple">
+<li><p>heuristic rules 10.1039/c7tc02553j, that worked only for small acenes, we want more</p></li>
+<li><p>finger print Hirshfield 10.1039/c1ce05763d</p></li>
+</ol>
+</dd></dl>
+
+<dl class="method">
+<dt id="ocelot.task.pkid.PackingIdentifier.identify_heuristic">
+<code class="sig-name descname">identify_heuristic</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/pkid.html#PackingIdentifier.identify_heuristic"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.pkid.PackingIdentifier.identify_heuristic" title="Permalink to this definition">¶</a></dt>
+<dd><p>return a dictionary, keys are</p>
+<p>n_close_azm_and_parallel, n_close_azm_and_notparallel, n_close_vertical_and_parallel, n_close_vertical_and_notparallel, n_parallel_and_overlap, n_notparallel_and_overlap, packing
+:return:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ocelot.task.pkid.PackingIdentifier.identify_hirshfield">
+<code class="sig-name descname">identify_hirshfield</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/pkid.html#PackingIdentifier.identify_hirshfield"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.pkid.PackingIdentifier.identify_hirshfield" title="Permalink to this definition">¶</a></dt>
+<dd><p>TODO use multwfn to generate hirshfield finger print, then analysze it based on 10.1039/c1ce05763d</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ocelot.task.reciprocal">
+<span id="ocelot-task-reciprocal-module"></span><h2>ocelot.task.reciprocal module<a class="headerlink" href="#module-ocelot.task.reciprocal" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ocelot.task.reciprocal.BZsampler">
+<em class="property">class </em><code class="sig-prename descclassname">ocelot.task.reciprocal.</code><code class="sig-name descname">BZsampler</code><span class="sig-paren">(</span><em class="sig-param">jobcomment</em>, <em class="sig-param">structure</em>, <em class="sig-param">sampling_scheme</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/reciprocal.html#BZsampler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.reciprocal.BZsampler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>-1. TODO write inputs
+0. TODO test spin polarized calculations
+1. band structure
+2. line effective mass
+3. TODO ellipsoid effective mass
+4. TODO group velocity
+5. TODO tb fitting, see 10.1002/adts.201800204</p>
+<dl class="method">
+<dt id="ocelot.task.reciprocal.BZsampler.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">jobcomment</em>, <em class="sig-param">structure</em>, <em class="sig-param">sampling_scheme</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/reciprocal.html#BZsampler.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.reciprocal.BZsampler.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>object used to sample BZ</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>jobcomment</strong> (<em>str</em>) – trivial notes</p></li>
+<li><p><strong>structure</strong> (<em>Structure</em>) – periodic structure in direct space</p></li>
+<li><p><strong>sampling_scheme</strong> (<em>str</em>) – ‘path’ or ‘homogeneous’</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="ocelot.task.reciprocal.BZsampler.bands_plt">
+<em class="property">static </em><code class="sig-name descname">bands_plt</code><span class="sig-paren">(</span><em class="sig-param">f_d</em>, <em class="sig-param">r_d</em>, <em class="sig-param">yrange</em>, <em class="sig-param">savefigname</em>, <em class="sig-param">zerofermi=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/reciprocal.html#BZsampler.bands_plt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.reciprocal.BZsampler.bands_plt" title="Permalink to this definition">¶</a></dt>
+<dd><p>plot band structure with fit data as lines and raw data as scatters</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>f_d</strong> (<em>dict</em>) – fit bands data</p></li>
+<li><p><strong>r_d</strong> (<em>dict</em>) – raw bands data</p></li>
+<li><p><strong>yrange</strong> (<em>list</em>) – [ymin, ymax]</p></li>
+<li><p><strong>savefigname</strong> (<em>str</em>) – file name with externsion</p></li>
+<li><p><strong>zerofermi</strong> (<em>bool</em>) – whether plot eigen-efermi</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="ocelot.task.reciprocal.BZsampler.path_bandsfit">
+<em class="property">static </em><code class="sig-name descname">path_bandsfit</code><span class="sig-paren">(</span><em class="sig-param">data</em>, <em class="sig-param">fitdensity</em>, <em class="sig-param">nbandsud=5</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/reciprocal.html#BZsampler.path_bandsfit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.reciprocal.BZsampler.path_bandsfit" title="Permalink to this definition">¶</a></dt>
+<dd><p>fit band structure with spline at a predefined fit density
+using <cite>scipy.interpolate.splev</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>dict</em>) – parsed path bands data</p></li>
+<li><p><strong>fitdensity</strong> (<em>int</em>) – number of data points along one SEGMENT</p></li>
+<li><p><strong>nbandsud</strong> (<em>int</em>) – iband &gt;= ivb - nbandsud or iband &lt;= icb - nbandsub will be fitted</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="ocelot.task.reciprocal.BZsampler.path_ems">
+<em class="property">static </em><code class="sig-name descname">path_ems</code><span class="sig-paren">(</span><em class="sig-param">band_type</em>, <em class="sig-param">fluctuation</em>, <em class="sig-param">data</em>, <em class="sig-param">step</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/reciprocal.html#BZsampler.path_ems"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.reciprocal.BZsampler.path_ems" title="Permalink to this definition">¶</a></dt>
+<dd><p>get ems for a certian band type</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>band_type</strong> (<em>str</em>) – ‘vb’ or ‘cb’</p></li>
+<li><p><strong>fluctuation</strong> (<em>float</em>) – band extrema &gt; band maxmium - fluctuation will be considered</p></li>
+<li><p><strong>data</strong> (<em>dict</em>) – parsed path bands data</p></li>
+<li><p><strong>step</strong> (<em>int</em>) – the step used to define the boundary of parabola</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="ocelot.task.reciprocal.BZsampler.vasp_path_data_ocelot">
+<em class="property">static </em><code class="sig-name descname">vasp_path_data_ocelot</code><span class="sig-paren">(</span><em class="sig-param">kpoints</em>, <em class="sig-param">outcar</em>, <em class="sig-param">eigenval</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/reciprocal.html#BZsampler.vasp_path_data_ocelot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.reciprocal.BZsampler.vasp_path_data_ocelot" title="Permalink to this definition">¶</a></dt>
+<dd><p>parse vasp output in a classic band calculation, kpoints must be in the format generated by aflow</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>kpoints</strong> (<em>str</em>) – KPOINTS filename</p></li>
+<li><p><strong>outcar</strong> (<em>str</em>) – OUTCAR filename</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a dictionary with keys as</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ocelot.task.wtuning">
+<span id="ocelot-task-wtuning-module"></span><h2>ocelot.task.wtuning module<a class="headerlink" href="#module-ocelot.task.wtuning" title="Permalink to this headline">¶</a></h2>
+<p>originally written by Sean M. Ryno, Cheng Zhong, Haitao Sun, see /legacy/aw_tuning.py
+for a certain mol, get tuned w</p>
+<p>default keywords for gaussian
+‘scf=(xqc,fermi,noincfock,ndamp=35,conver=6,vshift=500,novaracc)’</p>
+<p>dev-ing</p>
+</div>
+<div class="section" id="module-ocelot.task">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-ocelot.task" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>calec: electronic coupling calculation for dimer</p></li>
+<li><p>nics_scan: io for nics_xy_pi scan</p></li>
+<li><p>pkid: packing identification</p></li>
+<li><p>awtuning: tune w/a for lc functional</p></li>
+<li><p>optic: optical response</p></li>
+<li><p>hopper: give electronic coupling of dimers, identify whether there’s a percolation route</p></li>
+<li><p>bands: parse band structure data</p></li>
+<li><p>geodes: geometric descriptors</p></li>
+<li><p>emc: effective mass calculations</p></li>
+<li><p>massage: ec-slip relation</p></li>
+<li><p>nics: nics scan</p></li>
+<li><p>homa: HOMA descriptor for aroma</p></li>
+<li><p>fitbox: get plausible conformation for a pre-defined box (GIXD)</p></li>
+<li><p>ipae: calculate IP and AE, both intrinsic and apparent</p></li>
+<li><p>escal: excited state calculations</p></li>
+<li><p>defgen: generate defects</p></li>
+<li><p>inspector: sanity check for raw data and inputs generation for other tasks</p></li>
+</ul>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="ocelot.schema.html" class="btn btn-neutral float-left" title="ocelot.schema package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Ai, Qianxiang
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

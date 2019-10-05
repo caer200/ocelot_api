@@ -1,9 +1,9 @@
 import sys
 sys.path.append('../../')
-from schema.config import Config
-from routines.pbc import CIFparser
+from ocelot.schema import Config
+from ocelot.routines import CIFparser
 import glob
-from task.pkid import PackingIdentifier
+from ocelot.task.pkid import PackingIdentifier
 
 """
 this reads cif files from tipge-*.cif, identify packing patterns and write backbone-only configs

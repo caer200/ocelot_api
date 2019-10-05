@@ -1,8 +1,8 @@
 import sys
 sys.path.append('../../')
-from schema.omol import OMol
+from ocelot.schema import OMol
 from pymatgen.core.structure import Molecule
-from task.nics import NICSjob
+from ocelot.task.nics import NICSjob
 """
 this will wirte sigma-0.gjf and total-0.gjf
 then print zz values from sigma-0.log and total-0.log

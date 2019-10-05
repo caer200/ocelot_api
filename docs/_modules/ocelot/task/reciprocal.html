@@ -1,0 +1,491 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ocelot.task.reciprocal &mdash; ocelot 0.01 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> ocelot
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.01
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#quick-start">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ocelot.html">ocelot package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">ocelot</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>ocelot.task.reciprocal</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ocelot.task.reciprocal</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">pymatgen.core.structure</span> <span class="k">import</span> <span class="n">Structure</span>
+<span class="kn">from</span> <span class="nn">ocelot.routines</span> <span class="k">import</span> <span class="n">fileop</span><span class="p">,</span> <span class="n">mathop</span>
+<span class="kn">from</span> <span class="nn">ocelot.routines.geometry</span> <span class="k">import</span> <span class="n">frac2cart</span>
+<span class="kn">from</span> <span class="nn">scipy</span> <span class="k">import</span> <span class="n">interpolate</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">switch_backend</span><span class="p">(</span><span class="s1">&#39;agg&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="BZsampler"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.reciprocal.BZsampler">[docs]</a><span class="k">class</span> <span class="nc">BZsampler</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    -1. TODO write inputs</span>
+<span class="sd">    0. TODO test spin polarized calculations</span>
+<span class="sd">    1. band structure</span>
+<span class="sd">    2. line effective mass</span>
+<span class="sd">    3. TODO ellipsoid effective mass</span>
+<span class="sd">    4. TODO group velocity</span>
+<span class="sd">    5. TODO tb fitting, see 10.1002/adts.201800204</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="BZsampler.__init__"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.reciprocal.BZsampler.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jobcomment</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">sampling_scheme</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        object used to sample BZ</span>
+
+<span class="sd">        :param str jobcomment: trivial notes</span>
+<span class="sd">        :param Structure structure: periodic structure in direct space</span>
+<span class="sd">        :param str sampling_scheme: &#39;path&#39; or &#39;homogeneous&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">jobcomment</span> <span class="o">=</span> <span class="n">jobcomment</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">structure</span> <span class="o">=</span> <span class="n">structure</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sampling_scheme</span> <span class="o">=</span> <span class="n">sampling_scheme</span></div>
+
+<div class="viewcode-block" id="BZsampler.vasp_path_data_ocelot"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.reciprocal.BZsampler.vasp_path_data_ocelot">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">vasp_path_data_ocelot</span><span class="p">(</span><span class="n">kpoints</span><span class="p">,</span> <span class="n">outcar</span><span class="p">,</span> <span class="n">eigenval</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        parse vasp output in a classic band calculation, kpoints must be in the format generated by aflow</span>
+
+<span class="sd">        :param str kpoints: KPOINTS filename</span>
+<span class="sd">        :param str outcar: OUTCAR filename</span>
+<span class="sd">        :return: a dictionary with keys as</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># TODO checker on files</span>
+
+        <span class="c1"># parse outcar</span>
+        <span class="n">r_mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+        <span class="n">efermi</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="n">nelect</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">outcar</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f_OUTCAR</span><span class="p">:</span>
+            <span class="n">lines</span> <span class="o">=</span> <span class="n">f_OUTCAR</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">lines</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;      direct lattice vectors&#39;</span><span class="p">):</span>
+                <span class="n">v1</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">num</span><span class="p">)</span> <span class="k">for</span> <span class="n">num</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">3</span><span class="p">:]]</span>
+                <span class="n">v2</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">num</span><span class="p">)</span> <span class="k">for</span> <span class="n">num</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">3</span><span class="p">:]]</span>
+                <span class="n">v3</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">num</span><span class="p">)</span> <span class="k">for</span> <span class="n">num</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">3</span><span class="p">:]]</span>
+                <span class="n">r_mat</span> <span class="o">=</span> <span class="p">[</span><span class="n">v1</span><span class="p">,</span> <span class="n">v2</span><span class="p">,</span> <span class="n">v3</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39; E-fermi&#39;</span><span class="p">):</span>
+                <span class="n">efermi</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">lines</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">2</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;   NELECT&#39;</span><span class="p">):</span>
+                <span class="n">nelect</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">lines</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">2</span><span class="p">])))</span>
+
+        <span class="c1"># parse kpoints</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">kpoints</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f_KPOINTS</span><span class="p">:</span>
+            <span class="n">lines</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">fileop</span><span class="o">.</span><span class="n">nonblank_lines</span><span class="p">(</span><span class="n">f_KPOINTS</span><span class="p">))</span>
+
+        <span class="n">kline_density</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">lines</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">aflowstringkpath</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">2</span><span class="p">:]]</span>
+        <span class="n">segs_label</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">aflowstringkpath</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="n">segs_label</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">path</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;-&#39;</span> <span class="o">+</span> <span class="n">path</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+                    <span class="n">segs_label</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">path</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;-&#39;</span> <span class="o">+</span> <span class="n">path</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span>
+
+        <span class="n">kpath_kcoord</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">]</span>  <span class="c1"># these are xticks</span>
+        <span class="n">kroute</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">[</span><span class="mi">4</span><span class="p">:]),</span> <span class="mi">2</span><span class="p">):</span>
+            <span class="n">words_s</span> <span class="o">=</span> <span class="n">lines</span><span class="p">[</span><span class="mi">4</span><span class="p">:][</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+            <span class="n">words_e</span> <span class="o">=</span> <span class="n">lines</span><span class="p">[</span><span class="mi">4</span><span class="p">:][</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+            <span class="n">k_a_s</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">words_s</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">k_a_e</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">words_e</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">k_b_s</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">words_s</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">k_b_e</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">words_e</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">k_c_s</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">words_s</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+            <span class="n">k_c_e</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">words_e</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+            <span class="n">frac_v</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">k_a_e</span> <span class="o">-</span> <span class="n">k_a_s</span><span class="p">,</span> <span class="n">k_b_e</span> <span class="o">-</span> <span class="n">k_b_s</span><span class="p">,</span> <span class="n">k_c_e</span> <span class="o">-</span> <span class="n">k_c_s</span><span class="p">])</span>
+            <span class="n">length</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">frac2cart</span><span class="p">(</span><span class="n">frac_v</span><span class="p">,</span> <span class="n">r_mat</span><span class="p">))</span>
+            <span class="n">kroute</span> <span class="o">=</span> <span class="n">kroute</span> <span class="o">+</span> <span class="n">length</span>
+            <span class="n">kpath_kcoord</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">kroute</span><span class="p">)</span>
+
+        <span class="n">kpath_labels</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># these are xtickslabel</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aflowstringkpath</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">pre_seg_end</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">pre_seg_end</span> <span class="o">=</span> <span class="n">aflowstringkpath</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aflowstringkpath</span><span class="p">[</span><span class="n">i</span><span class="p">])):</span>
+                <span class="k">if</span> <span class="n">j</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">j</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">aflowstringkpath</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">kpath_labels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">aflowstringkpath</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">])</span>
+                <span class="k">elif</span> <span class="n">j</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">kpath_labels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pre_seg_end</span> <span class="o">+</span> <span class="s1">&#39;|&#39;</span> <span class="o">+</span> <span class="n">aflowstringkpath</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">])</span>
+        <span class="n">kpath_labels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">aflowstringkpath</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="n">kpt_cumulative</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(((</span><span class="nb">len</span><span class="p">(</span><span class="n">kpath_kcoord</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">kline_density</span><span class="p">))</span>  <span class="c1"># these are x</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">kpath_kcoord</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">seg</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">kpath_kcoord</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">kpath_kcoord</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">],</span> <span class="n">num</span><span class="o">=</span><span class="n">kline_density</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">kline_density</span><span class="p">):</span>
+                <span class="n">kpt_cumulative</span><span class="p">[</span><span class="n">i</span> <span class="o">*</span> <span class="n">kline_density</span> <span class="o">+</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">seg</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+
+        <span class="c1"># parse EIGENVAL</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">eigenval</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f_EIGENVAL</span><span class="p">:</span>
+            <span class="n">lines</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">fileop</span><span class="o">.</span><span class="n">nonblank_lines</span><span class="p">(</span><span class="n">f_EIGENVAL</span><span class="p">))</span>
+        <span class="n">nkpts</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">lines</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">nbands</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">lines</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">2</span><span class="p">])</span>
+        <span class="n">eigens</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">([</span><span class="n">nbands</span><span class="p">,</span> <span class="n">nkpts</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;float&#39;</span><span class="p">)</span>  <span class="c1"># these are y</span>
+        <span class="n">kpts_frac</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">kpts_cart</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">eigen_lines</span> <span class="o">=</span> <span class="n">lines</span><span class="p">[</span><span class="mi">6</span><span class="p">:]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nkpts</span><span class="p">):</span>
+            <span class="n">block</span> <span class="o">=</span> <span class="n">eigen_lines</span><span class="p">[</span><span class="n">i</span> <span class="o">*</span> <span class="p">(</span><span class="n">nbands</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">nbands</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)]</span>
+            <span class="n">kpt_fcoord</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">coord</span><span class="p">)</span> <span class="k">for</span> <span class="n">coord</span> <span class="ow">in</span> <span class="n">block</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]]</span>
+            <span class="n">kpt_v</span> <span class="o">=</span> <span class="n">frac2cart</span><span class="p">(</span><span class="n">kpt_fcoord</span><span class="p">,</span> <span class="n">r_mat</span><span class="p">)</span>
+            <span class="n">kpts_frac</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">kpt_fcoord</span><span class="p">)</span>
+            <span class="n">kpts_cart</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">kpt_v</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nbands</span><span class="p">):</span>
+                <span class="n">eigens</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">block</span><span class="p">[</span><span class="n">j</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="n">d</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="n">d</span><span class="p">[</span><span class="s1">&#39;rmat&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">r_mat</span>  <span class="c1"># reciprocal lattice</span>
+        <span class="n">d</span><span class="p">[</span><span class="s1">&#39;efermi&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">efermi</span>
+        <span class="n">d</span><span class="p">[</span><span class="s1">&#39;nelect&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">nelect</span>
+        <span class="n">d</span><span class="p">[</span><span class="s1">&#39;vb_idx&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">nelect</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="n">d</span><span class="p">[</span><span class="s1">&#39;cb_idx&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">nelect</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">d</span><span class="p">[</span><span class="s1">&#39;kline_density&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kline_density</span>
+        <span class="n">d</span><span class="p">[</span><span class="s1">&#39;segs_label&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">segs_label</span>
+        <span class="n">d</span><span class="p">[</span><span class="s1">&#39;xticks&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kpath_kcoord</span>
+        <span class="n">d</span><span class="p">[</span><span class="s1">&#39;xtickslabel&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kpath_labels</span>
+        <span class="n">d</span><span class="p">[</span><span class="s1">&#39;kpts_frac&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kpts_frac</span>
+        <span class="n">d</span><span class="p">[</span><span class="s1">&#39;kpts_cart&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kpts_cart</span>
+        <span class="n">d</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kpt_cumulative</span>
+        <span class="n">d</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">eigens</span>  <span class="c1"># eigens[iband][ikpt]</span>
+        <span class="n">d</span><span class="p">[</span><span class="s1">&#39;nkpts&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">nkpts</span>
+        <span class="n">d</span><span class="p">[</span><span class="s1">&#39;nbands&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">nbands</span>
+        <span class="k">return</span> <span class="n">d</span></div>
+
+<div class="viewcode-block" id="BZsampler.path_bandsfit"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.reciprocal.BZsampler.path_bandsfit">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">path_bandsfit</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">fitdensity</span><span class="p">,</span> <span class="n">nbandsud</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        fit band structure with spline at a predefined fit density</span>
+<span class="sd">        using `scipy.interpolate.splev`</span>
+
+<span class="sd">        :param dict data: parsed path bands data</span>
+<span class="sd">        :param int fitdensity: number of data points along one SEGMENT</span>
+<span class="sd">        :param int nbandsud: iband &gt;= ivb - nbandsud or iband &lt;= icb - nbandsub will be fitted</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">segs_label</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;segs_label&#39;</span><span class="p">]</span>
+        <span class="n">x_raw</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">]</span>
+        <span class="n">kline_density</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;kline_density&#39;</span><span class="p">])</span>
+        <span class="n">eigens</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">]</span>
+        <span class="n">nelect</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;nelect&#39;</span><span class="p">]</span>
+        <span class="n">eigenstofit</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># proxy bands 5+5 x nkpts</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">int</span><span class="p">((</span><span class="n">nelect</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">-</span> <span class="n">nbandsud</span><span class="p">),</span> <span class="nb">int</span><span class="p">((</span><span class="n">nelect</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="n">nbandsud</span><span class="p">)):</span>
+            <span class="n">eigenstofit</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">eigens</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        <span class="n">d</span><span class="p">[</span><span class="s1">&#39;vb_idx&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">eigenstofit</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="n">d</span><span class="p">[</span><span class="s1">&#39;cb_idx&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">eigenstofit</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+
+        <span class="n">fit_eigens</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">eigenstofit</span><span class="p">),</span> <span class="n">fitdensity</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">segs_label</span><span class="p">)))</span>
+
+        <span class="n">all_x</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">iband</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">eigenstofit</span><span class="p">)):</span>
+            <span class="n">y_raw</span> <span class="o">=</span> <span class="n">eigenstofit</span><span class="p">[</span><span class="n">iband</span><span class="p">]</span>
+            <span class="n">all_x</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">all_y</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">seg_index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">segs_label</span><span class="p">)):</span>
+                <span class="n">x_r</span> <span class="o">=</span> <span class="n">x_raw</span><span class="p">[</span><span class="n">seg_index</span> <span class="o">*</span> <span class="n">kline_density</span><span class="p">:</span> <span class="p">(</span><span class="n">seg_index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">kline_density</span><span class="p">]</span>
+                <span class="n">y_r</span> <span class="o">=</span> <span class="n">y_raw</span><span class="p">[</span><span class="n">seg_index</span> <span class="o">*</span> <span class="n">kline_density</span><span class="p">:</span> <span class="p">(</span><span class="n">seg_index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">kline_density</span><span class="p">]</span>
+                <span class="n">tck</span> <span class="o">=</span> <span class="n">interpolate</span><span class="o">.</span><span class="n">splrep</span><span class="p">(</span><span class="n">x_r</span><span class="p">,</span> <span class="n">y_r</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="mf">0.00</span><span class="p">)</span>
+                <span class="n">step</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">x_r</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">x_r</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="n">fitdensity</span>
+                <span class="n">xs</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="o">*</span> <span class="n">step</span> <span class="o">+</span> <span class="n">x_r</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">fitdensity</span><span class="p">)]</span>
+                <span class="n">ys</span> <span class="o">=</span> <span class="p">[</span><span class="n">interpolate</span><span class="o">.</span><span class="n">splev</span><span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="n">step</span> <span class="o">+</span> <span class="n">x_r</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">tck</span><span class="p">,</span> <span class="n">der</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">fitdensity</span><span class="p">)]</span>
+                <span class="n">ys_flat</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ys</span><span class="p">)</span><span class="o">.</span><span class="n">transpose</span><span class="p">())</span>
+                <span class="n">all_x</span> <span class="o">+=</span> <span class="n">xs</span>
+                <span class="n">all_y</span> <span class="o">+=</span> <span class="n">ys_flat</span>
+            <span class="n">fit_eigens</span><span class="p">[</span><span class="n">iband</span><span class="p">]</span> <span class="o">=</span> <span class="n">all_y</span>
+        <span class="n">d</span><span class="p">[</span><span class="s1">&#39;kline_density&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fitdensity</span>
+        <span class="n">d</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fit_eigens</span>
+        <span class="n">d</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">all_x</span>
+        <span class="k">return</span> <span class="n">d</span></div>
+
+<div class="viewcode-block" id="BZsampler.path_ems"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.reciprocal.BZsampler.path_ems">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">path_ems</span><span class="p">(</span><span class="n">band_type</span><span class="p">,</span> <span class="n">fluctuation</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">step</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        get ems for a certian band type</span>
+
+<span class="sd">        :param str band_type: &#39;vb&#39; or &#39;cb&#39;</span>
+<span class="sd">        :param float fluctuation: band extrema &gt; band maxmium - fluctuation will be considered</span>
+<span class="sd">        :param dict data: parsed path bands data</span>
+<span class="sd">        :param int step: the step used to define the boundary of parabola</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">kline_density</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;kline_density&#39;</span><span class="p">]</span>
+        <span class="n">segs_label</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;segs_label&#39;</span><span class="p">]</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">band_type</span> <span class="o">==</span> <span class="s1">&#39;cb&#39;</span><span class="p">:</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">][</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;cb_idx&#39;</span><span class="p">]]</span>
+            <span class="n">g_ex</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+            <span class="n">ems</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">segs_label</span><span class="p">)):</span>
+                <span class="n">seg_x</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="n">i</span> <span class="o">*</span> <span class="n">kline_density</span><span class="p">:</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">kline_density</span><span class="p">]</span>
+                <span class="n">seg_y</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="n">i</span> <span class="o">*</span> <span class="n">kline_density</span><span class="p">:</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">kline_density</span><span class="p">]</span>
+                <span class="n">poi</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># point of interest</span>
+                <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">kline_density</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="n">j</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">seg_y</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">seg_y</span><span class="p">[</span><span class="n">j</span> <span class="o">+</span> <span class="n">step</span><span class="p">])</span> <span class="ow">or</span> <span class="p">(</span><span class="n">j</span> <span class="o">==</span> <span class="n">kline_density</span> <span class="o">-</span> <span class="mi">1</span> <span class="ow">and</span>
+                                                                   <span class="n">seg_y</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">seg_y</span><span class="p">[</span><span class="n">j</span> <span class="o">-</span> <span class="n">step</span><span class="p">]):</span>
+                        <span class="k">if</span> <span class="n">seg_y</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">g_ex</span> <span class="o">+</span> <span class="n">fluctuation</span><span class="p">:</span>
+                            <span class="n">poi</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>
+                    <span class="k">elif</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">step</span> <span class="o">&lt;</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="n">kline_density</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">step</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">seg_y</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">seg_y</span><span class="p">[</span><span class="n">j</span> <span class="o">+</span> <span class="n">step</span><span class="p">]</span> <span class="ow">and</span> <span class="n">seg_y</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">seg_y</span><span class="p">[</span><span class="n">j</span> <span class="o">-</span> <span class="n">step</span><span class="p">]</span> <span class="ow">and</span> <span class="n">seg_y</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">g_ex</span> <span class="o">+</span> <span class="n">fluctuation</span><span class="p">:</span>
+                            <span class="n">poi</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">poi</span><span class="p">:</span>
+                    <span class="n">rb_x</span> <span class="o">=</span> <span class="n">mathop</span><span class="o">.</span><span class="n">ra_to_rb</span><span class="p">(</span><span class="n">seg_x</span><span class="p">)</span>
+                    <span class="n">ha_y</span> <span class="o">=</span> <span class="n">mathop</span><span class="o">.</span><span class="n">ev_to_ha</span><span class="p">(</span><span class="n">seg_y</span><span class="p">)</span>
+                    <span class="n">em</span> <span class="o">=</span> <span class="n">mathop</span><span class="o">.</span><span class="n">fd_reci_2ndder</span><span class="p">(</span><span class="n">ha_y</span><span class="p">,</span> <span class="n">rb_x</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="n">step</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">em</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">:</span>
+                        <span class="n">ems</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">em</span><span class="p">,</span> <span class="n">idx</span> <span class="o">/</span> <span class="p">(</span><span class="n">kline_density</span> <span class="o">-</span> <span class="mi">1</span><span class="p">),</span> <span class="n">segs_label</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">band_type</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">ems</span>
+
+        <span class="k">elif</span> <span class="n">band_type</span> <span class="o">==</span> <span class="s1">&#39;vb&#39;</span><span class="p">:</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">][</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;vb_idx&#39;</span><span class="p">]]</span>
+            <span class="n">g_ex</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+            <span class="n">ems</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">segs_label</span><span class="p">)):</span>
+                <span class="n">seg_x</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="n">i</span> <span class="o">*</span> <span class="n">kline_density</span><span class="p">:</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">kline_density</span><span class="p">]</span>
+                <span class="n">seg_y</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="n">i</span> <span class="o">*</span> <span class="n">kline_density</span><span class="p">:</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">kline_density</span><span class="p">]</span>
+                <span class="n">poi</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># point of interest</span>
+                <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">kline_density</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="n">j</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">seg_y</span><span class="p">[</span><span class="n">j</span> <span class="o">+</span> <span class="n">step</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">seg_y</span><span class="p">[</span><span class="n">j</span><span class="p">])</span> <span class="ow">or</span> <span class="p">(</span><span class="n">j</span> <span class="o">==</span> <span class="n">kline_density</span> <span class="o">-</span> <span class="mi">1</span> <span class="ow">and</span>
+                                                                   <span class="n">seg_y</span><span class="p">[</span><span class="n">j</span> <span class="o">-</span> <span class="n">step</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">seg_y</span><span class="p">[</span><span class="n">j</span><span class="p">]):</span>
+                        <span class="k">if</span> <span class="n">seg_y</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">g_ex</span> <span class="o">-</span> <span class="n">fluctuation</span><span class="p">:</span>
+                            <span class="n">poi</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>
+                    <span class="k">elif</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">step</span> <span class="o">&lt;</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="n">kline_density</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">step</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">seg_y</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">seg_y</span><span class="p">[</span><span class="n">j</span> <span class="o">+</span> <span class="n">step</span><span class="p">]</span> <span class="ow">and</span> <span class="n">seg_y</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">seg_y</span><span class="p">[</span><span class="n">j</span> <span class="o">-</span> <span class="n">step</span><span class="p">]</span> <span class="ow">and</span> <span class="n">seg_y</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">g_ex</span> <span class="o">-</span> <span class="n">fluctuation</span><span class="p">:</span>
+                            <span class="n">poi</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">poi</span><span class="p">:</span>
+                    <span class="n">rb_x</span> <span class="o">=</span> <span class="n">mathop</span><span class="o">.</span><span class="n">ra_to_rb</span><span class="p">(</span><span class="n">seg_x</span><span class="p">)</span>
+                    <span class="n">ha_y</span> <span class="o">=</span> <span class="n">mathop</span><span class="o">.</span><span class="n">ev_to_ha</span><span class="p">(</span><span class="n">seg_y</span><span class="p">)</span>
+                    <span class="n">em</span> <span class="o">=</span> <span class="n">mathop</span><span class="o">.</span><span class="n">fd_reci_2ndder</span><span class="p">(</span><span class="n">ha_y</span><span class="p">,</span> <span class="n">rb_x</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="n">step</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">em</span> <span class="o">&lt;</span> <span class="mf">0.0</span><span class="p">:</span>
+                        <span class="n">ems</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">em</span><span class="p">,</span> <span class="n">idx</span> <span class="o">/</span> <span class="p">(</span><span class="n">kline_density</span> <span class="o">-</span> <span class="mi">1</span><span class="p">),</span> <span class="n">segs_label</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">band_type</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">ems</span></div>
+
+<div class="viewcode-block" id="BZsampler.bands_plt"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.reciprocal.BZsampler.bands_plt">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">bands_plt</span><span class="p">(</span><span class="n">f_d</span><span class="p">,</span> <span class="n">r_d</span><span class="p">,</span> <span class="n">yrange</span><span class="p">,</span> <span class="n">savefigname</span><span class="p">,</span> <span class="n">zerofermi</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        plot band structure with fit data as lines and raw data as scatters</span>
+
+<span class="sd">        :param dict f_d: fit bands data</span>
+<span class="sd">        :param dict r_d: raw bands data</span>
+<span class="sd">        :param list yrange: [ymin, ymax]</span>
+<span class="sd">        :param str savefigname: file name with externsion</span>
+<span class="sd">        :param bool zerofermi: whether plot eigen-efermi</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">f</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
+        <span class="n">efermi</span> <span class="o">=</span> <span class="n">r_d</span><span class="p">[</span><span class="s1">&#39;efermi&#39;</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">zerofermi</span><span class="p">:</span>
+            <span class="n">r_d</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">r_d</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">efermi</span>
+            <span class="n">f_d</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">f_d</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">efermi</span>
+            <span class="n">ylabel</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;$\mathrm{E\ -\ E_f\ (eV)}$&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ylabel</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;$\mathrm{E\ (eV)}$&#39;</span>
+            <span class="n">yrange</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">yrange</span><span class="p">)</span> <span class="o">+</span> <span class="n">efermi</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">f_d</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">])):</span>
+            <span class="n">x_fit</span> <span class="o">=</span> <span class="n">f_d</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">]</span>
+            <span class="n">y_fit</span> <span class="o">=</span> <span class="n">f_d</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x_fit</span><span class="p">,</span> <span class="n">y_fit</span><span class="p">,</span> <span class="s1">&#39;b-&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.9</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">r_d</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">])):</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">r_d</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">],</span> <span class="n">r_d</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">],</span> <span class="n">c</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="mf">0.2</span><span class="p">)</span>
+
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;$\mathrm{k\ (2\pi \cdot \AA^{-1}})}$&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">ylabel</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="n">r_d</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">r_d</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="n">yrange</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">(</span><span class="n">r_d</span><span class="p">[</span><span class="s1">&#39;xticks&#39;</span><span class="p">])</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xticklabels</span><span class="p">(</span><span class="n">r_d</span><span class="p">[</span><span class="s1">&#39;xtickslabel&#39;</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">r_d</span><span class="p">[</span><span class="s1">&#39;xticks&#39;</span><span class="p">]:</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">axvline</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">i</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">savefigname</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">600</span><span class="p">)</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Ai, Qianxiang
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

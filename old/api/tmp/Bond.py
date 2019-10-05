@@ -1,5 +1,5 @@
-from schema.Sitelist import Sitelist
-from routines.Geometry import norm
+from ocelot.schema import Sitelist
+from ocelot.routines import norm
 import numpy as np
 import sys
 

@@ -1,0 +1,466 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ocelot.routines.pbc &mdash; ocelot 0.01 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> ocelot
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.01
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#quick-start">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ocelot.html">ocelot package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">ocelot</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>ocelot.routines.pbc</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ocelot.routines.pbc</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">from</span> <span class="nn">ocelot.schema.element</span> <span class="k">import</span> <span class="n">Element</span>
+<span class="kn">from</span> <span class="nn">ocelot.schema.omol</span> <span class="k">import</span> <span class="n">OMol</span>
+<span class="kn">from</span> <span class="nn">pymatgen.util.coord</span> <span class="k">import</span> <span class="n">pbc_shortest_vectors</span>
+<span class="kn">from</span> <span class="nn">pymatgen.core.structure</span> <span class="k">import</span> <span class="n">Site</span><span class="p">,</span> <span class="n">PeriodicSite</span><span class="p">,</span> <span class="n">IMolecule</span><span class="p">,</span> <span class="n">IStructure</span><span class="p">,</span> <span class="n">Molecule</span><span class="p">,</span> <span class="n">Structure</span>
+<span class="kn">from</span> <span class="nn">pymatgen.io.cif</span> <span class="k">import</span> <span class="n">CifFile</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">CIFparser: parse cif file into a list of configurations with no disorder</span>
+<span class="sd">PBCparser: get unwrapped structure and mols</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<div class="viewcode-block" id="CIFparser"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.pbc.CIFparser">[docs]</a><span class="k">class</span> <span class="nc">CIFparser</span><span class="p">:</span>
+
+<div class="viewcode-block" id="CIFparser.__init__"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.pbc.CIFparser.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cifstring</span><span class="p">,</span> <span class="n">identifier</span><span class="p">,</span> <span class="n">pymatgen_dict</span><span class="p">,</span> <span class="n">clean_dicts</span><span class="p">,</span> <span class="n">clean_cifstrings</span><span class="p">,</span> <span class="n">nconfig</span><span class="p">,</span> <span class="n">is_disorder</span><span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">cifstring</span> <span class="o">=</span> <span class="n">cifstring</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">identifier</span> <span class="o">=</span> <span class="n">identifier</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pymatgen_dict</span> <span class="o">=</span> <span class="n">pymatgen_dict</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clean_dicts</span> <span class="o">=</span> <span class="n">clean_dicts</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clean_cifstrings</span> <span class="o">=</span> <span class="n">clean_cifstrings</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nconfig</span> <span class="o">=</span> <span class="n">nconfig</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_disorder</span> <span class="o">=</span> <span class="n">is_disorder</span></div>
+
+<div class="viewcode-block" id="CIFparser.from_cifstring"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.pbc.CIFparser.from_cifstring">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_cifstring</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">cifstring</span><span class="p">):</span>
+        <span class="n">cifdata</span> <span class="o">=</span> <span class="n">CifFile</span><span class="o">.</span><span class="n">from_string</span><span class="p">(</span><span class="n">cifstring</span><span class="p">)</span><span class="o">.</span><span class="n">data</span>
+        <span class="n">identifier</span> <span class="o">=</span> <span class="s1">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">cifdata</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+        <span class="n">pymatgen_dict</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">cifdata</span><span class="o">.</span><span class="n">items</span><span class="p">())[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">data</span>
+        <span class="n">is_disorder</span> <span class="o">=</span> <span class="n">CIFparser</span><span class="o">.</span><span class="n">isdisorder</span><span class="p">(</span><span class="n">pymatgen_dict</span><span class="p">)</span>
+        <span class="n">clean_dicts</span> <span class="o">=</span> <span class="n">CIFparser</span><span class="o">.</span><span class="n">split_pymatgen_dict</span><span class="p">(</span><span class="n">pymatgen_dict</span><span class="p">,</span> <span class="n">is_disorder</span><span class="p">,</span> <span class="n">identifier</span><span class="p">)</span>
+        <span class="n">clean_cifstrings</span> <span class="o">=</span> <span class="p">[</span><span class="n">CIFparser</span><span class="o">.</span><span class="n">get_config_dict_string</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">clean_dicts</span><span class="p">]</span>
+        <span class="n">nconfig</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">clean_dicts</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">cifstring</span><span class="p">,</span> <span class="n">identifier</span><span class="p">,</span> <span class="n">pymatgen_dict</span><span class="p">,</span> <span class="n">clean_dicts</span><span class="p">,</span> <span class="n">clean_cifstrings</span><span class="p">,</span> <span class="n">nconfig</span><span class="p">,</span> <span class="n">is_disorder</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CIFparser.get_config_dict_string"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.pbc.CIFparser.get_config_dict_string">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">get_config_dict_string</span><span class="p">(</span><span class="n">d</span><span class="p">):</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;identifier&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="n">s</span> <span class="o">+=</span> <span class="s1">&#39;loop_</span><span class="se">\n</span><span class="s1"> _symmetry_equiv_pos_as_xyz</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s2">&quot;&#39;&quot;</span> <span class="o">+</span> <span class="n">xyz</span> <span class="o">+</span> <span class="s2">&quot;&#39;&quot;</span> <span class="k">for</span> <span class="n">xyz</span> <span class="ow">in</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;symop&#39;</span><span class="p">]])</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n\n</span><span class="s1">&#39;</span>
+        <span class="n">s</span> <span class="o">+=</span> <span class="s1">&#39;_cell_length_a</span><span class="se">\t</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;a&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="n">s</span> <span class="o">+=</span> <span class="s1">&#39;_cell_length_b</span><span class="se">\t</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;b&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="n">s</span> <span class="o">+=</span> <span class="s1">&#39;_cell_length_c</span><span class="se">\t</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;c&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="n">s</span> <span class="o">+=</span> <span class="s1">&#39;_cell_angle_alpha</span><span class="se">\t</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;A&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="n">s</span> <span class="o">+=</span> <span class="s1">&#39;_cell_angle_beta</span><span class="se">\t</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;B&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="n">s</span> <span class="o">+=</span> <span class="s1">&#39;_cell_angle_gamma</span><span class="se">\t</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;C&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="n">s</span> <span class="o">+=</span> <span class="s1">&#39;loop_</span><span class="se">\n</span><span class="s1"> _atom_site_label</span><span class="se">\n</span><span class="s1"> _atom_site_type_symbol</span><span class="se">\n</span><span class="s1"> _atom_site_fract_x</span><span class="se">\n</span><span class="s1"> _atom_site_fract_y</span><span class="se">\n</span><span class="s1"> _atom_site_fract_z</span><span class="se">\n</span><span class="s1"> _atom_site_occupancy</span><span class="se">\n</span><span class="s1"> _atom_site_disorder_group</span><span class="se">\n</span><span class="s1">&#39;</span>
+
+        <span class="k">for</span> <span class="n">site</span> <span class="ow">in</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;msites&#39;</span><span class="p">]:</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">site</span><span class="p">)</span>
+            <span class="n">s</span> <span class="o">+=</span> <span class="n">line</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="k">return</span> <span class="n">s</span></div>
+
+<div class="viewcode-block" id="CIFparser.write_config_dict"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.pbc.CIFparser.write_config_dict">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">write_config_dict</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">cifn</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        write config_dict into minimum readable cif file</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">CIFparser</span><span class="o">.</span><span class="n">get_config_dict_string</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">cifn</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">s</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CIFparser.get_clean_cifs_stringlist"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.pbc.CIFparser.get_clean_cifs_stringlist">[docs]</a>    <span class="k">def</span> <span class="nf">get_clean_cifs_stringlist</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">clean_dicts</span><span class="p">)):</span>
+            <span class="n">cleandict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">clean_dicts</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">res</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_config_dict_string</span><span class="p">(</span><span class="n">cleandict</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">res</span></div>
+
+<div class="viewcode-block" id="CIFparser.write_clean_cifs"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.pbc.CIFparser.write_clean_cifs">[docs]</a>    <span class="k">def</span> <span class="nf">write_clean_cifs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s1">&#39;cleanconfig&#39;</span><span class="p">):</span>
+        <span class="n">fns</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nconfig</span><span class="p">):</span>
+            <span class="n">fn</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">-</span><span class="si">{}</span><span class="s1">.cif&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">prefix</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">write_config_dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">clean_dicts</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">fn</span><span class="p">)</span>
+            <span class="n">fns</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">fns</span></div>
+
+<div class="viewcode-block" id="CIFparser.split_pymatgen_dict"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.pbc.CIFparser.split_pymatgen_dict">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">split_pymatgen_dict</span><span class="p">(</span><span class="n">pymatgen_dict</span><span class="p">,</span> <span class="n">isdisorder</span><span class="p">,</span> <span class="n">identifier</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">isdisorder</span><span class="p">:</span>
+            <span class="n">config_d</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+                <span class="n">identifier</span><span class="o">=</span><span class="s1">&#39;data_</span><span class="si">{}</span><span class="s1">_config-</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">identifier</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+                <span class="n">a</span><span class="o">=</span><span class="n">pymatgen_dict</span><span class="p">[</span><span class="s1">&#39;_cell_length_a&#39;</span><span class="p">],</span>
+                <span class="n">b</span><span class="o">=</span><span class="n">pymatgen_dict</span><span class="p">[</span><span class="s1">&#39;_cell_length_b&#39;</span><span class="p">],</span>
+                <span class="n">c</span><span class="o">=</span><span class="n">pymatgen_dict</span><span class="p">[</span><span class="s1">&#39;_cell_length_c&#39;</span><span class="p">],</span>
+                <span class="n">A</span><span class="o">=</span><span class="n">pymatgen_dict</span><span class="p">[</span><span class="s1">&#39;_cell_angle_alpha&#39;</span><span class="p">],</span>
+                <span class="n">B</span><span class="o">=</span><span class="n">pymatgen_dict</span><span class="p">[</span><span class="s1">&#39;_cell_angle_beta&#39;</span><span class="p">],</span>
+                <span class="n">C</span><span class="o">=</span><span class="n">pymatgen_dict</span><span class="p">[</span><span class="s1">&#39;_cell_angle_gamma&#39;</span><span class="p">],</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="s1">&#39;_space_group_symop_operation_xyz&#39;</span> <span class="ow">in</span> <span class="n">pymatgen_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="n">config_d</span><span class="p">[</span><span class="s1">&#39;symop&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pymatgen_dict</span><span class="p">[</span><span class="s1">&#39;_space_group_symop_operation_xyz&#39;</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="s1">&#39;_symmetry_equiv_pos_as_xyz&#39;</span> <span class="ow">in</span> <span class="n">pymatgen_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="n">config_d</span><span class="p">[</span><span class="s1">&#39;symop&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pymatgen_dict</span><span class="p">[</span><span class="s1">&#39;_symmetry_equiv_pos_as_xyz&#39;</span><span class="p">]</span>
+            <span class="n">sites</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">pymatgen_dict</span><span class="p">[</span><span class="s1">&#39;_atom_site_label&#39;</span><span class="p">])):</span>
+                <span class="n">site</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="n">pymatgen_dict</span><span class="p">[</span><span class="s1">&#39;_atom_site_label&#39;</span><span class="p">][</span><span class="n">j</span><span class="p">],</span>
+                    <span class="n">pymatgen_dict</span><span class="p">[</span><span class="s1">&#39;_atom_site_type_symbol&#39;</span><span class="p">][</span><span class="n">j</span><span class="p">],</span>
+                    <span class="n">pymatgen_dict</span><span class="p">[</span><span class="s1">&#39;_atom_site_fract_x&#39;</span><span class="p">][</span><span class="n">j</span><span class="p">],</span>
+                    <span class="n">pymatgen_dict</span><span class="p">[</span><span class="s1">&#39;_atom_site_fract_y&#39;</span><span class="p">][</span><span class="n">j</span><span class="p">],</span>
+                    <span class="n">pymatgen_dict</span><span class="p">[</span><span class="s1">&#39;_atom_site_fract_z&#39;</span><span class="p">][</span><span class="n">j</span><span class="p">],</span>
+                    <span class="s1">&#39;1.0&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;.&#39;</span>
+                <span class="p">]</span>
+                <span class="n">sites</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">site</span><span class="p">)</span>
+            <span class="n">config_d</span><span class="p">[</span><span class="s1">&#39;msites&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sites</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">config_d</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">config_ds</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">dg_labels</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
+                <span class="p">[</span><span class="n">line</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">([</span><span class="n">s</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">pymatgen_dict</span><span class="p">[</span><span class="s1">&#39;_atom_site_disorder_group&#39;</span><span class="p">]]))</span>
+                 <span class="k">if</span> <span class="n">line</span> <span class="o">!=</span> <span class="sa">u</span><span class="s1">&#39;.&#39;</span><span class="p">])</span>
+            <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">dg_labels</span><span class="p">:</span>
+                <span class="n">config_d</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+                    <span class="n">identifier</span><span class="o">=</span><span class="s1">&#39;data_</span><span class="si">{}</span><span class="s1">_config-</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">identifier</span><span class="p">,</span> <span class="n">l</span><span class="p">),</span>
+                    <span class="n">a</span><span class="o">=</span><span class="n">pymatgen_dict</span><span class="p">[</span><span class="s1">&#39;_cell_length_a&#39;</span><span class="p">],</span>
+                    <span class="n">b</span><span class="o">=</span><span class="n">pymatgen_dict</span><span class="p">[</span><span class="s1">&#39;_cell_length_b&#39;</span><span class="p">],</span>
+                    <span class="n">c</span><span class="o">=</span><span class="n">pymatgen_dict</span><span class="p">[</span><span class="s1">&#39;_cell_length_c&#39;</span><span class="p">],</span>
+                    <span class="n">A</span><span class="o">=</span><span class="n">pymatgen_dict</span><span class="p">[</span><span class="s1">&#39;_cell_angle_alpha&#39;</span><span class="p">],</span>
+                    <span class="n">B</span><span class="o">=</span><span class="n">pymatgen_dict</span><span class="p">[</span><span class="s1">&#39;_cell_angle_beta&#39;</span><span class="p">],</span>
+                    <span class="n">C</span><span class="o">=</span><span class="n">pymatgen_dict</span><span class="p">[</span><span class="s1">&#39;_cell_angle_gamma&#39;</span><span class="p">],</span>
+                <span class="p">)</span>
+                <span class="k">if</span> <span class="s1">&#39;_space_group_symop_operation_xyz&#39;</span> <span class="ow">in</span> <span class="n">pymatgen_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                    <span class="n">config_d</span><span class="p">[</span><span class="s1">&#39;symop&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pymatgen_dict</span><span class="p">[</span><span class="s1">&#39;_space_group_symop_operation_xyz&#39;</span><span class="p">]</span>
+                <span class="k">elif</span> <span class="s1">&#39;_symmetry_equiv_pos_as_xyz&#39;</span> <span class="ow">in</span> <span class="n">pymatgen_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                    <span class="n">config_d</span><span class="p">[</span><span class="s1">&#39;symop&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pymatgen_dict</span><span class="p">[</span><span class="s1">&#39;_symmetry_equiv_pos_as_xyz&#39;</span><span class="p">]</span>
+                <span class="n">sites</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">pymatgen_dict</span><span class="p">[</span><span class="s1">&#39;_atom_site_label&#39;</span><span class="p">])):</span>
+                    <span class="k">if</span> <span class="n">pymatgen_dict</span><span class="p">[</span><span class="s1">&#39;_atom_site_disorder_group&#39;</span><span class="p">][</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="n">l</span> \
+                            <span class="ow">or</span> <span class="n">pymatgen_dict</span><span class="p">[</span><span class="s1">&#39;_atom_site_disorder_group&#39;</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">==</span> <span class="sa">u</span><span class="s1">&#39;.&#39;</span><span class="p">:</span>
+                        <span class="n">site</span> <span class="o">=</span> <span class="p">[</span>
+                            <span class="n">pymatgen_dict</span><span class="p">[</span><span class="s1">&#39;_atom_site_label&#39;</span><span class="p">][</span><span class="n">j</span><span class="p">],</span>
+                            <span class="n">pymatgen_dict</span><span class="p">[</span><span class="s1">&#39;_atom_site_type_symbol&#39;</span><span class="p">][</span><span class="n">j</span><span class="p">],</span>
+                            <span class="n">pymatgen_dict</span><span class="p">[</span><span class="s1">&#39;_atom_site_fract_x&#39;</span><span class="p">][</span><span class="n">j</span><span class="p">],</span>
+                            <span class="n">pymatgen_dict</span><span class="p">[</span><span class="s1">&#39;_atom_site_fract_y&#39;</span><span class="p">][</span><span class="n">j</span><span class="p">],</span>
+                            <span class="n">pymatgen_dict</span><span class="p">[</span><span class="s1">&#39;_atom_site_fract_z&#39;</span><span class="p">][</span><span class="n">j</span><span class="p">],</span>
+                            <span class="s1">&#39;1.0&#39;</span><span class="p">,</span>
+                            <span class="n">pymatgen_dict</span><span class="p">[</span><span class="s1">&#39;_atom_site_disorder_group&#39;</span><span class="p">][</span><span class="n">j</span><span class="p">]</span>
+                        <span class="p">]</span>
+                        <span class="n">sites</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">site</span><span class="p">)</span>
+                <span class="n">config_d</span><span class="p">[</span><span class="s1">&#39;msites&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sites</span>
+                <span class="n">config_ds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">config_d</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">config_ds</span></div>
+
+<div class="viewcode-block" id="CIFparser.isdisorder"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.pbc.CIFparser.isdisorder">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">isdisorder</span><span class="p">(</span><span class="n">pymatgen_dict</span><span class="p">):</span>
+        <span class="k">if</span> <span class="s1">&#39;_atom_site_disorder_group&#39;</span> <span class="ow">in</span> <span class="n">pymatgen_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">dg_labels</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
+                <span class="p">[</span><span class="n">line</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">([</span><span class="n">s</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">pymatgen_dict</span><span class="p">[</span><span class="s1">&#39;_atom_site_disorder_group&#39;</span><span class="p">]]))</span> <span class="k">if</span>
+                 <span class="n">line</span> <span class="o">!=</span> <span class="sa">u</span><span class="s1">&#39;.&#39;</span><span class="p">])</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dg_labels</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="kc">False</span></div></div>
+
+
+<div class="viewcode-block" id="PBCparser"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.pbc.PBCparser">[docs]</a><span class="k">class</span> <span class="nc">PBCparser</span><span class="p">:</span>
+    <span class="c1">#</span>
+    <span class="c1"># def __init__(self, pstructure):</span>
+    <span class="c1">#     self.nsites = len(pstructure)</span>
+    <span class="c1">#     self.structure = pstructure</span>
+
+<div class="viewcode-block" id="PBCparser.get_dist_and_trans"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.pbc.PBCparser.get_dist_and_trans">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">get_dist_and_trans</span><span class="p">(</span><span class="n">lattice</span><span class="p">,</span> <span class="n">fc1</span><span class="p">,</span> <span class="n">fc2</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        get the shortest distance and corresponding translation vector between two frac coords</span>
+
+<span class="sd">        :param lattice: pmg lattic obj</span>
+<span class="sd">        :param fc1:</span>
+<span class="sd">        :param fc2:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">v</span><span class="p">,</span> <span class="n">d2</span> <span class="o">=</span> <span class="n">pbc_shortest_vectors</span><span class="p">(</span><span class="n">lattice</span><span class="p">,</span> <span class="n">fc1</span><span class="p">,</span> <span class="n">fc2</span><span class="p">,</span> <span class="n">return_d2</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">fc</span> <span class="o">=</span> <span class="n">lattice</span><span class="o">.</span><span class="n">get_fractional_coords</span><span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="n">fc1</span> <span class="o">-</span> <span class="n">fc2</span>
+        <span class="k">return</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">d2</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]),</span> <span class="n">fc</span></div>
+
+<div class="viewcode-block" id="PBCparser.unwrap"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.pbc.PBCparser.unwrap">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">unwrap</span><span class="p">(</span><span class="n">pstructure</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        unwrap the structure, extract isolated mols</span>
+
+<span class="sd">        :param pstructure: periodic structure obj from pymatgen</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">psites</span> <span class="o">=</span> <span class="n">pstructure</span><span class="o">.</span><span class="n">sites</span>
+        <span class="n">pindices</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">psites</span><span class="p">))</span>
+        <span class="n">visited</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">block_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">unwrap</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">unwrap_block_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">unwrap_pblock_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">visited</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">psites</span><span class="p">):</span>
+            <span class="c1"># initialization</span>
+            <span class="n">unvisited</span> <span class="o">=</span> <span class="p">[</span><span class="n">idx</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">pindices</span> <span class="k">if</span> <span class="n">idx</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">visited</span><span class="p">]</span>
+            <span class="n">ini_idx</span> <span class="o">=</span> <span class="n">unvisited</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">block</span> <span class="o">=</span> <span class="p">[</span><span class="n">ini_idx</span><span class="p">]</span>
+            <span class="n">unwrap</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">psites</span><span class="p">[</span><span class="n">ini_idx</span><span class="p">])</span>
+            <span class="n">unwrap_block</span> <span class="o">=</span> <span class="p">[</span><span class="n">Site</span><span class="p">(</span><span class="n">psites</span><span class="p">[</span><span class="n">ini_idx</span><span class="p">]</span><span class="o">.</span><span class="n">species_string</span><span class="p">,</span> <span class="n">psites</span><span class="p">[</span><span class="n">ini_idx</span><span class="p">]</span><span class="o">.</span><span class="n">coords</span><span class="p">)]</span>
+            <span class="n">unwrap_pblock</span> <span class="o">=</span> <span class="p">[</span><span class="n">psites</span><span class="p">[</span><span class="n">ini_idx</span><span class="p">]]</span>
+            <span class="n">pointer</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">while</span> <span class="n">pointer</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">block</span><span class="p">):</span>
+                <span class="n">outside</span> <span class="o">=</span> <span class="p">[</span><span class="n">idx</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">pindices</span> <span class="k">if</span> <span class="n">idx</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">block</span> <span class="ow">and</span> <span class="n">idx</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">visited</span><span class="p">]</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">outside</span><span class="p">:</span>
+                    <span class="n">distance</span><span class="p">,</span> <span class="n">fctrans</span> <span class="o">=</span> <span class="n">PBCparser</span><span class="o">.</span><span class="n">get_dist_and_trans</span><span class="p">(</span><span class="n">pstructure</span><span class="o">.</span><span class="n">lattice</span><span class="p">,</span>
+                                                                     <span class="n">psites</span><span class="p">[</span><span class="n">block</span><span class="p">[</span><span class="n">pointer</span><span class="p">]]</span><span class="o">.</span><span class="n">_frac_coords</span><span class="p">,</span>
+                                                                     <span class="n">psites</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">_frac_coords</span><span class="p">,</span> <span class="p">)</span>
+
+                    <span class="n">cutoff</span> <span class="o">=</span> <span class="n">Element</span><span class="o">.</span><span class="n">covalent_radii</span><span class="p">[</span><span class="n">psites</span><span class="p">[</span><span class="n">block</span><span class="p">[</span><span class="n">pointer</span><span class="p">]]</span><span class="o">.</span><span class="n">species_string</span><span class="p">]</span> <span class="o">+</span> <span class="n">Element</span><span class="o">.</span><span class="n">covalent_radii</span><span class="p">[</span>
+                        <span class="n">psites</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">species_string</span><span class="p">]</span>
+                    <span class="n">cutoff</span> <span class="o">*=</span> <span class="mf">1.3</span>
+                    <span class="k">if</span> <span class="n">distance</span> <span class="o">&lt;</span> <span class="n">cutoff</span><span class="p">:</span>
+                        <span class="n">block</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+                        <span class="n">psites</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">PeriodicSite</span><span class="p">(</span><span class="n">psites</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">species_string</span><span class="p">,</span> <span class="n">psites</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">_frac_coords</span> <span class="o">+</span> <span class="n">fctrans</span><span class="p">,</span>
+                                                 <span class="n">pstructure</span><span class="o">.</span><span class="n">lattice</span><span class="p">)</span>
+                        <span class="n">unwrap_block</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Site</span><span class="p">(</span><span class="n">psites</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">species_string</span><span class="p">,</span> <span class="n">psites</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">coords</span><span class="p">))</span>
+                        <span class="n">unwrap</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">psites</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+                        <span class="n">unwrap_pblock</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">psites</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+                <span class="n">visited</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">block</span><span class="p">[</span><span class="n">pointer</span><span class="p">])</span>
+                <span class="n">pointer</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">unwrap_block_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">unwrap_block</span><span class="p">)</span>
+            <span class="n">unwrap_pblock_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">unwrap_pblock</span><span class="p">)</span>
+            <span class="n">block_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">block</span><span class="p">)</span>
+        <span class="n">mols</span> <span class="o">=</span> <span class="p">[</span><span class="n">IMolecule</span><span class="o">.</span><span class="n">from_sites</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">unwrap_block_list</span><span class="p">]</span>
+        <span class="n">unwrap</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">unwrap</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">species_string</span><span class="p">)</span>
+        <span class="n">unwrap_str_sorted</span> <span class="o">=</span> <span class="n">IStructure</span><span class="o">.</span><span class="n">from_sites</span><span class="p">(</span><span class="n">unwrap</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">mols</span><span class="p">,</span> <span class="n">unwrap_str_sorted</span><span class="p">,</span> <span class="n">unwrap_pblock_list</span></div>
+
+<div class="viewcode-block" id="PBCparser.squeeze"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.pbc.PBCparser.squeeze">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">squeeze</span><span class="p">(</span><span class="n">pstructure</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        after unwrapping, the mols can be far away from each other, this tries to translate them s.t. they stay together</span>
+
+<span class="sd">        :param pstructure:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">mols</span><span class="p">,</span> <span class="n">unwrap_structure</span><span class="p">,</span> <span class="n">psiteblocks</span> <span class="o">=</span> <span class="n">PBCparser</span><span class="o">.</span><span class="n">unwrap</span><span class="p">(</span><span class="n">pstructure</span><span class="p">)</span>
+
+        <span class="n">omols</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">mm</span> <span class="ow">in</span> <span class="n">mols</span><span class="p">:</span>
+            <span class="n">omol</span> <span class="o">=</span> <span class="n">OMol</span><span class="o">.</span><span class="n">from_pymatgen_mol</span><span class="p">(</span><span class="n">mm</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">omol</span><span class="o">.</span><span class="n">is_solvent</span><span class="p">:</span>
+                <span class="n">omols</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">omol</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">omols</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">refpoint</span> <span class="o">=</span> <span class="n">omols</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">backbone</span><span class="o">.</span><span class="n">geoc</span>
+            <span class="n">refpoint</span> <span class="o">=</span> <span class="n">unwrap_structure</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">get_fractional_coords</span><span class="p">(</span><span class="n">refpoint</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">omols</span><span class="p">)):</span>
+                <span class="n">varmol</span> <span class="o">=</span> <span class="n">omols</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                <span class="n">varpoint</span> <span class="o">=</span> <span class="n">varmol</span><span class="o">.</span><span class="n">backbone</span><span class="o">.</span><span class="n">geoc</span>
+                <span class="n">varpoint</span> <span class="o">=</span> <span class="n">unwrap_structure</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">get_fractional_coords</span><span class="p">(</span><span class="n">varpoint</span><span class="p">)</span>
+                <span class="n">distance</span><span class="p">,</span> <span class="n">fctrans</span> <span class="o">=</span> <span class="n">PBCparser</span><span class="o">.</span><span class="n">get_dist_and_trans</span><span class="p">(</span><span class="n">unwrap_structure</span><span class="o">.</span><span class="n">lattice</span><span class="p">,</span> <span class="n">refpoint</span><span class="p">,</span> <span class="n">varpoint</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">psiteblocks</span><span class="p">[</span><span class="n">i</span><span class="p">])):</span>
+                    <span class="n">psiteblocks</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">_frac_coords</span> <span class="o">+=</span> <span class="n">fctrans</span>
+            <span class="n">psites</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">mols</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">pblock</span> <span class="ow">in</span> <span class="n">psiteblocks</span><span class="p">:</span>
+                <span class="n">block</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">ps</span> <span class="ow">in</span> <span class="n">pblock</span><span class="p">:</span>
+                    <span class="n">psites</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ps</span><span class="p">)</span>
+                    <span class="n">block</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Site</span><span class="p">(</span><span class="n">ps</span><span class="o">.</span><span class="n">species_string</span><span class="p">,</span> <span class="n">ps</span><span class="o">.</span><span class="n">coords</span><span class="p">))</span>
+                <span class="n">mol</span> <span class="o">=</span> <span class="n">Molecule</span><span class="o">.</span><span class="n">from_sites</span><span class="p">(</span><span class="n">block</span><span class="p">)</span>
+                <span class="n">mols</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>
+            <span class="n">unwrap_structure</span> <span class="o">=</span> <span class="n">Structure</span><span class="o">.</span><span class="n">from_sites</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">psites</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">species_string</span><span class="p">))</span>
+
+            <span class="n">omols</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">mols</span><span class="p">:</span>
+                <span class="n">omol</span> <span class="o">=</span> <span class="n">OMol</span><span class="o">.</span><span class="n">from_pymatgen_mol</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">omol</span><span class="o">.</span><span class="n">is_solvent</span><span class="p">:</span>
+                    <span class="n">omols</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">omol</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">mols</span><span class="p">,</span> <span class="n">omols</span><span class="p">,</span> <span class="n">unwrap_structure</span>
+
+        <span class="k">return</span> <span class="n">mols</span><span class="p">,</span> <span class="n">omols</span><span class="p">,</span> <span class="n">unwrap_structure</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Ai, Qianxiang
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

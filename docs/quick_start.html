@@ -35,7 +35,7 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="routines package" href="routines.html" />
+    <link rel="next" title="ocelot package" href="ocelot.html" />
     <link rel="prev" title="Welcome to ocelot’s documentation!" href="index.html" /> 
 </head>
 
@@ -88,9 +88,7 @@
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="#quick-start">Quick Start</a></li>
-<li class="toctree-l1"><a class="reference internal" href="routines.html">routines package</a></li>
-<li class="toctree-l1"><a class="reference internal" href="schema.html">schema package</a></li>
-<li class="toctree-l1"><a class="reference internal" href="task.html">task package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ocelot.html">ocelot package</a></li>
 </ul>
 
             
@@ -163,18 +161,14 @@
 </pre></div>
 </div>
 </li>
-<li><p>create a virtual env and install</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda create --name ocelot
-conda activate ocelot
-conda install python
-conda install --file spec-file.txt
+<li><p>make sure <code class="docutils literal notranslate"><span class="pre">conda</span></code> is working, create a new venv with</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda env create -f env.yml
 </pre></div>
 </div>
-<p>in case you wonder, <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">env</span> <span class="pre">create</span> <span class="pre">-f</span> <span class="pre">env.yml</span></code> may not work as part of <code class="docutils literal notranslate"><span class="pre">pymatgen</span></code>
-uses pre-link scripts, see <a class="reference external" href="https://github.com/materialsproject/pymatgen/issues/555">this issue</a>.</p>
 </li>
-<li><p>run <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">setup.py</span> <span class="pre">install</span></code></p></li>
+<li><p>this yields a folder called <code class="docutils literal notranslate"><span class="pre">ocelot_api</span></code>, run <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">setup.py</span> <span class="pre">install</span></code> there</p></li>
 </ol>
+<p>let’s say there’s a cif file here</p>
 </div>
 <div class="section" id="quick-start">
 <h1>Quick Start<a class="headerlink" href="#quick-start" title="Permalink to this headline">¶</a></h1>
@@ -249,7 +243,7 @@ it can be represented as something like this:</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="routines.html" class="btn btn-neutral float-right" title="routines package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="ocelot.html" class="btn btn-neutral float-right" title="ocelot package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="index.html" class="btn btn-neutral float-left" title="Welcome to ocelot’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>

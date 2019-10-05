@@ -1,0 +1,390 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ocelot.schema.backbone &mdash; ocelot 0.01 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> ocelot
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.01
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#quick-start">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ocelot.html">ocelot package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">ocelot</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>ocelot.schema.backbone</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ocelot.schema.backbone</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="k">import</span> <span class="n">deepcopy</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">from</span> <span class="nn">ocelot.routines.geometry</span> <span class="k">import</span> <span class="n">angle_btw</span><span class="p">,</span> <span class="n">Fitter</span><span class="p">,</span> <span class="n">unify</span><span class="p">,</span> <span class="n">get_proj_point2plane</span>
+<span class="kn">from</span> <span class="nn">ocelot.schema.msitelist</span> <span class="k">import</span> <span class="n">MSitelist</span>
+<span class="kn">from</span> <span class="nn">ocelot.schema.msite</span> <span class="k">import</span> <span class="n">MSite</span>
+<span class="kn">from</span> <span class="nn">ocelot.schema.ring</span> <span class="k">import</span> <span class="n">Ring</span>
+
+<span class="n">_coplane_cutoff</span> <span class="o">=</span> <span class="mf">25.0</span>  <span class="c1"># in degrees</span>
+
+
+<div class="viewcode-block" id="Backbone"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.backbone.Backbone">[docs]</a><span class="k">class</span> <span class="nc">Backbone</span><span class="p">(</span><span class="n">MSitelist</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Backbone.__init__"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.backbone.Backbone.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msites</span><span class="p">,</span> <span class="n">lfit_linearity</span><span class="p">,</span> <span class="n">pfit_vp</span><span class="p">,</span> <span class="n">pfit_vq</span><span class="p">,</span> <span class="n">pfit_vo</span><span class="p">,</span> <span class="n">pfit_error</span><span class="p">,</span> <span class="n">backbone_rings</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        backbone within a omol object, again build it from omol</span>
+
+<span class="sd">        :param msites: a list of msites</span>
+<span class="sd">        :param lfit_linearity: error from linear fit</span>
+<span class="sd">        :param pfit_vp: long axis vector from plane_fit</span>
+<span class="sd">        :param pfit_vq: short axis vector</span>
+<span class="sd">        :param pfit_vo: normal vector</span>
+<span class="sd">        :param pfit_error: plane_fit error</span>
+<span class="sd">        :param backbone_rings: a list of individual rings</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">ms</span> <span class="ow">in</span> <span class="n">msites</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">ms</span><span class="o">.</span><span class="n">siteid</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;you are init a backbone with sites not in an omol obj&#39;</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">msites</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">siteids</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">siteid</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">msites</span><span class="p">]</span>  <span class="c1"># TODO this could be in the parent obj</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">backbone_rings</span> <span class="o">=</span> <span class="n">backbone_rings</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">vo_fit</span> <span class="o">=</span> <span class="n">pfit_vo</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vp_fit</span> <span class="o">=</span> <span class="n">pfit_vp</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vq_fit</span> <span class="o">=</span> <span class="n">pfit_vq</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lfit_linearity</span> <span class="o">=</span> <span class="n">lfit_linearity</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pfit_error</span> <span class="o">=</span> <span class="n">pfit_error</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">backbone_rings</span> <span class="o">=</span> <span class="n">backbone_rings</span></div>
+
+<div class="viewcode-block" id="Backbone.from_dict"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.backbone.Backbone.from_dict">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        keys are</span>
+
+<span class="sd">        msites, linearity, vp, vq, vo, plane_fit_error, backbone_rings</span>
+<span class="sd">        :param dict d:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">msites</span> <span class="o">=</span> <span class="p">[</span><span class="n">MSite</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">sdict</span><span class="p">)</span> <span class="k">for</span> <span class="n">sdict</span> <span class="ow">in</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;msites&#39;</span><span class="p">]]</span>
+        <span class="n">lfit_linearity</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;linearity&#39;</span><span class="p">]</span>
+        <span class="n">pfit_vp</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;vp&#39;</span><span class="p">]</span>
+        <span class="n">pfit_vq</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;vq&#39;</span><span class="p">]</span>
+        <span class="n">pfit_vo</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;vo&#39;</span><span class="p">]</span>
+        <span class="n">pfit_error</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;plane_fit_error&#39;</span><span class="p">]</span>
+        <span class="n">backbone_rings</span> <span class="o">=</span> <span class="p">[</span><span class="n">Ring</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">rdict</span><span class="p">)</span> <span class="k">for</span> <span class="n">rdict</span> <span class="ow">in</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;backbone_rings&#39;</span><span class="p">]]</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">msites</span><span class="p">,</span> <span class="n">lfit_linearity</span><span class="p">,</span> <span class="n">pfit_vp</span><span class="p">,</span> <span class="n">pfit_vq</span><span class="p">,</span> <span class="n">pfit_vo</span><span class="p">,</span> <span class="n">pfit_error</span><span class="p">,</span> <span class="n">backbone_rings</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Backbone.as_dict"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.backbone.Backbone.as_dict">[docs]</a>    <span class="k">def</span> <span class="nf">as_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        keys are</span>
+
+<span class="sd">        msites, linearity, vp, vq, vo, plane_fit_error, backbone_rings, n_backbone_rings, p_length, q_length, can, volume</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;@module&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__module__</span><span class="p">,</span>
+            <span class="s2">&quot;@class&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span>
+            <span class="s2">&quot;p_length&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">lp</span><span class="p">,</span>
+            <span class="s2">&quot;q_length&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">lq</span><span class="p">,</span>
+            <span class="s2">&quot;backbone_rings&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">r</span><span class="o">.</span><span class="n">as_dict</span><span class="p">()</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">backbone_rings</span><span class="p">],</span>
+            <span class="s2">&quot;n_backbone_rings&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">backbone_rings</span><span class="p">),</span>
+            <span class="s2">&quot;linearity&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">lfit_linearity</span><span class="p">,</span>
+            <span class="s2">&quot;plane_fit_error&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">pfit_error</span><span class="p">,</span>
+            <span class="s2">&quot;can&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">canonical_smiles</span><span class="p">,</span>
+            <span class="s2">&quot;volume&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">volume</span><span class="p">,</span>
+            <span class="s2">&quot;msites&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">as_dict</span><span class="p">()</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">msites</span><span class="p">],</span>
+            <span class="s2">&quot;vp&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">vp_fit</span><span class="p">,</span>
+            <span class="s2">&quot;vq&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">vq_fit</span><span class="p">,</span>
+            <span class="s2">&quot;vo&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">vo_fit</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="k">return</span> <span class="n">d</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">lq</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        maxdiff( (s.coord - ref) proj at vq )</span>
+
+<span class="sd">        :return: long axis length</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ref</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">backbone_rings</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">geoc</span>
+        <span class="n">projs</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">coords</span> <span class="o">-</span> <span class="n">ref</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">vq_fit</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">msites</span><span class="p">]</span>
+        <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="n">projs</span><span class="p">)</span> <span class="o">-</span> <span class="nb">min</span><span class="p">(</span><span class="n">projs</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">lp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        maxdiff( (s.coord - ref) proj at vp )</span>
+
+<span class="sd">        :return: short axis length</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ref</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">backbone_rings</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">geoc</span>
+        <span class="n">projs</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">coords</span> <span class="o">-</span> <span class="n">ref</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">vp_fit</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">msites</span><span class="p">]</span>
+        <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="n">projs</span><span class="p">)</span> <span class="o">-</span> <span class="nb">min</span><span class="p">(</span><span class="n">projs</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Backbone.from_omol"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.backbone.Backbone.from_omol">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_omol</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">omol</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        backbone is built from the largest fused ring system with connected rings sharing the same plane but</span>
+<span class="sd">        without appending non-ring insaturated sites</span>
+
+<span class="sd">        e.g.</span>
+
+<span class="sd">        TIPS-fusedring1-fusedring2=o will have a backbone as fusedring1-fusedring2</span>
+<span class="sd">        if the angle &lt; _coplane_cutoff (25.0 degrees default)</span>
+
+<span class="sd">        otherwise it gives fusedring2 since it contains more INDIVIDUAL rings than fusedring1</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">fused_rings_list</span> <span class="o">=</span> <span class="n">omol</span><span class="o">.</span><span class="n">fused_rings_list</span>  <span class="c1"># [[r1, r2, r3], [r5, r6], [r4]...]</span>
+        <span class="n">largest_fused_ring</span> <span class="o">=</span> <span class="n">fused_rings_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">other_fused_rings</span> <span class="o">=</span> <span class="n">fused_rings_list</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+
+        <span class="n">s_in_largest_fused_ring</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">largest_fused_ring</span><span class="p">:</span>
+            <span class="n">s_in_largest_fused_ring</span> <span class="o">+=</span> <span class="n">r</span><span class="o">.</span><span class="n">msites</span>
+        <span class="c1"># MSitelist(s_in_largest_fused_ring).to_xyz(&#39;d.xyz&#39;)</span>
+        <span class="n">vo</span><span class="p">,</span> <span class="n">ptsmean</span><span class="p">,</span> <span class="n">pfit_error</span> <span class="o">=</span> <span class="n">Fitter</span><span class="o">.</span><span class="n">plane_fit</span><span class="p">([</span><span class="n">s</span><span class="o">.</span><span class="n">coords</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">s_in_largest_fused_ring</span><span class="p">])</span>
+
+        <span class="n">backbone_rings</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">largest_fused_ring</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">fr</span> <span class="ow">in</span> <span class="n">other_fused_rings</span><span class="p">:</span>
+            <span class="n">s_in_fr</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">fr_nbs</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">fr</span><span class="p">:</span>
+                <span class="n">s_in_fr</span> <span class="o">+=</span> <span class="n">r</span><span class="o">.</span><span class="n">msites</span>
+                <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">r</span><span class="p">:</span>
+                    <span class="n">fr_nbs</span> <span class="o">+=</span> <span class="n">s</span><span class="o">.</span><span class="n">nbs_idx</span>
+            <span class="n">backbone_rings_site_idx</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">backbone_rings</span><span class="p">:</span>
+                <span class="n">backbone_rings_site_idx</span> <span class="o">+=</span> <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">siteid</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">r</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">fr_nbs</span><span class="p">)</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">backbone_rings_site_idx</span><span class="p">)))</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">fr_vo</span><span class="p">,</span> <span class="n">fr_ptsmean</span><span class="p">,</span> <span class="n">fr_pfit_error</span> <span class="o">=</span> <span class="n">Fitter</span><span class="o">.</span><span class="n">plane_fit</span><span class="p">([</span><span class="n">s</span><span class="o">.</span><span class="n">coords</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">s_in_fr</span><span class="p">])</span>
+                <span class="k">if</span> <span class="n">angle_btw</span><span class="p">(</span><span class="n">fr_vo</span><span class="p">,</span> <span class="n">vo</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="s2">&quot;degree&quot;</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">_coplane_cutoff</span> <span class="ow">or</span> \
+                        <span class="n">angle_btw</span><span class="p">(</span><span class="o">-</span><span class="n">fr_vo</span><span class="p">,</span> <span class="n">vo</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="s2">&quot;degree&quot;</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">_coplane_cutoff</span><span class="p">:</span>
+                    <span class="n">backbone_rings</span> <span class="o">+=</span> <span class="n">fr</span>
+
+        <span class="n">lfit_vp</span><span class="p">,</span> <span class="n">lfit_ptsmean</span><span class="p">,</span> <span class="n">lfit_linearity</span> <span class="o">=</span> <span class="n">Fitter</span><span class="o">.</span><span class="n">linear_fit</span><span class="p">([</span><span class="n">r</span><span class="o">.</span><span class="n">geoc</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">backbone_rings</span><span class="p">])</span>
+        <span class="n">lfit_vp</span> <span class="o">=</span> <span class="n">unify</span><span class="p">(</span><span class="n">lfit_vp</span><span class="p">)</span>
+
+        <span class="n">s_in_backbone</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">backbone_rings</span><span class="p">:</span>
+            <span class="n">s_in_backbone</span> <span class="o">+=</span> <span class="n">r</span><span class="o">.</span><span class="n">msites</span>
+
+        <span class="c1"># this is the plane fit, vp taken from the projection of lfit_vp</span>
+        <span class="c1"># the fitted plane is now used as a cart coord sys with origin at ptsmean</span>
+        <span class="n">pfit_vo</span><span class="p">,</span> <span class="n">pfit_ptsmean</span><span class="p">,</span> <span class="n">pfit_error</span> <span class="o">=</span> <span class="n">Fitter</span><span class="o">.</span><span class="n">plane_fit</span><span class="p">([</span><span class="n">s</span><span class="o">.</span><span class="n">coords</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">s_in_backbone</span><span class="p">])</span>
+        <span class="n">pfit_vp</span> <span class="o">=</span> <span class="n">unify</span><span class="p">(</span><span class="n">get_proj_point2plane</span><span class="p">(</span><span class="n">pfit_ptsmean</span> <span class="o">+</span> <span class="n">lfit_vp</span><span class="p">,</span> <span class="n">pfit_vo</span><span class="p">,</span> <span class="n">pfit_ptsmean</span><span class="p">)</span> <span class="o">-</span> <span class="n">pfit_ptsmean</span><span class="p">)</span>
+        <span class="n">pfit_vq</span> <span class="o">=</span> <span class="n">unify</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">pfit_vo</span><span class="p">,</span> <span class="n">pfit_vp</span><span class="p">))</span>
+        <span class="c1"># pfit_plane_params = get_plane_param(pfit_vo, pfit_ptsmean)</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">s_in_backbone</span><span class="p">,</span> <span class="n">lfit_linearity</span><span class="p">,</span> <span class="n">pfit_vp</span><span class="p">,</span> <span class="n">pfit_vq</span><span class="p">,</span> <span class="n">pfit_vo</span><span class="p">,</span> <span class="n">pfit_error</span><span class="p">,</span> <span class="n">backbone_rings</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Backbone.terminate"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.backbone.Backbone.terminate">[docs]</a>    <span class="k">def</span> <span class="nf">terminate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        basically add-H</span>
+
+<span class="sd">        only terminate those have nbs different from what they had in omol</span>
+<span class="sd">        (+1 or +2, otherwise do nothing--deepcopy only),</span>
+
+<span class="sd">        this means your cif should be legit</span>
+
+<span class="sd">        the H added wiill have siteid as -10</span>
+
+<span class="sd">        :return: a list of msites</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">terminated_sites</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">msites</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">siteid</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">siteids</span><span class="p">:</span>  <span class="c1"># siteid is the id to be terminated</span>
+            <span class="n">origincoords</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_site_byid</span><span class="p">(</span><span class="n">siteid</span><span class="p">)</span><span class="o">.</span><span class="n">coords</span>
+            <span class="n">omol_nbs_ids</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_site_byid</span><span class="p">(</span><span class="n">siteid</span><span class="p">)</span><span class="o">.</span><span class="n">nbs_idx</span>
+            <span class="n">backbon_nbs_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">sid</span> <span class="k">for</span> <span class="n">sid</span> <span class="ow">in</span> <span class="n">omol_nbs_ids</span> <span class="k">if</span> <span class="n">sid</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">siteids</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">omol_nbs_ids</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">backbon_nbs_ids</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">vsh</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">sid</span> <span class="ow">in</span> <span class="n">backbon_nbs_ids</span><span class="p">:</span>
+                    <span class="n">nbcoords</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_site_byid</span><span class="p">(</span><span class="n">sid</span><span class="p">)</span><span class="o">.</span><span class="n">coords</span>
+                    <span class="n">vsh</span> <span class="o">+=</span> <span class="n">nbcoords</span> <span class="o">-</span> <span class="n">origincoords</span>
+                <span class="n">coords</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.1</span> <span class="o">*</span> <span class="n">unify</span><span class="p">(</span><span class="n">vsh</span><span class="p">)</span> <span class="o">+</span> <span class="n">origincoords</span>
+                <span class="n">hsite</span> <span class="o">=</span> <span class="n">MSite</span><span class="p">(</span><span class="s1">&#39;H&#39;</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">siteid</span><span class="o">=-</span><span class="mi">10</span><span class="p">)</span>
+                <span class="n">terminated_sites</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">hsite</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">omol_nbs_ids</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">backbon_nbs_ids</span><span class="p">)</span> <span class="o">+</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="c1"># TODO right now we add hydrogens vertical to the plane, it should be sp3 like</span>
+                <span class="n">nb1_id</span><span class="p">,</span> <span class="n">nb2_id</span> <span class="o">=</span> <span class="n">backbon_nbs_ids</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
+                <span class="n">nb1_coords</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_site_byid</span><span class="p">(</span><span class="n">nb1_id</span><span class="p">)</span><span class="o">.</span><span class="n">coords</span>
+                <span class="n">nb2_coords</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_site_byid</span><span class="p">(</span><span class="n">nb2_id</span><span class="p">)</span><span class="o">.</span><span class="n">coords</span>
+                <span class="n">vsh</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">nb1_coords</span> <span class="o">-</span> <span class="n">origincoords</span><span class="p">,</span> <span class="n">nb2_coords</span> <span class="o">-</span> <span class="n">origincoords</span><span class="p">)</span>
+                <span class="n">coords_1</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.1</span> <span class="o">*</span> <span class="n">unify</span><span class="p">(</span><span class="n">vsh</span><span class="p">)</span> <span class="o">+</span> <span class="n">origincoords</span>
+                <span class="n">coords_2</span> <span class="o">=</span> <span class="mf">1.1</span> <span class="o">*</span> <span class="n">unify</span><span class="p">(</span><span class="n">vsh</span><span class="p">)</span> <span class="o">+</span> <span class="n">origincoords</span>
+                <span class="n">terminated_sites</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">MSite</span><span class="p">(</span><span class="s1">&#39;H&#39;</span><span class="p">,</span> <span class="n">coords_1</span><span class="p">,</span> <span class="n">siteid</span><span class="o">=-</span><span class="mi">10</span><span class="p">))</span>
+                <span class="n">terminated_sites</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">MSite</span><span class="p">(</span><span class="s1">&#39;H&#39;</span><span class="p">,</span> <span class="n">coords_2</span><span class="p">,</span> <span class="n">siteid</span><span class="o">=-</span><span class="mi">10</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">terminated_sites</span>  <span class="c1"># TODO maybe it&#39;s better to return a backbone obj</span></div></div>
+
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Ai, Qianxiang
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

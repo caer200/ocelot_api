@@ -1,5 +1,5 @@
-from schema.Sitelist import Sitelist
-from routines.Geometry import Fitter, angle_btw, unify, coord_transform
+from ocelot.schema import Sitelist
+from ocelot.routines import Fitter, angle_btw, unify, coord_transform
 from copy import deepcopy
 import numpy as np
 

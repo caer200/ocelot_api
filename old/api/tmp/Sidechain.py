@@ -1,9 +1,7 @@
 import sys
-import numpy as np
 
-from collections import OrderedDict
-from routines.Geometry import angle_btw
-from schema.Sitelist import Sitelist
+from ocelot.routines import angle_btw
+from ocelot.schema import Sitelist
 
 
 class Sidechain(Sitelist):

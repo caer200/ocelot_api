@@ -2,9 +2,9 @@ import sys
 
 import numpy as np
 
-from routines.Geometry import angle_btw, Fitter
-from schema.Bond import Bond
-from schema.Sitelist import Sitelist
+from ocelot.routines import angle_btw, Fitter
+from ocelot.schema import Bond
+from ocelot.schema import Sitelist
 
 
 class Ring(Sitelist):
