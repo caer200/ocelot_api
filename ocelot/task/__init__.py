@@ -13,8 +13,7 @@
 - homa: HOMA descriptor for aroma
 - fitbox: get plausible conformation for a pre-defined box (GIXD)
 - ipae: calculate IP and AE, both intrinsic and apparent
-- escal: excited state calculations
+- cales: excited state calculations
 - defgen: generate defects
 - inspector: sanity check for raw data and inputs generation for other tasks
-
 """

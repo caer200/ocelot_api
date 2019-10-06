@@ -32,7 +32,7 @@ class Bond(MSitelist):
             return None
         if self.a.element.valence == 1 or self.b.element.valence == 1:
             return 1
-        return min([s.insaturation for s in self.msites])
+        return min([s.insaturation for s in self.msites if s.insaturation is not None])
 
     @property
     def center(self):

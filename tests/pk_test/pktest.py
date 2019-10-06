@@ -1,7 +1,5 @@
-import sys
-sys.path.append('../../')
-from ocelot.schema import Config
-from ocelot.routines import CIFparser
+from ocelot.schema.config import Config
+from ocelot.routines.pbc import CIFparser
 import glob
 from ocelot.task.pkid import PackingIdentifier
 

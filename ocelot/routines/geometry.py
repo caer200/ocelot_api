@@ -1,10 +1,10 @@
 import math
 import sys
 import warnings
-# import sympy
-# import sympy.geometry
-
 import numpy as np
+from shapely.ops import cascaded_union, polygonize
+from scipy.spatial import Delaunay
+import shapely.geometry as geometry
 
 
 def norm(v):
@@ -120,6 +120,7 @@ def abcabg2pbc(abcabg):
                            math.sin(math.radians(beta)) * cosdelta, math.sin(math.radians(beta)) * sindelta])
     return pbc
 
+
 # def get_sympypt_coords(pt, t='pi/2'):
 #     """
 #     somehow the point you get from plane.arbitrary_point can not be directly evaluated
@@ -200,6 +201,7 @@ def get_plane_param(normal, pt):
     d = (-1) * (a * pt[0] + b * pt[1] + c * pt[2])
     return np.array([a, b, c, d])
 
+
 def arbitrary_noraml(v):
     if v[1] == 0.0 and v[2] == 0:
         if v[0] == 0.0:
@@ -236,9 +238,6 @@ def alpha_shape(points, alpha=0.7):
     :param points: Iterable container of points.
     :param alpha: alpha value to influence the gooeyness of the border. Smaller numbers don't fall inward as much as larger numbers. Too large, and you lose everything!
     """
-    from shapely.ops import cascaded_union, polygonize
-    from scipy.spatial import Delaunay
-    import shapely.geometry as geometry
     if len(points) < 4:
         # When you have a triangle, there is no sense
         # in computing an alpha shape.
@@ -248,20 +247,21 @@ def alpha_shape(points, alpha=0.7):
     coords = np.array(points)
     tri = Delaunay(coords)
     triangles = coords[tri.simplices]
-    a = ((triangles[:,0,0] - triangles[:,1,0]) ** 2 + (triangles[:,0,1] - triangles[:,1,1]) ** 2) ** 0.5
-    b = ((triangles[:,1,0] - triangles[:,2,0]) ** 2 + (triangles[:,1,1] - triangles[:,2,1]) ** 2) ** 0.5
-    c = ((triangles[:,2,0] - triangles[:,0,0]) ** 2 + (triangles[:,2,1] - triangles[:,0,1]) ** 2) ** 0.5
-    s = ( a + b + c ) / 2.0
-    areas = (s*(s-a)*(s-b)*(s-c)) ** 0.5
+    a = ((triangles[:, 0, 0] - triangles[:, 1, 0]) ** 2 + (triangles[:, 0, 1] - triangles[:, 1, 1]) ** 2) ** 0.5
+    b = ((triangles[:, 1, 0] - triangles[:, 2, 0]) ** 2 + (triangles[:, 1, 1] - triangles[:, 2, 1]) ** 2) ** 0.5
+    c = ((triangles[:, 2, 0] - triangles[:, 0, 0]) ** 2 + (triangles[:, 2, 1] - triangles[:, 0, 1]) ** 2) ** 0.5
+    s = (a + b + c) / 2.0
+    areas = (s * (s - a) * (s - b) * (s - c)) ** 0.5
     circums = a * b * c / (4.0 * areas)
     filtered = triangles[circums < (1.0 / alpha)]
-    edge1 = filtered[:,(0,1)]
-    edge2 = filtered[:,(1,2)]
-    edge3 = filtered[:,(2,0)]
-    edge_points = np.unique(np.concatenate((edge1,edge2,edge3)), axis = 0).tolist()
+    edge1 = filtered[:, (0, 1)]
+    edge2 = filtered[:, (1, 2)]
+    edge3 = filtered[:, (2, 0)]
+    edge_points = np.unique(np.concatenate((edge1, edge2, edge3)), axis=0).tolist()
     m = geometry.MultiLineString(edge_points)
     triangles = list(polygonize(m))
     return cascaded_union(triangles), edge_points
+
 
 class Fitter:
     """

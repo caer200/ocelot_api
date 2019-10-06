@@ -2,6 +2,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from scipy.spatial import ConvexHull
+"""
+get convexhull of a list of 3d points
+"""
 
 
 # 8 points defining the cube corners

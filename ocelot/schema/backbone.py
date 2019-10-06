@@ -29,10 +29,10 @@ class Backbone(MSitelist):
         super().__init__(msites)
         self.siteids = [s.siteid for s in self.msites]  # TODO this could be in the parent obj
         self.backbone_rings = backbone_rings
-
         self.vo_fit = pfit_vo
         self.vp_fit = pfit_vp
         self.vq_fit = pfit_vq
+        self.pqo = np.array([self.vp_fit, self.vq_fit, self.vo_fit])
         self.lfit_linearity = lfit_linearity
         self.pfit_error = pfit_error
         self.backbone_rings = backbone_rings

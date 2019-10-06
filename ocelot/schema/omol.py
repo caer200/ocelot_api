@@ -100,6 +100,11 @@ class OMol(MSitelist):
             d['largest_fused_ring'] = [r.as_dict() for r in self.largest_fused_ring]
         return d
 
+    @classmethod
+    def from_dict(cls, d):
+        msites = [MSite.from_dict(msd) for msd in  d['msites']]
+        return cls(msites, keepsiteid=True)
+
     # def get_shortest_path(s1, s2, path=None):
     # backtracking as in
     # https://www.python.org/doc/essays/graphs/

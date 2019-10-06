@@ -1,6 +1,4 @@
-import sys
-sys.path.append('../../')
-from ocelot.schema import OMol
+from ocelot.schema.omol import OMol
 from pymatgen.core.structure import Molecule
 from ocelot.task.nics import NICSjob
 """

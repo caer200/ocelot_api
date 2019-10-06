@@ -65,6 +65,7 @@ class Sidechain(MSitelist):
             "volume": self.volume,
             "msites": [s.as_dict() for s in self.msites],
             "max_rank": self.maxrank,
+            "shape_descriptor": self.shape_descriptors,
             "branch_rank": self.branch_msite_rank,
             "is_hydrogen": self.ishydrogen,
             "has_ring": self.hasring,
@@ -73,6 +74,10 @@ class Sidechain(MSitelist):
             "bone_joint": self.bone_joint.as_dict(),
             "rankmap": [None, None] + [[s.as_dict() for s in sitelist] for sitelist in self.rankmap[2:]]
         }
+        if self.umbrella is None:
+            d['umbrella'] = None
+        else:
+            d['umbrella'] = self.umbrella.as_dict()
         return d
 
     @classmethod

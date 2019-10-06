@@ -333,11 +333,29 @@ class MSitelist:
         d = {
             "msites": [s.as_dict() for s in self.msites],
             "can": self.canonical_smiles,
+            "shape_descriptor": self.shape_descriptors,
             "volume": self.volume,
             "@module": self.__class__.__module__,
             "@class": self.__class__.__name__
         }
         return d
+
+    @classmethod
+    def from_coordmat(cls, mat, names, ids=None):
+        """
+        :param mat: nx3 array
+        :param names: a list of string as element_name
+        :param ids:
+        :return:
+        """
+        if ids is None:
+            ids = np.ones(len(names))
+            ids[:] = -1
+        ss = []
+        for i in range(len(names)):
+            ss.append(MSite(names[i], mat[i], ids[i]))
+        return cls(ss)
+
 
     @classmethod
     def from_dict(cls, d):

@@ -6,7 +6,7 @@ def ra_to_rb(ra_list):
     """
     convert reciprocal \AA to reciprocal Born
 
-    :param ra_list:
+    :param ra_list: a list of floats in 1/\AA
     :return:
     """
     rb_list = []
@@ -34,6 +34,7 @@ def fd_reci_2ndder(y, x, x0_index, step=1, accuracy='high'):
     """
     https://en.wikipedia.org/wiki/Finite_difference_coefficient
     x should be uniformly sampled over a seg
+
     :param y:
     :param x: length should be = (order+2)
     :param x0_index: index of x0 at which derivative is calculated

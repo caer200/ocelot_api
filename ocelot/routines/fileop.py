@@ -8,6 +8,7 @@ import pickle
 def write_obj(obj, fname):
     """
     write an object into binary with pickle
+
     :param obj:
     :param fname:
     :return:
@@ -18,7 +19,8 @@ def write_obj(obj, fname):
 
 def read_obj(fname):
     """
-    read an object from pickle binary
+    read an object from pickle
+
     :param fname:
     :return:
     """
@@ -30,6 +32,7 @@ def read_obj(fname):
 def check_path(pathlist):
     """
     check if the paths in the pathlist are all valid
+
     :param pathlist:
     :return:
     """
@@ -43,6 +46,7 @@ def check_path(pathlist):
 def movefile(what, where):
     """
     shutil operation to move
+
     :param what:
     :param where:
     :return:
@@ -57,6 +61,7 @@ def movefile(what, where):
 def copyfile(what, where):
     """
     shutil operation to copy
+
     :param what:
     :param where:
     :return:
@@ -71,6 +76,7 @@ def copyfile(what, where):
 def createdir(directory):
     """
     mkdir
+
     :param directory:
     :return:
     """
@@ -81,9 +87,10 @@ def createdir(directory):
 def lsexternsion(path, extension='cif'):
     """
     get a list of file names with certain extension in the path
+
     :param path:
     :param extension:
-    :return:
+    :return: [path/filename1.extension, ...]
     """
     fns = glob.glob(path + '/*.' + extension)
     return fns
@@ -92,6 +99,7 @@ def lsexternsion(path, extension='cif'):
 def nonblank_lines(f):
     """
     get nonblank lines in a file
+
     :param f: string, file name
     :return:
     """
@@ -104,6 +112,7 @@ def nonblank_lines(f):
 def check_outcar(filename='OUTCAR'):
     """
     check if OUTCAR normally term
+
     :param filename:
     :return:
     """

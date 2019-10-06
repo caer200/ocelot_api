@@ -1,14 +1,50 @@
 from rdkit import Chem
-from rdkit.Chem import rdmolops
-from rdkit.Chem import AllChem
-import xyz2mol as x2m
+import ocelot.routines.xyz2mol as x2m
+# from rdkit.Chem import rdmolops
+# from rdkit.Chem import AllChem
+"""
+Converts an xyz file to an RDKit mol object
+
+The code is  based on this paper Yeonjoon Kim and Woo Youn Kim "Universal Structure Conversion Method for Organic Molecules: From Atomic Connectivity to Three-Dimensional Geometry" Bull. Korean Chem. Soc. 2015, Vol. 36, 1769-1777 DOI: [10.1002/bkcs.10334](http://dx.doi.org/10.1002/bkcs.10334)
+
+If the molecule is charged then the charge (q) must be supplied in the second line of the xyz file: charge=q= 
+
+usage: type "python xyz2mol.py xxx.xyz"
+
+Dependencies: [networkx](https://networkx.github.io/)
+
+You can remove this dependency by setting quick=False and uncommenting the import statement at the top of xyz2mol.py
+
+
+MIT License
+
+Copyright (c) 2018 Jensen Group
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+"""
 
 
 if __name__ == "__main__":
 
     filename = "ethane.xyz"
-    filename = "acetate.xyz"
-    filename = "chiral_stereo_test.xyz"
+    # filename = "acetate.xyz"
+    # filename = "chiral_stereo_test.xyz"
 
     charged_fragments = True
     quick = True

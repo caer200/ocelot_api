@@ -1,5 +1,4 @@
 import matplotlib.pyplot as plt
-import numpy as np
 
 plt.switch_backend('agg')
 plt.rc('font', family='Times New Roman')
@@ -66,7 +65,6 @@ for i in data:
         empirical_list.append(i[3])
 print(empirical_list)
 
-
 possible_packings = set([d[1] for d in data])
 possible_packings = list(possible_packings)
 
@@ -101,4 +99,4 @@ plt.xlabel('L/D')
 plt.legend()
 plt.margins(0.05)
 plt.tight_layout()
-plt.savefig("hist.png", dpi=600)
+plt.savefig("hist.eps", dpi=600)
