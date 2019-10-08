@@ -57,6 +57,12 @@ def movefile(what, where):
         os.chmod(where, 777)
         shutil.move(what, where)
 
+def removefile(what):
+    try:
+        os.remove(what)
+    except OSError:
+        pass
+
 
 def copyfile(what, where):
     """

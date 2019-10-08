@@ -1,0 +1,93 @@
+ *******************************************************************************
+ ** Site#: 29200        For non-commercial use only    Version 19.090L 64BITS **
+ *******************************************************************************
+ ** Cite this program as: MOPAC2016, Version: 19.090L, James J. P. Stewart,   **
+ ** Stewart Computational Chemistry, web: HTTP://OpenMOPAC.net. Days left: 175**
+ *******************************************************************************
+ **                                                                           **
+ **                                MOPAC2016                                  **
+ **                                                                           **
+ *******************************************************************************
+
+                              PM7 CALCULATION RESULTS
+
+ *******************************************************************************
+ *  CALCULATION DONE:                                Mon Oct  7 21:31:48 2019  *
+ *  CHARGES    - IDENTIFY AND PRINT CHARGED ATOMS
+ *  T=         - A TIME OF 172800.0 SECONDS REQUESTED
+ *  DUMP=N     - RESTART FILE WRITTEN EVERY  7200.000 SECONDS
+ *******************************************************************************
+CHARGES
+
+
+   ATOM   CHEMICAL          X               Y               Z
+  NUMBER   SYMBOL      (ANGSTROMS)     (ANGSTROMS)     (ANGSTROMS)
+ 
+     1       P          0.72499200  *   5.63265700  *   8.51859600  *
+     2       F          2.22186600  *   5.34996000  *   9.02496800  *
+     3       F         -0.75135300  *   5.95588400  *   8.02748300  *
+     4       F          1.13477000  *   5.21148200  *   7.03653800  *
+     5       F          0.33596600  *   6.05856000  *  10.01686200  *
+     6       F          1.16651600  *   7.14341300  *   8.22096600  *
+     7       F          0.32631900  *   4.13676200  *   8.84112700  *
+ 
+
+
+          CARTESIAN COORDINATES 
+
+    NO.       ATOM           X           Y           Z
+
+     1         P          0.7250      5.6327      8.5186
+     2         F          2.2219      5.3500      9.0250
+     3         F         -0.7514      5.9559      8.0275
+     4         F          1.1348      5.2115      7.0365
+     5         F          0.3360      6.0586     10.0169
+     6         F          1.1665      7.1434      8.2210
+     7         F          0.3263      4.1368      8.8411
+
+ General Reference for PM7:
+ "Optimization of Parameters for Semiempirical Methods VI: More Modifications to the 
+ NDDO Approximations and Re-optimization of Parameters", J. J. P. Stewart, J. Mol. Mod., 1:32, 19 (2013)
+ http://www.springerlink.com/openurl.asp?genre=article&id=doi:10.1007/s00894-012-1667-x
+
+           Empirical Formula: P F6  =     7 atoms
+
+
+
+      MOLECULAR POINT GROUP   :   Ci  
+
+   TOPOGRAPHY OF SYSTEM
+
+   ATOM No.    LABEL   Atoms connected to this atom
+      1          P      2      3      4      5      6      7
+      2          F      1
+      3          F      1
+      4          F      1
+      5          F      1
+      6          F      1
+      7          F      1
+
+     Ion Atom No.  Type    Charge
+ 
+    1       1      P       -1
+
+          COMPUTED CHARGE ON SYSTEM: -1
+
+          COMPUTED CHARGE ON SYSTEM:  -1
+
+          JOB STOPPED HERE BECAUSE KEYWORD "CHARGES" WAS USED
+
+ ******************************************************************************
+ *                                                                            *
+ *     Error and normal termination messages reported in this calculation     *
+ *                                                                            *
+ * JOB STOPPED HERE BECAUSE KEYWORD "CHARGES" WAS USED                        *
+ * JOB ENDED NORMALLY                                                         *
+ *                                                                            *
+ ******************************************************************************
+
+
+
+ TOTAL JOB TIME:             0.00 SECONDS
+
+ == MOPAC DONE ==

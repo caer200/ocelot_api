@@ -61,4 +61,9 @@ class Loopsearcher:
                     break
             if start not in visited:
                 visited += [start]
-        return loop_found
+
+        true_loop_found = []
+        for idxlst in loop_found:
+            if len(idxlst) == loopsize:
+                true_loop_found.append(idxlst)
+        return true_loop_found

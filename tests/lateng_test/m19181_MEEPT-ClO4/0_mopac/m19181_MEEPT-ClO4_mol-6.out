@@ -1,0 +1,92 @@
+ *******************************************************************************
+ ** Site#: 29200        For non-commercial use only    Version 19.090L 64BITS **
+ *******************************************************************************
+ ** Cite this program as: MOPAC2016, Version: 19.090L, James J. P. Stewart,   **
+ ** Stewart Computational Chemistry, web: HTTP://OpenMOPAC.net. Days left: 175**
+ *******************************************************************************
+ **                                                                           **
+ **                                MOPAC2016                                  **
+ **                                                                           **
+ *******************************************************************************
+
+                              PM7 CALCULATION RESULTS
+
+ *******************************************************************************
+ *  CALCULATION DONE:                                Mon Oct  7 21:32:33 2019  *
+ *  CHARGES    - IDENTIFY AND PRINT CHARGED ATOMS
+ *  T=         - A TIME OF 172800.0 SECONDS REQUESTED
+ *  DUMP=N     - RESTART FILE WRITTEN EVERY  7200.000 SECONDS
+ *******************************************************************************
+CHARGES
+
+
+   ATOM   CHEMICAL          X               Y               Z
+  NUMBER   SYMBOL      (ANGSTROMS)     (ANGSTROMS)     (ANGSTROMS)
+ 
+     1      Cl          5.46201400  *   0.05983700  *  12.80769500  *
+     2       O          5.95781400  *  -1.27318100  *  12.98540900  *
+     3       O          6.54541800  *   1.00125300  *  12.96561500  *
+     4       O          4.89969500  *   0.19675200  *  11.49237800  *
+     5       O          4.44840500  *   0.31883400  *  13.79102900  *
+ 
+
+
+          CARTESIAN COORDINATES 
+
+    NO.       ATOM           X           Y           Z
+
+     1        Cl          5.4620      0.0598     12.8077
+     2         O          5.9578     -1.2732     12.9854
+     3         O          6.5454      1.0013     12.9656
+     4         O          4.8997      0.1968     11.4924
+     5         O          4.4484      0.3188     13.7910
+
+ General Reference for PM7:
+ "Optimization of Parameters for Semiempirical Methods VI: More Modifications to the 
+ NDDO Approximations and Re-optimization of Parameters", J. J. P. Stewart, J. Mol. Mod., 1:32, 19 (2013)
+ http://www.springerlink.com/openurl.asp?genre=article&id=doi:10.1007/s00894-012-1667-x
+
+           Empirical Formula: O4 Cl  =     5 atoms
+
+
+
+      MOLECULAR POINT GROUP   :   C1  
+
+   TOPOGRAPHY OF SYSTEM
+
+   ATOM No.    LABEL   Atoms connected to this atom
+      1         Cl      2      3      4      5
+      2          O      1
+      3          O      1
+      4          O      1
+      5          O      1
+
+     Ion Atom No.  Type    Charge
+ 
+    1       1     Cl       +1
+ 
+    1       2      O       -1
+    2       3      O       -1
+    3       4      O       -1
+    4       5      O       -1
+
+          COMPUTED CHARGE ON SYSTEM: -3
+
+          COMPUTED CHARGE ON SYSTEM:  -3
+
+          JOB STOPPED HERE BECAUSE KEYWORD "CHARGES" WAS USED
+
+ ******************************************************************************
+ *                                                                            *
+ *     Error and normal termination messages reported in this calculation     *
+ *                                                                            *
+ * JOB STOPPED HERE BECAUSE KEYWORD "CHARGES" WAS USED                        *
+ * JOB ENDED NORMALLY                                                         *
+ *                                                                            *
+ ******************************************************************************
+
+
+
+ TOTAL JOB TIME:             0.00 SECONDS
+
+ == MOPAC DONE ==
