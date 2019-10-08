@@ -141,8 +141,14 @@ class Backbone(MSitelist):
                         angle_btw(-fr_vo, vo, output="degree") < _coplane_cutoff:
                     backbone_rings += fr
 
-        lfit_vp, lfit_ptsmean, lfit_linearity = Fitter.linear_fit([r.geoc for r in backbone_rings])
-        lfit_vp = unify(lfit_vp)
+        if len(backbone_rings) == 1:
+            warnings.warn('W: you are init backbone with one ring! lfit_x will be set to zero(s)')
+            lfit_vp = np.zeros(3)
+            lfit_ptsmean = np.zeros(3)
+            lfit_linearity = 0
+        else:
+            lfit_vp, lfit_ptsmean, lfit_linearity = Fitter.linear_fit([r.geoc for r in backbone_rings])
+            lfit_vp = unify(lfit_vp)
 
         s_in_backbone = []
         for r in backbone_rings:

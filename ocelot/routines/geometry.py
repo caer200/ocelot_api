@@ -302,7 +302,10 @@ class Fitter:
         ptsmean = np.mean(pts, axis=0)
         u, s, vt = np.linalg.svd(pts - ptsmean)
         vector = unify(vt[0])
-        error = s[1] ** 2 + s[2] ** 2
+        if len(pts) == 2:
+            error = 0
+        else:
+            error = s[1] ** 2 + s[2] ** 2
         return vector, ptsmean, error
 
     @staticmethod
