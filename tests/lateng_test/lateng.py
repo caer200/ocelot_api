@@ -103,6 +103,16 @@ class LatEng:
                 self.unique_mols.append(mol)
                 self.unique_charges.append(charge)
 
+        # so lewis believes the charged radical is close shell
+        # it works for small ions, though it thinks ClO4 is 3-, and tfsi is 1+, maybe due to Cl and S
+        for i in range(len(self.unique_charges)):
+            if self.unique_charges[i] == 0:
+                self.unique_charges[i] = 1
+            else:
+                self.unique_charges[i] = -1
+
+
+
     def gen_pbc_rlx(self, wdir):
         config = load_yaml_config('lateng_pbe_d3bj_relax')
         vasp_set = DictSet(self.structure, config)
