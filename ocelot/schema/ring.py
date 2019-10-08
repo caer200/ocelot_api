@@ -57,7 +57,8 @@ class Ring(MSitelist):
     @property
     def bonds(self):
         """
-        bond objects can be extracted from this ring
+        bond objects can be extracted from this ring with one extending site
+        e.g. for benzene the C-H bonds are also here
 
         :return: a list of bonds
         """
@@ -71,6 +72,27 @@ class Ring(MSitelist):
                 if b not in bonds:
                     bonds.append(b)
         return bonds
+
+    @property
+    def bonds_in_ring(self):
+        """
+        bond objects can be extracted from this ring
+        e.g. for benzene the C-H bonds are NOT here
+
+        :return: a list of bonds
+        """
+        if not self.omol_init:
+            return None
+        bonds = []
+        for si in self.idx:
+            sa = self.get_site_byid(si)
+            for sb in sa.nbs:
+                if sb.siteid in self.idx:
+                    b = Bond(sa, sb)
+                    if b not in bonds:
+                        bonds.append(b)
+        return bonds
+
 
     def normal_along(self, refnormal, tol=60.0):
         """
