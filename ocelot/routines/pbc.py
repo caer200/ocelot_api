@@ -184,6 +184,8 @@ class PBCparser:
         :return:
         """
         psites = pstructure.sites
+        for isite in range(len(psites)):
+            psites[isite].properties['isite'] = isite
         pindices = range(len(psites))
         visited = []
         block_list = []
@@ -212,8 +214,8 @@ class PBCparser:
                     if distance < cutoff:
                         block.append(i)
                         psites[i] = PeriodicSite(psites[i].species_string, psites[i]._frac_coords + fctrans,
-                                                 pstructure.lattice)
-                        unwrap_block.append(Site(psites[i].species_string, psites[i].coords))
+                                                 pstructure.lattice, properties=deepcopy(psites[i].properties))
+                        unwrap_block.append(Site(psites[i].species_string, psites[i].coords, properties=deepcopy(psites[i].properties)))
                         # unwrap.append(psites[i])
                         unwrap_pblock.append(psites[i])
                 visited.append(block[pointer])
@@ -225,10 +227,23 @@ class PBCparser:
         unwrap = []
         for i in range(len(unwrap_block_list)):
             for j in range(len(unwrap_block_list[i])):
-                unwrap_block_list[i][j].properties = {'imol': i}
-                unwrap_pblock_list[i][j].properties = {'imol': i}
+                unwrap_block_list[i][j].properties['imol'] = i
+                unwrap_pblock_list[i][j].properties['imol'] = i
                 unwrap.append(unwrap_pblock_list[i][j])
-        mols = [Molecule.from_sites(i) for i in unwrap_block_list]
+
+        # this does not work, from_sites cannot pickup properties
+        # mols = [Molecule.from_sites(sites) for sites in unwrap_block_list]
+        mols = []
+        for group in unwrap_block_list:
+            property_list = []
+            for i in range(len(group)):
+                property_list.append(deepcopy(group[i].properties))
+                group[i].properties = {}
+            mol = Molecule.from_sites(group)
+            for i in range(len(group)):
+                mol._sites[i].properties = property_list[i]
+            mols.append(mol)
+
         unwrap = sorted(deepcopy(unwrap), key=lambda x: x.species_string)
         unwrap_str_sorted = Structure.from_sites(unwrap)
         return mols, unwrap_str_sorted, unwrap_pblock_list

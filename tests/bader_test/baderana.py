@@ -34,3 +34,37 @@ from pymatgen.core.structure import Structure
 struct = Structure.from_file('CONTCAR')
 mols, unwrap_str_sorted, unwrap_pblock_list = PBCparser.unwrap(struct)
 
+acfdata = []
+with open('ACF.dat', 'r') as f:
+    ls = f.readlines()
+for l in ls[2:-4]:
+    iatom, x, y, z, charge, mindist, atomvol = l.strip().split()
+    entry = {}
+    entry['iatom'] = int(iatom)-1
+    entry['x'] = x
+    entry['y'] = y
+    entry['z'] = z
+    entry['charge'] = charge
+    entry['mindist'] = mindist
+    entry['atomvol'] = atomvol
+    for k in entry.keys():
+        entry[k] = float(entry[k])
+    acfdata.append(entry)
+
+imols = [s.properties['imol'] for s in unwrap_str_sorted.sites]
+isites = [s.properties['isite'] for s in unwrap_str_sorted.sites]
+istie2imol_dict = dict(zip(isites, imols))
+for imol in range(len(mols)):
+    molchg = 0
+    for isite in range(len(isites)):
+        if istie2imol_dict[isite] == imol:
+            molchg += acfdata[isite]['charge']
+    print(molchg)
+
+
+
+
+
+
+
+
