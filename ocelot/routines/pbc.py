@@ -1,8 +1,9 @@
 import math
+from copy import deepcopy
 from ocelot.schema.element import Element
 from ocelot.schema.omol import OMol
 from pymatgen.util.coord import pbc_shortest_vectors
-from pymatgen.core.structure import Site, PeriodicSite, IMolecule, IStructure, Molecule, Structure
+from pymatgen.core.structure import Site, PeriodicSite, IMolecule, Molecule, Structure
 from pymatgen.io.cif import CifFile
 
 """
@@ -186,7 +187,7 @@ class PBCparser:
         pindices = range(len(psites))
         visited = []
         block_list = []
-        unwrap = []
+        # unwrap = []
         unwrap_block_list = []
         unwrap_pblock_list = []
         while len(visited) != len(psites):
@@ -194,7 +195,7 @@ class PBCparser:
             unvisited = [idx for idx in pindices if idx not in visited]
             ini_idx = unvisited[0]
             block = [ini_idx]
-            unwrap.append(psites[ini_idx])
+            # unwrap.append(psites[ini_idx])
             unwrap_block = [Site(psites[ini_idx].species_string, psites[ini_idx].coords)]
             unwrap_pblock = [psites[ini_idx]]
             pointer = 0
@@ -213,16 +214,23 @@ class PBCparser:
                         psites[i] = PeriodicSite(psites[i].species_string, psites[i]._frac_coords + fctrans,
                                                  pstructure.lattice)
                         unwrap_block.append(Site(psites[i].species_string, psites[i].coords))
-                        unwrap.append(psites[i])
+                        # unwrap.append(psites[i])
                         unwrap_pblock.append(psites[i])
                 visited.append(block[pointer])
                 pointer += 1
             unwrap_block_list.append(unwrap_block)
             unwrap_pblock_list.append(unwrap_pblock)
             block_list.append(block)
-        mols = [IMolecule.from_sites(i) for i in unwrap_block_list]
-        unwrap = sorted(unwrap, key=lambda x: x.species_string)
-        unwrap_str_sorted = IStructure.from_sites(unwrap)
+
+        unwrap = []
+        for i in range(len(unwrap_block_list)):
+            for j in range(len(unwrap_block_list[i])):
+                unwrap_block_list[i][j].properties = {'imol': i}
+                unwrap_pblock_list[i][j].properties = {'imol': i}
+                unwrap.append(unwrap_pblock_list[i][j])
+        mols = [Molecule.from_sites(i) for i in unwrap_block_list]
+        unwrap = sorted(deepcopy(unwrap), key=lambda x: x.species_string)
+        unwrap_str_sorted = Structure.from_sites(unwrap)
         return mols, unwrap_str_sorted, unwrap_pblock_list
 
     @staticmethod
