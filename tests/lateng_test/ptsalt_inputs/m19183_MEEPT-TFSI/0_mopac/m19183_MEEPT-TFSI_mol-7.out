@@ -1,0 +1,117 @@
+ *******************************************************************************
+ ** Site#: 29200        For non-commercial use only    Version 19.090L 64BITS **
+ *******************************************************************************
+ ** Cite this program as: MOPAC2016, Version: 19.090L, James J. P. Stewart,   **
+ ** Stewart Computational Chemistry, web: HTTP://OpenMOPAC.net. Days left: 174**
+ *******************************************************************************
+ **                                                                           **
+ **                                MOPAC2016                                  **
+ **                                                                           **
+ *******************************************************************************
+
+                              PM7 CALCULATION RESULTS
+
+ *******************************************************************************
+ *  CALCULATION DONE:                                Tue Oct  8 20:08:14 2019  *
+ *  CHARGES    - IDENTIFY AND PRINT CHARGED ATOMS
+ *  T=         - A TIME OF 172800.0 SECONDS REQUESTED
+ *  DUMP=N     - RESTART FILE WRITTEN EVERY  7200.000 SECONDS
+ *******************************************************************************
+CHARGES
+
+
+   ATOM   CHEMICAL          X               Y               Z
+  NUMBER   SYMBOL      (ANGSTROMS)     (ANGSTROMS)     (ANGSTROMS)
+ 
+     1       C          3.89884100  *  11.21235100  *   1.69909600  *
+     2       S          3.51220000  *  12.95870800  *   2.06410300  *
+     3       F          4.27233400  *  10.56688400  *   2.80252300  *
+     4       F          4.87053500  *  11.11291800  *   0.81031500  *
+     5       F          2.82240500  *  10.59980200  *   1.21473300  *
+     6       N          4.90529900  *  13.51712800  *   2.54167300  *
+     7       O          3.21400000  *  13.52086100  *   0.78563900  *
+     8       O          2.47782200  *  12.90746400  *   3.04585800  *
+     9       S          5.41460700  *  13.55038500  *   4.02995300  *
+    10       C          5.18674700  *  15.31184400  *   4.47345800  *
+    11       O          4.65735500  *  12.81821200  *   4.98896600  *
+    12       O          6.83472600  *  13.40157500  *   4.01960800  *
+    13       F          5.64219700  *  15.52140000  *   5.70380300  *
+    14       F          5.86168200  *  16.09882400  *   3.65005900  *
+    15       F          3.91712400  *  15.65748400  *   4.42616200  *
+ 
+
+
+          CARTESIAN COORDINATES 
+
+    NO.       ATOM           X           Y           Z
+
+     1         C          3.8988     11.2124      1.6991
+     2         S          3.5122     12.9587      2.0641
+     3         F          4.2723     10.5669      2.8025
+     4         F          4.8705     11.1129      0.8103
+     5         F          2.8224     10.5998      1.2147
+     6         N          4.9053     13.5171      2.5417
+     7         O          3.2140     13.5209      0.7856
+     8         O          2.4778     12.9075      3.0459
+     9         S          5.4146     13.5504      4.0300
+    10         C          5.1867     15.3118      4.4735
+    11         O          4.6574     12.8182      4.9890
+    12         O          6.8347     13.4016      4.0196
+    13         F          5.6422     15.5214      5.7038
+    14         F          5.8617     16.0988      3.6501
+    15         F          3.9171     15.6575      4.4262
+
+ General Reference for PM7:
+ "Optimization of Parameters for Semiempirical Methods VI: More Modifications to the 
+ NDDO Approximations and Re-optimization of Parameters", J. J. P. Stewart, J. Mol. Mod., 1:32, 19 (2013)
+ http://www.springerlink.com/openurl.asp?genre=article&id=doi:10.1007/s00894-012-1667-x
+
+           Empirical Formula: C2 N O4 S2 F6  =    15 atoms
+
+
+
+      MOLECULAR POINT GROUP   :   C2  
+
+   TOPOGRAPHY OF SYSTEM
+
+   ATOM No.    LABEL   Atoms connected to this atom
+      1          C      2      3      4      5
+      2          S      7      8      6      1
+      3          F      1
+      4          F      1
+      5          F      1
+      6          N      2      9
+      7          O      2
+      8          O      2
+      9          S     11     12      6     10
+     10          C      9     13     14     15
+     11          O      9
+     12          O      9
+     13          F     10
+     14          F     10
+     15          F     10
+
+     Ion Atom No.  Type    Charge
+ 
+    1       6      N       +1
+
+          COMPUTED CHARGE ON SYSTEM: +1
+
+          COMPUTED CHARGE ON SYSTEM: +1
+
+          JOB STOPPED HERE BECAUSE KEYWORD "CHARGES" WAS USED
+
+ ******************************************************************************
+ *                                                                            *
+ *     Error and normal termination messages reported in this calculation     *
+ *                                                                            *
+ * JOB STOPPED HERE BECAUSE KEYWORD "CHARGES" WAS USED                        *
+ * JOB ENDED NORMALLY                                                         *
+ *                                                                            *
+ ******************************************************************************
+
+
+
+ TOTAL JOB TIME:             0.00 SECONDS
+
+ == MOPAC DONE ==

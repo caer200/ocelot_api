@@ -1,0 +1,93 @@
+ *******************************************************************************
+ ** Site#: 29200        For non-commercial use only    Version 19.090L 64BITS **
+ *******************************************************************************
+ ** Cite this program as: MOPAC2016, Version: 19.090L, James J. P. Stewart,   **
+ ** Stewart Computational Chemistry, web: HTTP://OpenMOPAC.net. Days left: 174**
+ *******************************************************************************
+ **                                                                           **
+ **                                MOPAC2016                                  **
+ **                                                                           **
+ *******************************************************************************
+
+                              PM7 CALCULATION RESULTS
+
+ *******************************************************************************
+ *  CALCULATION DONE:                                Tue Oct  8 20:08:57 2019  *
+ *  CHARGES    - IDENTIFY AND PRINT CHARGED ATOMS
+ *  T=         - A TIME OF 172800.0 SECONDS REQUESTED
+ *  DUMP=N     - RESTART FILE WRITTEN EVERY  7200.000 SECONDS
+ *******************************************************************************
+CHARGES
+
+
+   ATOM   CHEMICAL          X               Y               Z
+  NUMBER   SYMBOL      (ANGSTROMS)     (ANGSTROMS)     (ANGSTROMS)
+ 
+     1      Sb          4.45671500  *  15.80219900  *   6.39651800  *
+     2      Cl          4.57399100  *  18.14283500  *   6.64154800  *
+     3      Cl          4.31992000  *  13.43676000  *   6.13143900  *
+     4      Cl          2.08480600  *  15.96262400  *   6.40579000  *
+     5      Cl          6.80784100  *  15.66736300  *   6.40698200  *
+     6      Cl          4.41601700  *  15.52740900  *   8.74149500  *
+     7      Cl          4.46469700  *  16.00159900  *   4.04562200  *
+ 
+
+
+          CARTESIAN COORDINATES 
+
+    NO.       ATOM           X           Y           Z
+
+     1        Sb          4.4567     15.8022      6.3965
+     2        Cl          4.5740     18.1428      6.6415
+     3        Cl          4.3199     13.4368      6.1314
+     4        Cl          2.0848     15.9626      6.4058
+     5        Cl          6.8078     15.6674      6.4070
+     6        Cl          4.4160     15.5274      8.7415
+     7        Cl          4.4647     16.0016      4.0456
+
+ General Reference for PM7:
+ "Optimization of Parameters for Semiempirical Methods VI: More Modifications to the 
+ NDDO Approximations and Re-optimization of Parameters", J. J. P. Stewart, J. Mol. Mod., 1:32, 19 (2013)
+ http://www.springerlink.com/openurl.asp?genre=article&id=doi:10.1007/s00894-012-1667-x
+
+           Empirical Formula: Sb Cl6  =     7 atoms
+
+
+
+      MOLECULAR POINT GROUP   :   Ci  
+
+   TOPOGRAPHY OF SYSTEM
+
+   ATOM No.    LABEL   Atoms connected to this atom
+      1         Sb      2      3      4      5      6      7
+      2         Cl      1
+      3         Cl      1
+      4         Cl      1
+      5         Cl      1
+      6         Cl      1
+      7         Cl      1
+
+     Ion Atom No.  Type    Charge
+ 
+    1       1     Sb       -1
+
+          COMPUTED CHARGE ON SYSTEM: -1
+
+          COMPUTED CHARGE ON SYSTEM:  -1
+
+          JOB STOPPED HERE BECAUSE KEYWORD "CHARGES" WAS USED
+
+ ******************************************************************************
+ *                                                                            *
+ *     Error and normal termination messages reported in this calculation     *
+ *                                                                            *
+ * JOB STOPPED HERE BECAUSE KEYWORD "CHARGES" WAS USED                        *
+ * JOB ENDED NORMALLY                                                         *
+ *                                                                            *
+ ******************************************************************************
+
+
+
+ TOTAL JOB TIME:             0.00 SECONDS
+
+ == MOPAC DONE ==

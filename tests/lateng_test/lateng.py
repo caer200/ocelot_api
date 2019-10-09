@@ -105,23 +105,38 @@ class LatEng:
 
         # so lewis believes the charged radical is close shell
         # it works for small ions, though it thinks ClO4 is 3-, and tfsi is 1+, maybe due to Cl and S
+        # also I need to change nelect for pbc as vasp default thinks it's close shell
         for i in range(len(self.unique_charges)):
             if self.unique_charges[i] == 0:
                 self.unique_charges[i] = 1
             else:
                 self.unique_charges[i] = -1
 
+        for i in range(len(self.mol_charges)):
+            if self.mol_charges[i] == 0:
+                self.mol_charges[i] = 1
+            else:
+                self.mol_charges[i] = -1
 
 
-    def gen_pbc_rlx(self, wdir):
+    def gen_pbc_rlx(self, wdir, nelect):
         config = load_yaml_config('lateng_pbe_d3bj_relax')
+        config['INCAR']['NELECT'] = nelect
         vasp_set = DictSet(self.structure, config)
         vasp_set.write_input(wdir)
 
-    def gen_pbc_sp(self, wdir):
+    def gen_pbc_sp(self, wdir, nelect):
         config = load_yaml_config('lateng_hse_d3bj_sp')
+        config['INCAR']['NELECT'] = nelect
         vasp_set = DictSet(self.structure, config)
         vasp_set.write_input(wdir)
+
+    def get_mol_nelect(self, pmgmol, charge):
+        config = load_yaml_config('lateng_pbe_d3bj_relax')
+        boxs = boxstructure(pmgmol)
+        boxs._charge = charge
+        vasp_set = DictSet(boxs, config, use_structure_charge=True, user_kpoints_settings=onekpoints)
+        return vasp_set.nelect
 
     def gen_mol_rlx(self, pmgmol, charge, wdir):
         config = load_yaml_config('lateng_pbe_d3bj_relax')
@@ -138,14 +153,6 @@ class LatEng:
         vasp_set.write_input(wdir)
 
     def gen_all(self):
-        wdir_1_pbc_relax = self.rootdir + '/1_pbc_relax'
-        createdir(wdir_1_pbc_relax)
-        self.gen_pbc_rlx(wdir_1_pbc_relax)
-
-        wdir_2_pbc_sp = self.rootdir + '/2_pbc_sp'
-        createdir(wdir_2_pbc_sp)
-        self.gen_pbc_sp(wdir_2_pbc_sp)
-        removefile(wdir_2_pbc_sp + '/POSCAR')
 
         wdir_3_mol_relax = self.rootdir + '/3_mol_relax'
         createdir(wdir_3_mol_relax)
@@ -153,16 +160,32 @@ class LatEng:
         wdir_4_mol_sp = self.rootdir + '/4_mol_sp'
         createdir(wdir_4_mol_sp)
 
+
         for i in range(len(self.unique_charges)):
             wdir_3_i = wdir_3_mol_relax + '/mol-{}'.format(i)
             mol = self.unique_mols[i]
             charge = self.unique_charges[i]
             self.gen_mol_rlx(mol, charge, wdir_3_i)
-
             wdir_4_i = wdir_4_mol_sp + '/mol-{}'.format(i)
             self.gen_mol_sp(mol, charge, wdir_4_i)
             removefile(wdir_4_i + '/POSCAR')
 
+
+        pbcnelect = 0
+        for i in range(len(self.mol_charges)):
+            mol = self.pmgmols[i]
+            charge = self.mol_charges[i]
+            inelect = self.get_mol_nelect(mol, charge)
+            pbcnelect += inelect
+
+        wdir_1_pbc_relax = self.rootdir + '/1_pbc_relax'
+        createdir(wdir_1_pbc_relax)
+        self.gen_pbc_rlx(wdir_1_pbc_relax, pbcnelect)
+
+        wdir_2_pbc_sp = self.rootdir + '/2_pbc_sp'
+        createdir(wdir_2_pbc_sp)
+        self.gen_pbc_sp(wdir_2_pbc_sp, pbcnelect)
+        removefile(wdir_2_pbc_sp + '/POSCAR')
 
     @classmethod
     def from_rawcif(cls, ciffn, rootdir=None):
