@@ -15,9 +15,11 @@ cp quick_start/*.md ./doc/
 cp quick_start/*.png ./doc/
 cd doc
 make html
+rm -rf ../docs
 mv _build/html ../docs
 cd ../
 rm -rf doc
+touch docs/.nojekyll
 cd $whereisit
 
 
