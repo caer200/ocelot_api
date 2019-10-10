@@ -94,6 +94,9 @@
 <li class="toctree-l3 current"><a class="current reference internal" href="#">ocelot.task package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-ocelot.task.calec">ocelot.task.calec module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ocelot.task.dftd3">ocelot.task.dftd3 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ocelot.task.fitbox">ocelot.task.fitbox module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ocelot.task.idchg">ocelot.task.idchg module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-ocelot.task.nics">ocelot.task.nics module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-ocelot.task.pkid">ocelot.task.pkid module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-ocelot.task.reciprocal">ocelot.task.reciprocal module</a></li>
@@ -303,6 +306,82 @@ Returns a numpy matrix.</p>
 <dl class="attribute">
 <dt id="ocelot.task.calec.ElectronicCoupling.triangle_fill">
 <code class="sig-name descname">triangle_fill</code><a class="reference internal" href="_modules/ocelot/task/calec.html#ElectronicCoupling.triangle_fill"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.calec.ElectronicCoupling.triangle_fill" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ocelot.task.dftd3">
+<span id="ocelot-task-dftd3-module"></span><h2>ocelot.task.dftd3 module<a class="headerlink" href="#module-ocelot.task.dftd3" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ocelot.task.dftd3.DFTD3">
+<em class="property">class </em><code class="sig-prename descclassname">ocelot.task.dftd3.</code><code class="sig-name descname">DFTD3</code><span class="sig-paren">(</span><em class="sig-param">jobname</em>, <em class="sig-param">structure</em>, <em class="sig-param">func='pbe'</em>, <em class="sig-param">damping='bj'</em>, <em class="sig-param">dftd2=False</em>, <em class="sig-param">cutoff=94.8683</em>, <em class="sig-param">cnthr=40</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/dftd3.html#DFTD3"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.dftd3.DFTD3" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="ocelot.task.dftd3.DFTD3.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">jobname</em>, <em class="sig-param">structure</em>, <em class="sig-param">func='pbe'</em>, <em class="sig-param">damping='bj'</em>, <em class="sig-param">dftd2=False</em>, <em class="sig-param">cutoff=94.8683</em>, <em class="sig-param">cnthr=40</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/dftd3.html#DFTD3.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.dftd3.DFTD3.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>init a dftd3 calculation</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>jobname</strong> – </p></li>
+<li><p><strong>structure</strong> – </p></li>
+<li><p><strong>func</strong> – </p></li>
+<li><p><strong>damping</strong> – </p></li>
+<li><p><strong>dftd2</strong> – DFT-D2 version.10</p></li>
+<li><p><strong>cutoff</strong> – a cutoff value for the dispersion interaction. The default value is 95 a.u.</p></li>
+<li><p><strong>cnthr</strong> – a cutoff value for the calculation of the CN. The default value is 40 a.u. and should be kept fixed</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="ocelot.task.dftd3.DFTD3.cmd_option_string">
+<em class="property">property </em><code class="sig-name descname">cmd_option_string</code><a class="headerlink" href="#ocelot.task.dftd3.DFTD3.cmd_option_string" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ocelot.task.dftd3.DFTD3.parse_results">
+<em class="property">static </em><code class="sig-name descname">parse_results</code><span class="sig-paren">(</span><em class="sig-param">res</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/dftd3.html#DFTD3.parse_results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.dftd3.DFTD3.parse_results" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ocelot.task.dftd3.DFTD3.run">
+<code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param">d3cmd</em>, <em class="sig-param">wdir</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/dftd3.html#DFTD3.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.dftd3.DFTD3.run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ocelot.task.fitbox">
+<span id="ocelot-task-fitbox-module"></span><h2>ocelot.task.fitbox module<a class="headerlink" href="#module-ocelot.task.fitbox" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-ocelot.task.idchg">
+<span id="ocelot-task-idchg-module"></span><h2>ocelot.task.idchg module<a class="headerlink" href="#module-ocelot.task.idchg" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ocelot.task.idchg.IdChg">
+<em class="property">class </em><code class="sig-prename descclassname">ocelot.task.idchg.</code><code class="sig-name descname">IdChg</code><span class="sig-paren">(</span><em class="sig-param">pmgmol</em>, <em class="sig-param">jobname</em>, <em class="sig-param">mopaccmd</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/idchg.html#IdChg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.idchg.IdChg" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="ocelot.task.idchg.IdChg.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">pmgmol</em>, <em class="sig-param">jobname</em>, <em class="sig-param">mopaccmd</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/idchg.html#IdChg.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.idchg.IdChg.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize self.  See help(type(self)) for accurate signature.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ocelot.task.idchg.IdChg.parse_out">
+<code class="sig-name descname">parse_out</code><span class="sig-paren">(</span><em class="sig-param">outfn</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/idchg.html#IdChg.parse_out"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.idchg.IdChg.parse_out" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ocelot.task.idchg.IdChg.run">
+<code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param">wdir</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/idchg.html#IdChg.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.idchg.IdChg.run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ocelot.task.idchg.IdChg.write_inp">
+<code class="sig-name descname">write_inp</code><span class="sig-paren">(</span><em class="sig-param">wdir</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/idchg.html#IdChg.write_inp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.idchg.IdChg.write_inp" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -567,7 +646,7 @@ for a certain mol, get tuned w</p>
 <li><p>homa: HOMA descriptor for aroma</p></li>
 <li><p>fitbox: get plausible conformation for a pre-defined box (GIXD)</p></li>
 <li><p>ipae: calculate IP and AE, both intrinsic and apparent</p></li>
-<li><p>escal: excited state calculations</p></li>
+<li><p>cales: excited state calculations</p></li>
 <li><p>defgen: generate defects</p></li>
 <li><p>inspector: sanity check for raw data and inputs generation for other tasks</p></li>
 </ul>

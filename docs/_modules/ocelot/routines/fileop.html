@@ -160,6 +160,7 @@
 <div class="viewcode-block" id="write_obj"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.fileop.write_obj">[docs]</a><span class="k">def</span> <span class="nf">write_obj</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">fname</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    write an object into binary with pickle</span>
+
 <span class="sd">    :param obj:</span>
 <span class="sd">    :param fname:</span>
 <span class="sd">    :return:</span>
@@ -170,7 +171,8 @@
 
 <div class="viewcode-block" id="read_obj"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.fileop.read_obj">[docs]</a><span class="k">def</span> <span class="nf">read_obj</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    read an object from pickle binary</span>
+<span class="sd">    read an object from pickle</span>
+
 <span class="sd">    :param fname:</span>
 <span class="sd">    :return:</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -182,6 +184,7 @@
 <div class="viewcode-block" id="check_path"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.fileop.check_path">[docs]</a><span class="k">def</span> <span class="nf">check_path</span><span class="p">(</span><span class="n">pathlist</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    check if the paths in the pathlist are all valid</span>
+
 <span class="sd">    :param pathlist:</span>
 <span class="sd">    :return:</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -195,6 +198,7 @@
 <div class="viewcode-block" id="movefile"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.fileop.movefile">[docs]</a><span class="k">def</span> <span class="nf">movefile</span><span class="p">(</span><span class="n">what</span><span class="p">,</span> <span class="n">where</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    shutil operation to move</span>
+
 <span class="sd">    :param what:</span>
 <span class="sd">    :param where:</span>
 <span class="sd">    :return:</span>
@@ -205,10 +209,17 @@
         <span class="n">os</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="n">where</span><span class="p">,</span> <span class="mi">777</span><span class="p">)</span>
         <span class="n">shutil</span><span class="o">.</span><span class="n">move</span><span class="p">(</span><span class="n">what</span><span class="p">,</span> <span class="n">where</span><span class="p">)</span></div>
 
+<div class="viewcode-block" id="removefile"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.fileop.removefile">[docs]</a><span class="k">def</span> <span class="nf">removefile</span><span class="p">(</span><span class="n">what</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">what</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
+        <span class="k">pass</span></div>
+
 
 <div class="viewcode-block" id="copyfile"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.fileop.copyfile">[docs]</a><span class="k">def</span> <span class="nf">copyfile</span><span class="p">(</span><span class="n">what</span><span class="p">,</span> <span class="n">where</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    shutil operation to copy</span>
+
 <span class="sd">    :param what:</span>
 <span class="sd">    :param where:</span>
 <span class="sd">    :return:</span>
@@ -223,6 +234,7 @@
 <div class="viewcode-block" id="createdir"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.fileop.createdir">[docs]</a><span class="k">def</span> <span class="nf">createdir</span><span class="p">(</span><span class="n">directory</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    mkdir</span>
+
 <span class="sd">    :param directory:</span>
 <span class="sd">    :return:</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -233,9 +245,10 @@
 <div class="viewcode-block" id="lsexternsion"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.fileop.lsexternsion">[docs]</a><span class="k">def</span> <span class="nf">lsexternsion</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">extension</span><span class="o">=</span><span class="s1">&#39;cif&#39;</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    get a list of file names with certain extension in the path</span>
+
 <span class="sd">    :param path:</span>
 <span class="sd">    :param extension:</span>
-<span class="sd">    :return:</span>
+<span class="sd">    :return: [path/filename1.extension, ...]</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">fns</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">path</span> <span class="o">+</span> <span class="s1">&#39;/*.&#39;</span> <span class="o">+</span> <span class="n">extension</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">fns</span></div>
@@ -244,6 +257,7 @@
 <div class="viewcode-block" id="nonblank_lines"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.fileop.nonblank_lines">[docs]</a><span class="k">def</span> <span class="nf">nonblank_lines</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    get nonblank lines in a file</span>
+
 <span class="sd">    :param f: string, file name</span>
 <span class="sd">    :return:</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -256,6 +270,7 @@
 <div class="viewcode-block" id="check_outcar"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.fileop.check_outcar">[docs]</a><span class="k">def</span> <span class="nf">check_outcar</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s1">&#39;OUTCAR&#39;</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    check if OUTCAR normally term</span>
+
 <span class="sd">    :param filename:</span>
 <span class="sd">    :return:</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -311,6 +326,21 @@
     <span class="k">if</span> <span class="n">finfile</span> <span class="o">==</span> <span class="n">howmanylog</span><span class="p">:</span>
         <span class="n">normal</span> <span class="o">=</span> <span class="mi">1</span>
     <span class="k">return</span> <span class="n">normal</span></div>
+
+<span class="kn">import</span> <span class="nn">inspect</span>
+
+<div class="viewcode-block" id="retrieve_name"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.fileop.retrieve_name">[docs]</a><span class="k">def</span> <span class="nf">retrieve_name</span><span class="p">(</span><span class="n">var</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Gets the name of var. Does it from the out most frame inner-wards.</span>
+<span class="sd">    https://stackoverflow.com/questions/18425225/getting-the-name-of-a-variable-as-a-string</span>
+
+<span class="sd">    :param var: variable to get name from.</span>
+<span class="sd">    :return: string</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">fi</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="n">inspect</span><span class="o">.</span><span class="n">stack</span><span class="p">()):</span>
+        <span class="n">names</span> <span class="o">=</span> <span class="p">[</span><span class="n">var_name</span> <span class="k">for</span> <span class="n">var_name</span><span class="p">,</span> <span class="n">var_val</span> <span class="ow">in</span> <span class="n">fi</span><span class="o">.</span><span class="n">frame</span><span class="o">.</span><span class="n">f_locals</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">var_val</span> <span class="ow">is</span> <span class="n">var</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">names</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">names</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></div>
 </pre></div>
 
            </div>

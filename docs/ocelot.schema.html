@@ -852,6 +852,23 @@ if the angle &lt; _coplane_cutoff (25.0 degrees default)</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="ocelot.schema.msitelist.MSitelist.from_coordmat">
+<em class="property">classmethod </em><code class="sig-name descname">from_coordmat</code><span class="sig-paren">(</span><em class="sig-param">mat</em>, <em class="sig-param">names</em>, <em class="sig-param">ids=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/schema/msitelist.html#MSitelist.from_coordmat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.schema.msitelist.MSitelist.from_coordmat" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mat</strong> – nx3 array</p></li>
+<li><p><strong>names</strong> – a list of string as element_name</p></li>
+<li><p><strong>ids</strong> – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
 <dt id="ocelot.schema.msitelist.MSitelist.from_coordmat_and_elementlst_and_siteidlst">
 <em class="property">classmethod </em><code class="sig-name descname">from_coordmat_and_elementlst_and_siteidlst</code><span class="sig-paren">(</span><em class="sig-param">mat</em>, <em class="sig-param">elementlst</em>, <em class="sig-param">ids=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/schema/msitelist.html#MSitelist.from_coordmat_and_elementlst_and_siteidlst"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.schema.msitelist.MSitelist.from_coordmat_and_elementlst_and_siteidlst" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
@@ -1178,6 +1195,18 @@ i is NOT bonded with itself</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="ocelot.schema.omol.OMol.from_dict">
+<em class="property">classmethod </em><code class="sig-name descname">from_dict</code><span class="sig-paren">(</span><em class="sig-param">d</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/schema/omol.html#OMol.from_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.schema.omol.OMol.from_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>keys are</p>
+<p>msites</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>d</strong> (<em>dict</em>) – d[‘msites’] is a list of msites’ dicts</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
 <dt id="ocelot.schema.omol.OMol.from_pymatgen_mol">
 <em class="property">classmethod </em><code class="sig-name descname">from_pymatgen_mol</code><span class="sig-paren">(</span><em class="sig-param">mol</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/schema/omol.html#OMol.from_pymatgen_mol"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.schema.omol.OMol.from_pymatgen_mol" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -1269,7 +1298,20 @@ i is NOT bonded with itself</p>
 <dl class="method">
 <dt id="ocelot.schema.ring.Ring.bonds">
 <em class="property">property </em><code class="sig-name descname">bonds</code><a class="headerlink" href="#ocelot.schema.ring.Ring.bonds" title="Permalink to this definition">¶</a></dt>
-<dd><p>bond objects can be extracted from this ring</p>
+<dd><p>bond objects can be extracted from this ring with one extending site
+e.g. for benzene the C-H bonds are also here</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>a list of bonds</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="ocelot.schema.ring.Ring.bonds_in_ring">
+<em class="property">property </em><code class="sig-name descname">bonds_in_ring</code><a class="headerlink" href="#ocelot.schema.ring.Ring.bonds_in_ring" title="Permalink to this definition">¶</a></dt>
+<dd><p>bond objects can be extracted from this ring
+e.g. for benzene the C-H bonds are NOT here</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p>a list of bonds</p>

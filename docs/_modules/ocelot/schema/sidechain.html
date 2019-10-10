@@ -217,6 +217,7 @@
             <span class="s2">&quot;volume&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">volume</span><span class="p">,</span>
             <span class="s2">&quot;msites&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">as_dict</span><span class="p">()</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">msites</span><span class="p">],</span>
             <span class="s2">&quot;max_rank&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">maxrank</span><span class="p">,</span>
+            <span class="s2">&quot;shape_descriptor&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape_descriptors</span><span class="p">,</span>
             <span class="s2">&quot;branch_rank&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">branch_msite_rank</span><span class="p">,</span>
             <span class="s2">&quot;is_hydrogen&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">ishydrogen</span><span class="p">,</span>
             <span class="s2">&quot;has_ring&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">hasring</span><span class="p">,</span>
@@ -225,6 +226,10 @@
             <span class="s2">&quot;bone_joint&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">bone_joint</span><span class="o">.</span><span class="n">as_dict</span><span class="p">(),</span>
             <span class="s2">&quot;rankmap&quot;</span><span class="p">:</span> <span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">+</span> <span class="p">[[</span><span class="n">s</span><span class="o">.</span><span class="n">as_dict</span><span class="p">()</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">sitelist</span><span class="p">]</span> <span class="k">for</span> <span class="n">sitelist</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">rankmap</span><span class="p">[</span><span class="mi">2</span><span class="p">:]]</span>
         <span class="p">}</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">umbrella</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">d</span><span class="p">[</span><span class="s1">&#39;umbrella&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">d</span><span class="p">[</span><span class="s1">&#39;umbrella&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">umbrella</span><span class="o">.</span><span class="n">as_dict</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">d</span></div>
 
 <div class="viewcode-block" id="Sidechain.from_dict"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.sidechain.Sidechain.from_dict">[docs]</a>    <span class="nd">@classmethod</span>

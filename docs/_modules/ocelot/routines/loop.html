@@ -213,7 +213,12 @@
                     <span class="k">break</span>
             <span class="k">if</span> <span class="n">start</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">visited</span><span class="p">:</span>
                 <span class="n">visited</span> <span class="o">+=</span> <span class="p">[</span><span class="n">start</span><span class="p">]</span>
-        <span class="k">return</span> <span class="n">loop_found</span></div></div>
+
+        <span class="n">true_loop_found</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">idxlst</span> <span class="ow">in</span> <span class="n">loop_found</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">idxlst</span><span class="p">)</span> <span class="o">==</span> <span class="n">loopsize</span><span class="p">:</span>
+                <span class="n">true_loop_found</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">idxlst</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">true_loop_found</span></div></div>
 </pre></div>
 
            </div>

@@ -485,11 +485,29 @@
         <span class="n">d</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s2">&quot;msites&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">as_dict</span><span class="p">()</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">msites</span><span class="p">],</span>
             <span class="s2">&quot;can&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">canonical_smiles</span><span class="p">,</span>
+            <span class="s2">&quot;shape_descriptor&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape_descriptors</span><span class="p">,</span>
             <span class="s2">&quot;volume&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">volume</span><span class="p">,</span>
             <span class="s2">&quot;@module&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__module__</span><span class="p">,</span>
             <span class="s2">&quot;@class&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span>
         <span class="p">}</span>
         <span class="k">return</span> <span class="n">d</span></div>
+
+<div class="viewcode-block" id="MSitelist.from_coordmat"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.msitelist.MSitelist.from_coordmat">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_coordmat</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">mat</span><span class="p">,</span> <span class="n">names</span><span class="p">,</span> <span class="n">ids</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param mat: nx3 array</span>
+<span class="sd">        :param names: a list of string as element_name</span>
+<span class="sd">        :param ids:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">ids</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">ids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">names</span><span class="p">))</span>
+            <span class="n">ids</span><span class="p">[:]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="n">ss</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">names</span><span class="p">)):</span>
+            <span class="n">ss</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">MSite</span><span class="p">(</span><span class="n">names</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">mat</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">ids</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">ss</span><span class="p">)</span></div>
+
 
 <div class="viewcode-block" id="MSitelist.from_dict"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.msitelist.MSitelist.from_dict">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>

@@ -1,0 +1,300 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ocelot.task.dftd3 &mdash; ocelot 0.01 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> ocelot
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.01
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#quick-start">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ocelot.html">ocelot package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">ocelot</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>ocelot.task.dftd3</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ocelot.task.dftd3</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">subprocess</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">from</span> <span class="nn">ocelot.routines.fileop</span> <span class="k">import</span> <span class="n">createdir</span>
+<span class="kn">from</span> <span class="nn">pymatgen.core.structure</span> <span class="k">import</span> <span class="n">Structure</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">dftd3 from Grimme for pbc system</span>
+
+<span class="sd">-func &lt;functional name in TM style&gt;</span>
+<span class="sd">Choose one of the implemented functionals. No default. For a list of parameterized func-</span>
+<span class="sd">tionals, refer to our web-site.9 HF can be invoked by -func hf.</span>
+
+<span class="sd">- &#39;-anal&#39;, &#39;-grad&#39;, &#39;-tz&#39;, options are not supported currently</span>
+<span class="sd">- citations</span>
+<span class="sd">    main code: S. Grimme, J. Antony, S. Ehrlich and H. Krieg, J. Chem. Phys. 132 (2010), 154104</span>
+<span class="sd">    BJ-damping: S. Grimme, S. Ehrlich and L. Goerigk, J. Comput. Chem. 32 (2011), 1456-1465</span>
+<span class="sd">    DFT-D2: S. Grimme, J. Comput. Chem., 27 (2006), 1787-1799</span>
+<span class="sd">    DFT-D3M/DFT-D3M(BJ): D.G.A. Smith, L.A. Burns, K. Patkowski and C.D. Sherrill, J. Phys. Chem. Lett. 7 (2016) 2197-2203</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="n">DAMPING_OPTIONS</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;bj&#39;</span><span class="p">,</span> <span class="s1">&#39;bjm&#39;</span><span class="p">,</span> <span class="s1">&#39;zero&#39;</span><span class="p">,</span> <span class="s1">&#39;zerom&#39;</span><span class="p">]</span>
+<span class="n">FUNCTIONAL_OPTIONS</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;HF&#39;</span><span class="p">,</span> <span class="s1">&#39;B1B95&#39;</span><span class="p">,</span> <span class="s1">&#39;B2GPPLYP&#39;</span><span class="p">,</span> <span class="s1">&#39;B3PW91&#39;</span><span class="p">,</span> <span class="s1">&#39;BHLYP&#39;</span><span class="p">,</span> <span class="s1">&#39;BMK&#39;</span><span class="p">,</span> <span class="s1">&#39;BOP&#39;</span><span class="p">,</span> <span class="s1">&#39;BPBE&#39;</span><span class="p">,</span> <span class="s1">&#39;CAMB3LYP&#39;</span><span class="p">,</span> <span class="s1">&#39;LCωPBE&#39;</span><span class="p">,</span> <span class="s1">&#39;MPW1B95&#39;</span><span class="p">,</span> <span class="s1">&#39;MPWB1K&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;mPWLYP&#39;</span><span class="p">,</span> <span class="s1">&#39;OLYP&#39;</span><span class="p">,</span> <span class="s1">&#39;OPBE&#39;</span><span class="p">,</span> <span class="s1">&#39;oTPSS&#39;</span><span class="p">,</span> <span class="s1">&#39;PBE38&#39;</span><span class="p">,</span> <span class="s1">&#39;PBEsol&#39;</span><span class="p">,</span> <span class="s1">&#39;PTPSS&#39;</span><span class="p">,</span> <span class="s1">&#39;PWB6K&#39;</span><span class="p">,</span> <span class="s1">&#39;revSSB&#39;</span><span class="p">,</span> <span class="s1">&#39;SSB&#39;</span><span class="p">,</span> <span class="s1">&#39;TPSSh&#39;</span><span class="p">,</span> <span class="s1">&#39;HCTH120&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;B2PLYP&#39;</span><span class="p">,</span> <span class="s1">&#39;B3LYP&#39;</span><span class="p">,</span> <span class="s1">&#39;B97D&#39;</span><span class="p">,</span> <span class="s1">&#39;BLYP&#39;</span><span class="p">,</span> <span class="s1">&#39;BP86&#39;</span><span class="p">,</span> <span class="s1">&#39;DSDBLYP&#39;</span><span class="p">,</span> <span class="s1">&#39;PBE0&#39;</span><span class="p">,</span> <span class="s1">&#39;PBE&#39;</span><span class="p">,</span> <span class="s1">&#39;PW6B95&#39;</span><span class="p">,</span> <span class="s1">&#39;PWPB95&#39;</span><span class="p">,</span> <span class="s1">&#39;revPBE0&#39;</span><span class="p">,</span> <span class="s1">&#39;revPBE38&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;revPBE&#39;</span><span class="p">,</span> <span class="s1">&#39;TPSS0&#39;</span><span class="p">,</span> <span class="s1">&#39;TPSS&#39;</span><span class="p">,</span>
+<span class="p">]</span>
+<span class="n">FUNCTIONAL_OPTIONS</span> <span class="o">=</span> <span class="p">[</span><span class="n">func</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">for</span> <span class="n">func</span> <span class="ow">in</span> <span class="n">FUNCTIONAL_OPTIONS</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="DFTD3"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.dftd3.DFTD3">[docs]</a><span class="k">class</span> <span class="nc">DFTD3</span><span class="p">:</span>
+
+<div class="viewcode-block" id="DFTD3.__init__"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.dftd3.DFTD3.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jobname</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">func</span><span class="o">=</span><span class="s1">&#39;pbe&#39;</span><span class="p">,</span> <span class="n">damping</span><span class="o">=</span><span class="s1">&#39;bj&#39;</span><span class="p">,</span> <span class="n">dftd2</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">cutoff</span><span class="o">=</span><span class="mf">94.8683</span><span class="p">,</span> <span class="n">cnthr</span><span class="o">=</span><span class="mi">40</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        init a dftd3 calculation</span>
+
+<span class="sd">        :param jobname:</span>
+<span class="sd">        :param structure:</span>
+<span class="sd">        :param func:</span>
+<span class="sd">        :param damping:</span>
+<span class="sd">        :param dftd2: DFT-D2 version.10</span>
+<span class="sd">        :param cutoff: a cutoff value for the dispersion interaction. The default value is 95 a.u.</span>
+<span class="sd">        :param cnthr: a cutoff value for the calculation of the CN. The default value is 40 a.u. and should be kept fixed</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">jobname</span> <span class="o">=</span> <span class="n">jobname</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">structure</span> <span class="o">=</span> <span class="n">structure</span>
+        <span class="k">if</span> <span class="n">func</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">FUNCTIONAL_OPTIONS</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;W: the func you spec is </span><span class="si">{}</span><span class="s1"> which is not supported, im using pbe instead&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">func</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">func</span> <span class="o">=</span> <span class="s1">&#39;pbe&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">func</span> <span class="o">=</span> <span class="n">func</span>
+        <span class="k">if</span> <span class="n">damping</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">DAMPING_OPTIONS</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;W: the damping you spec is </span><span class="si">{}</span><span class="s1"> which is not supported, im using bj instead&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">damping</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">damping</span> <span class="o">=</span> <span class="s1">&#39;bj&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">damping</span> <span class="o">=</span> <span class="n">damping</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dftd2</span> <span class="o">=</span> <span class="n">dftd2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cutoff</span> <span class="o">=</span> <span class="n">cutoff</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cnthr</span> <span class="o">=</span> <span class="n">cnthr</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">cmd_option_string</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="s1">&#39; -func </span><span class="si">{}</span><span class="s1"> -</span><span class="si">{}</span><span class="s1"> -abc -pbc -cutoff </span><span class="si">{}</span><span class="s1"> -cnthr </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">func</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">damping</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cutoff</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cnthr</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dftd2</span><span class="p">:</span>
+            <span class="n">s</span> <span class="o">+=</span> <span class="s1">&#39; -old&#39;</span>
+        <span class="k">return</span> <span class="n">s</span>
+
+<div class="viewcode-block" id="DFTD3.parse_results"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.dftd3.DFTD3.parse_results">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">parse_results</span><span class="p">(</span><span class="n">res</span><span class="p">):</span>
+        <span class="n">ls</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">ls</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s1">&#39;s6       :&#39;</span> <span class="ow">in</span> <span class="n">l</span><span class="p">:</span>
+                <span class="n">s6</span> <span class="o">=</span> <span class="n">l</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">2</span><span class="p">]</span>
+                <span class="n">s6</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">s6</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="s1">&#39;s8       :&#39;</span> <span class="ow">in</span> <span class="n">l</span><span class="p">:</span>
+                <span class="n">s8</span> <span class="o">=</span> <span class="n">l</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">2</span><span class="p">]</span>
+                <span class="n">s8</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">s8</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="s1">&#39;a1       :&#39;</span> <span class="ow">in</span> <span class="n">l</span><span class="p">:</span>
+                <span class="n">a1</span> <span class="o">=</span> <span class="n">l</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">2</span><span class="p">]</span>
+                <span class="n">a1</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">a1</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="s1">&#39;a2       :&#39;</span> <span class="ow">in</span> <span class="n">l</span><span class="p">:</span>
+                <span class="n">a2</span> <span class="o">=</span> <span class="n">l</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">2</span><span class="p">]</span>
+                <span class="n">a2</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">a2</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="s1">&#39;Edisp /kcal,au,eV:&#39;</span> <span class="ow">in</span> <span class="n">l</span><span class="p">:</span>
+                <span class="n">edisp_ev</span> <span class="o">=</span> <span class="n">l</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">edisp_ev</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">edisp_ev</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="s1">&#39;E6    /kcal&#39;</span> <span class="ow">in</span> <span class="n">l</span><span class="p">:</span>
+                <span class="n">e6_kcal</span> <span class="o">=</span> <span class="n">l</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">e6_ev</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">e6_kcal</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.04336</span>
+            <span class="k">elif</span> <span class="s1">&#39;E8    /kcal&#39;</span> <span class="ow">in</span> <span class="n">l</span><span class="p">:</span>
+                <span class="n">e8_kcal</span> <span class="o">=</span> <span class="n">l</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">e8_ev</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">e8_kcal</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.04336</span>
+            <span class="k">elif</span> <span class="s1">&#39;E6(ABC)&#39;</span> <span class="ow">in</span> <span class="n">l</span><span class="p">:</span>
+                <span class="n">e6abc_kcal</span> <span class="o">=</span> <span class="n">l</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">e6abc_ev</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">e6abc_kcal</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.04336</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">s6</span><span class="o">=</span><span class="n">s6</span><span class="p">,</span> <span class="n">s8</span><span class="o">=</span><span class="n">s8</span><span class="p">,</span> <span class="n">a1</span><span class="o">=</span><span class="n">a1</span><span class="p">,</span> <span class="n">a2</span><span class="o">=</span><span class="n">a2</span><span class="p">,</span> <span class="n">edisp_ev</span><span class="o">=</span><span class="n">edisp_ev</span><span class="p">,</span> <span class="n">e6_ev</span><span class="o">=</span><span class="n">e6_ev</span><span class="p">,</span> <span class="n">e6abc_ev</span><span class="o">=</span><span class="n">e6abc_ev</span><span class="p">,</span> <span class="n">e8_ev</span><span class="o">=</span><span class="n">e8_ev</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">NameError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="n">d</span></div>
+
+<div class="viewcode-block" id="DFTD3.run"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.dftd3.DFTD3.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d3cmd</span><span class="p">,</span> <span class="n">wdir</span><span class="p">):</span>
+        <span class="n">createdir</span><span class="p">(</span><span class="n">wdir</span><span class="p">)</span>
+        <span class="n">poscarfn</span> <span class="o">=</span> <span class="n">wdir</span> <span class="o">+</span> <span class="s1">&#39;POSCAR_dftd3&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s1">&#39;poscar&#39;</span><span class="p">,</span> <span class="n">poscarfn</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">check_output</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> </span><span class="si">{}</span><span class="s1"> </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">d3cmd</span><span class="p">,</span> <span class="n">poscarfn</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cmd_option_string</span><span class="p">),</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Ai, Qianxiang
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

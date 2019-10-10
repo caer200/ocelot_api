@@ -181,10 +181,10 @@
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">msites</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">siteids</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">siteid</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">msites</span><span class="p">]</span>  <span class="c1"># TODO this could be in the parent obj</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">backbone_rings</span> <span class="o">=</span> <span class="n">backbone_rings</span>
-
         <span class="bp">self</span><span class="o">.</span><span class="n">vo_fit</span> <span class="o">=</span> <span class="n">pfit_vo</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">vp_fit</span> <span class="o">=</span> <span class="n">pfit_vp</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">vq_fit</span> <span class="o">=</span> <span class="n">pfit_vq</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pqo</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">vp_fit</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">vq_fit</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">vo_fit</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">lfit_linearity</span> <span class="o">=</span> <span class="n">lfit_linearity</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">pfit_error</span> <span class="o">=</span> <span class="n">pfit_error</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">backbone_rings</span> <span class="o">=</span> <span class="n">backbone_rings</span></div>
@@ -293,8 +293,14 @@
                         <span class="n">angle_btw</span><span class="p">(</span><span class="o">-</span><span class="n">fr_vo</span><span class="p">,</span> <span class="n">vo</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="s2">&quot;degree&quot;</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">_coplane_cutoff</span><span class="p">:</span>
                     <span class="n">backbone_rings</span> <span class="o">+=</span> <span class="n">fr</span>
 
-        <span class="n">lfit_vp</span><span class="p">,</span> <span class="n">lfit_ptsmean</span><span class="p">,</span> <span class="n">lfit_linearity</span> <span class="o">=</span> <span class="n">Fitter</span><span class="o">.</span><span class="n">linear_fit</span><span class="p">([</span><span class="n">r</span><span class="o">.</span><span class="n">geoc</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">backbone_rings</span><span class="p">])</span>
-        <span class="n">lfit_vp</span> <span class="o">=</span> <span class="n">unify</span><span class="p">(</span><span class="n">lfit_vp</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">backbone_rings</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;W: you are init backbone with one ring! lfit_x will be set to zero(s)&#39;</span><span class="p">)</span>
+            <span class="n">lfit_vp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+            <span class="n">lfit_ptsmean</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+            <span class="n">lfit_linearity</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">lfit_vp</span><span class="p">,</span> <span class="n">lfit_ptsmean</span><span class="p">,</span> <span class="n">lfit_linearity</span> <span class="o">=</span> <span class="n">Fitter</span><span class="o">.</span><span class="n">linear_fit</span><span class="p">([</span><span class="n">r</span><span class="o">.</span><span class="n">geoc</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">backbone_rings</span><span class="p">])</span>
+            <span class="n">lfit_vp</span> <span class="o">=</span> <span class="n">unify</span><span class="p">(</span><span class="n">lfit_vp</span><span class="p">)</span>
 
         <span class="n">s_in_backbone</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">backbone_rings</span><span class="p">:</span>

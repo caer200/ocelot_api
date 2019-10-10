@@ -252,6 +252,11 @@
             <span class="n">d</span><span class="p">[</span><span class="s1">&#39;largest_fused_ring&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span><span class="o">.</span><span class="n">as_dict</span><span class="p">()</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">largest_fused_ring</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">d</span></div>
 
+<div class="viewcode-block" id="OMol.from_dict"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.omol.OMol.from_dict">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+        <span class="n">msites</span> <span class="o">=</span> <span class="p">[</span><span class="n">MSite</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">msd</span><span class="p">)</span> <span class="k">for</span> <span class="n">msd</span> <span class="ow">in</span>  <span class="n">d</span><span class="p">[</span><span class="s1">&#39;msites&#39;</span><span class="p">]]</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">msites</span><span class="p">,</span> <span class="n">keepsiteid</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
     <span class="c1"># def get_shortest_path(s1, s2, path=None):</span>
     <span class="c1"># backtracking as in</span>
     <span class="c1"># https://www.python.org/doc/essays/graphs/</span>
