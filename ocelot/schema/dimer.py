@@ -85,10 +85,11 @@ class Dimer:
         label = d['label']
         return cls(omol_ref, omol_var, label)
 
-    def to_xyz(self, fn):
+    def to_xyz(self, fn, center_label=False):
         sites = [s.to_pymatgen_site() for s in self.omol_ref.sites]
         sites += [s.to_pymatgen_site() for s in self.omol_var.sites]
-        sites += [Site('La', self.omol_ref.geoc)]
+        if center_label:
+            sites += [Site('La', self.omol_ref.geoc)]
         Molecule.from_sites(sites).to('xyz', fn)
 
     @property
