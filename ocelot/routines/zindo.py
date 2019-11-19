@@ -5,6 +5,13 @@ import subprocess
 from pymatgen.core.structure import Element, Molecule
 import numpy as np
 
+# http://www.esi.umontreal.ca/accelrys/life/insight2000.1/zindo/3_Implementation.html
+Zindo_elements = [
+    'H', 'Li', 'Be', 'B', 'C', 'N', 'O', 'F', 'Na', 'Mg', 'Al', 'Si', 'P', 'S', 'Cl', 'K',
+    'Ca', 'Sc', 'Ti', 'V', 'Cr', 'Mn', 'Fe', 'Co', 'Ni', 'Cu', 'Zn', 'Se', 'Br', 'Y', 'Zr',
+    'Nb', 'Mo', 'Tc', 'Ru', 'Rh', 'Pd', 'Ag', 'Cd'
+]
+
 ZINDO_INP_TEMPLATE = """
  $TITLEI
  
@@ -21,11 +28,9 @@ ZINDO_INP_TEMPLATE = """
  IPRINT    {iprint}
  INTTYP    {inttyp}
  IAPX      {iapx}
- NEL       {nel}
  MULT      {mult}   
  ITMAX     {itmax}   
  SCFTOL    {scftol}
- DYNAL(1) = {nzero} {ns} {nsp} {nspd} {nspdf} {cisize} {nactorb}
  INTFA(1) = 1.00000 1.26700 0.58500 1.00000 1.00000 1.00000
  ONAME    = {oname}
  
@@ -38,6 +43,12 @@ ZINDO_INP_TEMPLATE = """
  $END
 """
 
+optional = """
+ DYNAL(1) = {nzero} {ns} {nsp} {nspd} {nspdf} {cisize} {nactorb}
+ NEL       {nel}
+
+"""
+
 
 class ZindoJob:
 
@@ -47,6 +58,18 @@ class ZindoJob:
         self.isdimer = isdimer
         self.mol_A = mol_A
         self.mol_D = mol_D
+
+    @property
+    def legit(self):
+        if self.isdimer:
+            sites = self.mol_A.sites + self.mol_D.sites
+        else:
+            sites = self.pmgmol.sites
+        for s in sites:
+            element = Element(s.species_string)
+            if element.symbol not in Zindo_elements:
+                return False
+        return True
 
     @staticmethod
     def get_valence_electrons(pmgmol):
@@ -64,7 +87,7 @@ class ZindoJob:
         return nvelect
 
     @staticmethod
-    def inpstring(pmgmol, RUNTYP='ENERGY', SCFTYP='RHF', ITMAX=50, SCFTOL=0.0000010, CISIZE=0, ACTSPC=0,
+    def inpstring(pmgmol, RUNTYP='ENERGY', SCFTYP='RHF', ITMAX=500, SCFTOL=0.0000010, CISIZE=0, ACTSPC=0,
                   ONAME='zindoout'):
         """
         string of input file, charge and mult will be inherited from pmgmol
@@ -81,37 +104,38 @@ class ZindoJob:
         """
         if pmgmol.charge != 0 or pmgmol.spin_multiplicity != 1:
             warnings.warn('W: zindo io can only handle neutral singlet right now!')
-        nelect, ns, nsp, nspd, nspdf = [0]*5
+        # nelect, ns, nsp, nspd, nspdf = [0]*5
         datain = ''
         for site in pmgmol.sites:
             element = Element(site.species_string)
-            nelect += abs(min(element.common_oxidation_states))
+            # nelect += abs(min(element.common_oxidation_states))
             datain += '{} {} {} {}\n'.format(site.x, site.y, site.z, element.number)
-            if element.block == 's':
-                ns += 1
-            elif element.block == 'p':
-                nsp += 1
-            elif element.block == 'd':
-                nspd += 1
-            elif element.block == 'f':
-                nspdf += 1
-            else:
-                warnings.warn('W: this element has a row number > 7 ??')
+            # if element.block == 's':
+            #     ns += 2
+            # elif element.block == 'p':
+            #     nsp += 2
+            # elif element.block == 'd':
+            #     nspd += 1
+            # elif element.block == 'f':
+            #     nspdf += 1
+            # else:
+            #     warnings.warn('W: this element has a row number > 7 ??')
         s = ZINDO_INP_TEMPLATE.format(
             title='zindogen', scftyp=SCFTYP, runtyp=RUNTYP, enttyp='COORD', units='ANGS', iprint='1', inttyp='1',
-            iapx='3', nel=nelect, mult=1, itmax=ITMAX, scftol=SCFTOL, nzero=0, ns=ns, nsp=nsp,
-            nspd=nspd, nspdf=nspdf, cisize=CISIZE, nactorb=ACTSPC, oname=ONAME, datain=datain
+            iapx='3', mult=1, itmax=ITMAX, scftol=SCFTOL,
+            # nel=nelect, nzero=0, ns=ns, nsp=nsp, nspd=nspd, nspdf=nspdf, cisize=CISIZE, nactorb=ACTSPC,
+            oname=ONAME, datain=datain,
         )
         return s
     
-    def write_single(self, fnprefix, RUNTYP='ENERGY', SCFTYP='RHF', ITMAX=50, SCFTOL=0.0000010, CISIZE=0, ACTSPC=0,
+    def write_single(self, fnprefix, RUNTYP='ENERGY', SCFTYP='RHF', ITMAX=500, SCFTOL=0.0000010, CISIZE=0, ACTSPC=0,
                      ONAME='zindoout'):
         s = self.inpstring(self.pmgmol, RUNTYP, SCFTYP, ITMAX, SCFTOL, CISIZE, ACTSPC, ONAME)
         with open(fnprefix + '.inp', 'w') as f:
             f.write(s)
         return [fnprefix + '.inp']
 
-    def write_dimer(self, fnprefix, RUNTYP='ENERGY', SCFTYP='RHF', ITMAX=50, SCFTOL=0.0000010, CISIZE=0, ACTSPC=0,
+    def write_dimer(self, fnprefix, RUNTYP='ENERGY', SCFTYP='RHF', ITMAX=500, SCFTOL=0.0000010, CISIZE=0, ACTSPC=0,
                      ONAME='zindoout'):
         if not self.isdimer:
             return
