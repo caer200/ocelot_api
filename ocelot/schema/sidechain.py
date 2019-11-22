@@ -159,7 +159,7 @@ class Sidechain(MSitelist):
                 s.hybrid = None
         maxrank = max([s.rank for s in sc_msites])
         rankmap = [None, None]  # rankmap[2] is [sidejoint], rankmap[3] is [msites with rank==3]
-        for rank in range(2, maxrank):
+        for rank in range(2, maxrank+1):
             rankmap.append(sorted([s for s in sc_msites if s.rank == rank], key=lambda x: len(x.higher_rank_nbs)))
 
         v1 = bone_joint.coords - omol.backbone.geoc

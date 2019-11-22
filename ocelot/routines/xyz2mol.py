@@ -26,6 +26,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
+from ocelot.schema.element import Element
 from rdkit import Chem
 from rdkit.Chem import AllChem
 import itertools
@@ -286,19 +287,22 @@ def AC2BO(AC, atomicNumList, charge, charged_fragments, quick):
     atomic_valence[53] = [1]
 
     atomic_valence_electrons = {}
-    atomic_valence_electrons[1] = 1
-    atomic_valence_electrons[6] = 4
-    atomic_valence_electrons[7] = 5
-    atomic_valence_electrons[8] = 6
-    atomic_valence_electrons[9] = 7
-    atomic_valence_electrons[14] = 4
-    atomic_valence_electrons[15] = 5
-    atomic_valence_electrons[16] = 6
-    atomic_valence_electrons[17] = 7
-    atomic_valence_electrons[32] = 4
-    atomic_valence_electrons[34] = 2
-    atomic_valence_electrons[35] = 7
-    atomic_valence_electrons[53] = 7
+    for i in range(1,95):
+        element = Element.number2name[i]
+        atomic_valence_electrons[i] = Element(element).valence
+    # atomic_valence_electrons[1] = 1
+    # atomic_valence_electrons[6] = 4
+    # atomic_valence_electrons[7] = 5
+    # atomic_valence_electrons[8] = 6
+    # atomic_valence_electrons[9] = 7
+    # atomic_valence_electrons[14] = 4
+    # atomic_valence_electrons[15] = 5
+    # atomic_valence_electrons[16] = 6
+    # atomic_valence_electrons[17] = 7
+    # atomic_valence_electrons[32] = 4
+    # atomic_valence_electrons[34] = 2
+    # atomic_valence_electrons[35] = 7
+    # atomic_valence_electrons[53] = 7
 
     # make a list of valences, e.g. for CO: [[4],[2,1]]
     valences_list_of_lists = []

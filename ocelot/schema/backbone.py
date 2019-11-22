@@ -35,7 +35,6 @@ class Backbone(MSitelist):
         self.pqo = np.array([self.vp_fit, self.vq_fit, self.vo_fit])
         self.lfit_linearity = lfit_linearity
         self.pfit_error = pfit_error
-        self.backbone_rings = backbone_rings
 
     @classmethod
     def from_dict(cls, d):

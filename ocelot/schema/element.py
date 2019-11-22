@@ -1,4 +1,13 @@
 import warnings
+from pymatgen.core.periodic_table import Element as PmgElement
+
+
+def nvalence_electron(estring):
+    element = PmgElement(estring)
+    if len(element.common_oxidation_states) == 0:
+        return 0
+    nvelect = abs(min(element.common_oxidation_states))
+    return nvelect
 
 
 class Element:
@@ -47,18 +56,19 @@ class Element:
                       'Es': 99, 'Fm': 100, 'Md': 101, 'No': 102, 'Lr': 103, 'Rf': 104, 'Db': 105, 'Sg': 106, 'Bh': 107,
                       'Hs': 108, 'Mt': 109, 'Ds': 110, 'Rg': 111, 'Cn': 112, 'Nh': 113, 'Fl': 114, 'Mc': 115, 'Lv': 116,
                       'Ts': 117, 'Og': 118, }
+    number2name =  {v: k for k, v in atomic_numbers.items()}
 
-    # max bonds that an atom can have, a short dict should be enough for organics...
-    valence_dict = {
-        'H': 1,
-        'Li': 1, 'Na': 1, 'K': 1,
-        'Be': 2, 'Mg': 2, 'Ca': 2,
-        'B': 3, 'Al': 3, 'Ga': 3,
-        'C': 4, 'Si': 4, 'Ge': 4,
-        'N': 3, 'P': 3, 'As': 3,
-        'O': 2, 'S': 2, 'Se': 2,
-        'F': 1, 'Cl': 1, 'Br': 1,
-    }
+    # # max bonds that an atom can have, a short dict should be enough for organics...
+    # valence_dict = {
+    #     'H': 1,
+    #     'Li': 1, 'Na': 1, 'K': 1,
+    #     'Be': 2, 'Mg': 2, 'Ca': 2,
+    #     'B': 3, 'Al': 3, 'Ga': 3,
+    #     'C': 4, 'Si': 4, 'Ge': 4,
+    #     'N': 3, 'P': 3, 'As': 3,
+    #     'O': 2, 'S': 2, 'Se': 2,
+    #     'F': 1, 'Cl': 1, 'Br': 1,
+    # }
 
     def __init__(self, name):
         """
@@ -108,6 +118,10 @@ class Element:
             warnings.warn('W: element valence is not defined for {}!'.format(self.name))
             return None
 
+    @classmethod
+    def from_number(cls, n):
+        return cls(name=Element.atomic_numbers[n])
+
     @property
     def atomic_number(self):
         """
@@ -124,10 +138,12 @@ class Element:
     def valence(self):
         """
         :return: max bonds that an atom can have, see `valence_dict`
-        :rtype: int, None if self.name is not recognized
+        # :rtype: int, None if self.name is not recognized
         """
-        try:
-            return self.valence_dict[self.name]
-        except KeyError:
-            warnings.warn('W: element valence is not defined for {}!'.format(self.name))
-            return None
+        # try:
+        #     # return self.valence_dict[self.name]
+        # except KeyError:
+        #     warnings.warn('W: element valence is not defined for {}!'.format(self.name))
+        #     return 100
+
+        return nvalence_electron(self.name)

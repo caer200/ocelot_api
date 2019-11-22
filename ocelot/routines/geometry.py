@@ -41,6 +41,8 @@ def angle_btw(v1, v2, output='radian'):
 
 
 def unify(v):
+    if norm(v) == 0:
+        return v
     return v / norm(v)
 
 

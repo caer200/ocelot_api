@@ -2,7 +2,7 @@ import warnings
 import os
 from ocelot.routines.fileop import movefile
 import subprocess
-from pymatgen.core.structure import Element, Molecule
+from pymatgen.core.structure import Element, Molecule, Site
 import numpy as np
 
 # http://www.esi.umontreal.ca/accelrys/life/insight2000.1/zindo/3_Implementation.html
@@ -11,6 +11,23 @@ Zindo_elements = [
     'Ca', 'Sc', 'Ti', 'V', 'Cr', 'Mn', 'Fe', 'Co', 'Ni', 'Cu', 'Zn', 'Se', 'Br', 'Y', 'Zr',
     'Nb', 'Mo', 'Tc', 'Ru', 'Rh', 'Pd', 'Ag', 'Cd'
 ]
+
+
+def conver2zindo(pmgmol):
+    if pmgmol is None:
+        return None
+    sites = pmgmol.sites
+    newsites = []
+    for s in sites:
+        if not s.species_string in Zindo_elements:
+            group = Element(s.species_string).group
+            samegroup_symbols = [symbol for symbol in Zindo_elements if Element(symbol).group == group]
+            replacement = sorted(samegroup_symbols, key=lambda x:Element(x).number, reverse=True)[0]
+            newsites.append(Site(replacement, s.coords))
+        else:
+            newsites.append(Site(s.species_string, s.coords))
+    return Molecule.from_sites(newsites)
+
 
 ZINDO_INP_TEMPLATE = """
  $TITLEI
@@ -52,12 +69,16 @@ optional = """
 
 class ZindoJob:
 
-    def __init__(self, jobname, pmgmol, isdimer=False, mol_A=None, mol_D=None):
+    def __init__(self, jobname, pmgmol, isdimer=False, mol_A=None, mol_D=None, upconvert=True):
         self.jobname = jobname
         self.pmgmol = pmgmol  # add deepcopy?
         self.isdimer = isdimer
         self.mol_A = mol_A
         self.mol_D = mol_D
+        if upconvert:
+            self.pmgmol = conver2zindo(self.pmgmol)
+            self.mol_A = conver2zindo(mol_A)
+            self.mol_D = conver2zindo(mol_D)
 
     @property
     def legit(self):

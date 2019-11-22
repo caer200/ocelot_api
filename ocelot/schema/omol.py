@@ -1,4 +1,5 @@
 import warnings
+from rdkit import Chem
 # import sys
 # from copy import deepcopy
 import sys
@@ -57,10 +58,14 @@ class OMol(MSitelist):
                 self.msites[i].insaturation = None
 
         rs = Loopsearcher(self.nbrmap)
-        self.rings = []
-        for ring_size in range(3, 9):  # 3-8 member rings
-            idxlsts = rs.alex_method(ring_size)
-            self.rings += [Ring.from_idxlst(idxlst, self.msites) for idxlst in idxlsts]
+        idxlsts = rs.sssr_alex(3, 12)
+        self.rings = [Ring.from_idxlst(idxlst, self.msites) for idxlst in idxlsts]
+
+        # # somehow this doesnt work, GetRingInfo().AtomRings() returns an empty tuple
+        # self.rings = []
+        # # you need to make sure the order in msites is identical to siteid
+        # for idxlst in self.rdkit_mol.GetRingInfo().AtomRings():
+        #     self.rings.append(Ring.from_idxlst(idxlst, self.msites))
 
         self.fused_rings_list = self.get_fused_rings_list()  # [[r1, r2, r3], [r5, r6], [r4]...]
 

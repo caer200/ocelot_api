@@ -1,3 +1,8 @@
+# from collections import deque
+# from copy import deepcopy
+import numpy as np
+from scipy.linalg import lu
+
 class Loopsearcher:
 
     def __init__(self, nbmap):
@@ -13,6 +18,8 @@ class Loopsearcher:
         :param nbmap: connection table
         """
         self.nbmap = nbmap
+        self.edges = self.generate_edges()
+        self.nodes = list(self.nbmap.keys())
 
     def expand(self, path_set):
         """
@@ -67,3 +74,53 @@ class Loopsearcher:
             if len(idxlst) == loopsize:
                 true_loop_found.append(idxlst)
         return true_loop_found
+
+    def sssr_alex(self, size_min, size_max):
+        loops = []
+        for size in range(size_min, size_max+1):
+            loops += self.alex_method(size)
+        basis_loops = []
+        basis_loops_set = []
+        for loop1 in loops:
+            loop1fused = False
+            for loop2 in loops:
+                if set(loop1).issuperset(set(loop2)) and len(loop1) > len(loop2):
+                    loop1fused = True
+                    break
+            if not loop1fused and set(loop1) not in basis_loops_set:
+                    basis_loops.append(loop1)
+                    basis_loops_set.append(set(loop1))
+
+        # # there should be an easier way for this...
+        # # https://stackoverflow.com/questions/32071425/
+        # # I cannot find a gaussian elimination implementation based on xor
+        # edgematrix = np.zeros((len(loops), len(self.edges)))
+        # for i in range(len(loops)):
+        #     l_edges = self.loop2edges(loops[i])
+        #     for j in range(len(self.edges)):
+        #         if self.edges[j] in l_edges:
+        #             edgematrix[i, j] = 1
+        # pl, u = lu(edgematrix, permute_l=True)
+        # basis_loops = [loops[i] for i in np.where(u.any(axis=1))[0]]
+        return basis_loops
+
+
+    @staticmethod
+    def loop2edges(loop):
+        """
+        notice here loop is sth like [1, 2, 3], where it is implied that 1 is connected to 3
+
+        :param loop:
+        :return: e.g. [{1, 2}, {2, 3}, {1, 3}]
+        """
+        path = loop + [loop[0]]
+        edges = [set(pair) for pair in zip(path[:-1], path[1:])]
+        return edges
+
+    def generate_edges(self):
+        graph = self.nbmap
+        edges = []
+        for node in graph:
+            for neighbour in graph[node]:
+                edges.append({node, neighbour})
+        return edges
