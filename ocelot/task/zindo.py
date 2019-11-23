@@ -22,7 +22,7 @@ def conver2zindo(pmgmol):
         if not s.species_string in Zindo_elements:
             group = Element(s.species_string).group
             samegroup_symbols = [symbol for symbol in Zindo_elements if Element(symbol).group == group]
-            replacement = sorted(samegroup_symbols, key=lambda x:Element(x).number, reverse=True)[0]
+            replacement = sorted(samegroup_symbols, key=lambda x: Element(x).number, reverse=True)[0]
             newsites.append(Site(replacement, s.coords))
         else:
             newsites.append(Site(s.species_string, s.coords))
@@ -148,7 +148,7 @@ class ZindoJob:
             oname=ONAME, datain=datain,
         )
         return s
-    
+
     def write_single(self, fnprefix, RUNTYP='ENERGY', SCFTYP='RHF', ITMAX=500, SCFTOL=0.0000010, CISIZE=0, ACTSPC=0,
                      ONAME='zindoout'):
         s = self.inpstring(self.pmgmol, RUNTYP, SCFTYP, ITMAX, SCFTOL, CISIZE, ACTSPC, ONAME)
@@ -157,7 +157,7 @@ class ZindoJob:
         return [fnprefix + '.inp']
 
     def write_dimer(self, fnprefix, RUNTYP='ENERGY', SCFTYP='RHF', ITMAX=500, SCFTOL=0.0000010, CISIZE=0, ACTSPC=0,
-                     ONAME='zindoout'):
+                    ONAME='zindoout'):
         if not self.isdimer:
             return
         s_a = self.inpstring(self.mol_A, RUNTYP, SCFTYP, ITMAX, SCFTOL, CISIZE, ACTSPC, ONAME)
@@ -196,7 +196,7 @@ class ZindoJob:
             imoa = int(imoa)
             imod = int(imod)
             d = dict(ti=ti, emoa=emoa, emod=emod, imoa=imoa, imod=imod)
-            data[imoa-1][imod-1] = d
+            data[imoa - 1][imod - 1] = d
         return data
 
     @staticmethod
@@ -213,7 +213,7 @@ class ZindoJob:
             ldlibpath = env['LD_LIBRARY_PATH']
         except KeyError:
             ldlibpath = ''
-        env['LD_LIBRARY_PATH'] =  '{}:'.format(zindolib)+ ldlibpath
+        env['LD_LIBRARY_PATH'] = '{}:'.format(zindolib) + ldlibpath
         p = subprocess.Popen("{} < {} > {}".format(zindobin, ainp, aout), shell=True, env=env)
         p.wait()
         movefile('mo.out', 'mo_A.out')
@@ -225,7 +225,3 @@ class ZindoJob:
         data = zj.parse_tmo('tmo.dat')
         os.chdir(whereami)
         return data
-
-
-
-
