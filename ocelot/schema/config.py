@@ -27,9 +27,8 @@ class Config:
         for i in range(self.z):
             self.omols[i].comment = {'index in the cell': i}
         # self.dimers_array, self.transv_fcs = self.get_dimers_array(2)
-        self.dimers_array, self.transv_fcs = self.get_dimers_array(1)
 
-    def as_dict(self):
+    def as_dict(self, dimermaxfold=2):
         """
         keys are
 
@@ -42,11 +41,12 @@ class Config:
         d['omols'] = [m.as_dict() for m in self.omols]
         d['z'] = self.z
 
-        dimers_dictarray = np.empty((self.z, self.z, len(self.transv_fcs)), dtype=dict)
+        dimers_array, transv_fcs = self.get_dimers_array(dimermaxfold)
+        dimers_dictarray = np.empty((self.z, self.z, len(transv_fcs)), dtype=dict)
         for i in range(self.z):
             for j in range(self.z):
-                for k in range(len(self.transv_fcs)):
-                    dimers_dictarray[i][j][k] = self.dimers_array[i][j][k].as_dict()
+                for k in range(len(transv_fcs)):
+                    dimers_dictarray[i][j][k] = dimers_array[i][j][k].as_dict()
         d['dimers_dict_array'] = dimers_dictarray
         return d
 

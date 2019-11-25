@@ -90,6 +90,7 @@ class Dimer:
         sites += [s.to_pymatgen_site() for s in self.omol_var.msites]
         if center_label:
             sites += [Site('La', self.omol_ref.geoc)]
+            sites += [Site('La', self.omol_var.geoc)]
         Molecule.from_sites(sites).to('xyz', fn)
 
     @property

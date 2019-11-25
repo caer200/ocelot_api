@@ -6,4 +6,4 @@ rdomol = OmolRd(m)
 import pprint
 
 d = rdomol.as_dict()
-pprint.pprint(d)
+pprint.pprint(d['rings'])
