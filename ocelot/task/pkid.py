@@ -23,7 +23,7 @@ class PackingIdentifier:
         n_close_azm_and_parallel, n_close_azm_and_notparallel, n_close_vertical_and_parallel, n_close_vertical_and_notparallel, n_parallel_and_overlap, n_notparallel_and_overlap, packing
         :return:
         """
-        bc_dimers, bc_dimers_transv_fcs = self.boneconfig.dimers_array, self.boneconfig.transv_fcs
+        bc_dimers, bc_dimers_transv_fcs = self.boneconfig.get_dimers_array(maxfold=2)
         report = OrderedDict()
         for i in range(self.boneconfig.z):
             n_close_azm_and_parallel = 0  # min distance between backbone proj<2, 1.5>oslip

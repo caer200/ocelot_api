@@ -200,7 +200,7 @@ class OMol(MSitelist):
                 visited.append(block[pointer])
                 pointer += 1
             block_list.append([self.rings[j] for j in block])
-        block_list.sort(key=lambda x: len(x), reverse=True)
+        block_list.sort(key=lambda x: (len(x), len(x[0])), reverse=True)
         return block_list
 
     def get_sidechains(self):

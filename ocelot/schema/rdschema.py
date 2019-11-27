@@ -62,6 +62,10 @@ def getnval(atom):
 
 
 class Atomlist:
+
+    def __len__(self):
+        return len(self.atoms)
+
     def __init__(self, atoms):
         self.atoms = []
         self.idx = []
@@ -364,7 +368,7 @@ class OmolRd(Atomlist):
                 visited.append(block[pointer])
                 pointer += 1
             block_list.append([self.rings[j] for j in block])
-        block_list.sort(key=lambda x: len(x), reverse=True)
+        block_list.sort(key=lambda x: (len(x), len(x[0])), reverse=True)
         return block_list
 
     def omol_partition(self):

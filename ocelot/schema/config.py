@@ -60,28 +60,42 @@ class Config:
         pstructure = Structure.from_dict(d['pymatgen_structure'])
         return cls(pstructure)
 
-    def get_dimers_array(self, maxfold=2):
+    def get_dimers_array(self, maxfold=2, fast=False, symm=False):
         """
         see init for return details
 
         :param maxfold: translation vector in fc can be [h, h, h] where maxfold <= h <= maxfold
         :return: dimers_array, transv_fcs
         """
-        transv_1d = range(-maxfold, maxfold + 1)
-        transv_fcs = list(v for v in itertools.product(transv_1d, transv_1d, transv_1d))
-        dimers = np.empty((self.z, self.z, len(transv_fcs)), dtype=Dimer)
+        transv_1d = list(range(-maxfold, maxfold + 1))
+        transv_fcs = np.array(np.meshgrid(transv_1d, transv_1d, transv_1d)).T.reshape(-1,3)
+        # symmetry dimers[i][j][transv_fcs[k]] = dimers[j][i][-transv_fcs[k]]
+        nuni = int((len(transv_fcs)+1)/2)
+        uni_transv_fcs = transv_fcs[:nuni]  # as transv_fcs[i] == transv_fcs[len-i]
+        if symm:
+            dimers = np.empty((self.z, self.z, len(uni_transv_fcs)), dtype=Dimer)
+            used_transv_fcs = uni_transv_fcs
+        else:
+            dimers = np.empty((self.z, self.z, len(transv_fcs)), dtype=Dimer)
+            used_transv_fcs = transv_fcs
 
         for i in range(self.z):
             ref_omol = self.omols[i]
             for j in range(self.z):
                 var_omol = self.omols[j]
-                for k in range(len(transv_fcs)):
-                    transv = self.unwrap_structure.lattice.get_cartesian_coords(transv_fcs[k])
-                    msites = deepcopy(var_omol.msites)
-                    for h in range(len(msites)):
-                        msites[h].coords += transv
-                    # dimer_ijk = Dimer(deepcopy(ref_omol), OMol(msites), self, label="{}-{}_{}".format(i, j, k))
-                    dimer_ijk = Dimer(ref_omol, OMol(msites), label="{}-{}_{}".format(i, j, k))
+                for k in range(len(used_transv_fcs)):
+                    transv = self.unwrap_structure.lattice.get_cartesian_coords(used_transv_fcs[k])
+                    if fast:
+                        var_omol_k = deepcopy(var_omol)
+                        for h in range(len(var_omol_k)):
+                            var_omol_k.msites[h].coords += transv
+                        dimer_ijk = Dimer(ref_omol, var_omol_k, label="{}-{}_{}".format(i, j, k))
+                        # dimer_ji_nk = Dimer(ref_omol, var_omol_nk, label="{}-{}_{}".format(i, j, ntrans-k-1))
+                    else:
+                        msites = deepcopy(var_omol.msites)
+                        for h in range(len(msites)):
+                            msites[h].coords += transv
+                        dimer_ijk = Dimer(ref_omol, OMol(msites), label="{}-{}_{}".format(i, j, k))
                     dimers[i][j][k] = dimer_ijk
         return dimers, transv_fcs
 
