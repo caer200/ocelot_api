@@ -52,6 +52,16 @@ class Sidechain(MSitelist):
                 self.umbrella = MSitelist(self.umbrella_sites)
                 break
 
+    @property
+    def site_ids(self):
+        return [ms.siteid for ms in self.msites]
+
+    def is_identical_with(self, other):
+        return set(self.site_ids) == set(other.site_ids)
+
+    def is_intersection_with(self, other):
+        return bool(set(self.site_ids).intersection(set(other.site_ids)))
+
     def as_dict(self):
         """
         keys are
@@ -133,6 +143,10 @@ class Sidechain(MSitelist):
             eq_rank_nbs = []
             higher_rank_nbs = []
             for nb in s.nbs:
+                try:  # I added this due to situation like RAZTAN.cif where one sc has two bone_joints
+                    rank_dummy = nb.rank
+                except AttributeError:
+                    continue
                 if nb.rank < s.rank:
                     lower_rank_nbs.append(nb)
                 elif nb.rank == s.rank:
@@ -158,7 +172,7 @@ class Sidechain(MSitelist):
             else:
                 s.hybrid = None
         maxrank = max([s.rank for s in sc_msites])
-        rankmap = [None, None]  # rankmap[2] is [sidejoint], rankmap[3] is [msites with rank==3]
+        rankmap = [None, [bone_joint]]  # rankmap[2] is [sidejoints], rankmap[3] is [msites with rank==3]
         for rank in range(2, maxrank+1):
             rankmap.append(sorted([s for s in sc_msites if s.rank == rank], key=lambda x: len(x.higher_rank_nbs)))
 

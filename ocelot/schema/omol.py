@@ -231,8 +231,13 @@ class OMol(MSitelist):
                     if sid not in (bj, sj):
                         side_chain_ids.append(sid)
             side_chain_obj = Sidechain.from_omol([self.msites[ii] for ii in side_chain_ids], scid=scid, omol=self)
-            side_chains.append(side_chain_obj)
-            scid += 1
+            already = False  # this eliminate the duplicates where 2 hydrogens at the same bone_joint
+            for sc_found in side_chains:
+                if side_chain_obj.is_identical_with(sc_found):
+                    already = True
+            if not already:
+                side_chains.append(side_chain_obj)
+                scid += 1
         return side_chains
 
     @classmethod

@@ -23,7 +23,12 @@ class Config:
         """
         self.pstructure = pstructure
         self.mols, self.omols, self.unwrap_structure = PBCparser.squeeze(self.pstructure)
+        self.zreal = len(self.mols)
         self.z = len([omol for omol in self.omols if not omol.is_solvent])  # no solvent!
+        if self.z < self.zreal:
+            self.hassolvent = True
+        else:
+            self.hassolvent = False
         for i in range(self.z):
             self.omols[i].comment = {'index in the cell': i}
         # self.dimers_array, self.transv_fcs = self.get_dimers_array(2)

@@ -231,11 +231,13 @@ def get_proj_point2plane(pt, normal, ptonplane):
 
 def alpha_shape(points, alpha=0.7):
     """
-    0.7 seems work for adt
+    0.7 seems work for adt, see tests
+    usually the problem seems to be there're just too few points to get enough triangles, if we can add more points
+    inside the rings we can get smaller concave hull
 
     https://gist.github.com/dwyerk/10561690
 
-    Compute the alpha shape (concave hull) of a set of points.
+    Compute the alpha shape (concave hull) of a set of 2D points.
 
     :param points: Iterable container of points.
     :param alpha: alpha value to influence the gooeyness of the border. Smaller numbers don't fall inward as much as larger numbers. Too large, and you lose everything!

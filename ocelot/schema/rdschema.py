@@ -11,6 +11,7 @@ identify whether a molecule is an OMOL based on connection map (graph)
 
 OMOL consists of a backbone and a set of side chains
 """
+#TODO # of rotatable bonds
 
 
 def nlam2mol(node_list, adjacency_matrix):

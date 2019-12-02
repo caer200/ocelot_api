@@ -206,6 +206,7 @@ class Dimer:
     def bone_overlap(self, algo='concave'):
         """
         project var backbone onto the plane of ref backbone
+        as there's the problem of alpha value in concave hull generation, maybe I should set default to convex, see hull_test
 
         :param algo: concave/convex
         :return: area of the overlap, ref omol area, var omol area

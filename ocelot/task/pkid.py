@@ -9,7 +9,9 @@ class PackingIdentifier:
 
         the input should be a pbc config of terminated backbones
 
-        1. heuristic rules 10.1039/c7tc02553j, that worked only for small acenes, we want more
+        1. heuristic rules
+            10.1039/c7tc02553j, that worked only for small acenes, we want more
+            J. AM. CHEM. SOC. 2004, 126, 4318-4328, this seems quite primitive
 
         2. finger print Hirshfield 10.1039/c1ce05763d
         """
@@ -19,8 +21,36 @@ class PackingIdentifier:
         """
         return a dictionary, keys are
 
+        n_close_azm_and_parallel,
+        n_close_azm_and_notparallel,
+        n_close_vertical_and_parallel,
+        n_close_vertical_and_notparallel,
+        n_parallel_and_overlap,
+        n_notparallel_and_overlap, packing
 
-        n_close_azm_and_parallel, n_close_azm_and_notparallel, n_close_vertical_and_parallel, n_close_vertical_and_notparallel, n_parallel_and_overlap, n_notparallel_and_overlap, packing
+        these keys are defined based on:
+        close_vertical: d.oslip within [1.5, 4]
+        parallel: d.oangle < 15 deg
+        close_azm: d.oslip <= 1.5
+        overlap: overlap > 1e-5
+
+        variables used:
+        1. is_not_identical: slip vector norm >= 1e-5
+        2. is_close: minbonedist < 5.5
+        3. overlap: project sites onto the plane defined by ovector of ref_mol and ref_mol.geoc,
+            then get overlap of concave/convex hulls
+        4. mindist2d: min distance between two hulls
+        5. d.oslip: vertical slip
+        6. d.oangle: angle between o_vector
+
+
+        workflow:
+        1. from bone config get all bone dimers, maxfold=2
+        2. for each molecule (a) in the unit cell
+            1. get first 27*z dimers, sorted by vslipnorm, whose ref_mol is (a)
+            2. if identical or not_close, do nothing
+            3. get values for the keys
+            4. apply classification based on the keys
         :return:
         """
         bc_dimers, bc_dimers_transv_fcs = self.boneconfig.get_dimers_array(maxfold=2)
@@ -41,7 +71,7 @@ class PackingIdentifier:
             for d in dimers_ref_i:
                 if d.is_not_identical and d.is_close:
                     # if d.is_not_identical and d.is_close:
-                    overlap, refboneproj, varboneproj, mindist2d = d.bone_overlap()
+                    overlap, refboneproj, varboneproj, mindist2d = d.bone_overlap(algo='convex')
                     # print(d.minbonedist)
                     # print(mindist2d)
                     # debug += 1
@@ -49,17 +79,17 @@ class PackingIdentifier:
                     # overlap, refboneproj, varboneproj = d.mol_overlap()
                     if 1e-5 < mindist2d < 2.5:  # exclude overlap as dist=0.0 that case
                         if 4 > d.oslip > 1.5:
-                            if d.oangle < 10.0:
+                            if d.oangle < 15.0:
                                 n_close_vertical_and_parallel += 1
                             else:
                                 n_close_vertical_and_notparallel += 1
                         elif d.oslip <= 1.5:
-                            if d.oangle < 10.0:
+                            if d.oangle < 15.0:
                                 n_close_azm_and_parallel += 1
                             else:
                                 n_close_azm_and_notparallel += 1
                     if overlap > 1e-5:
-                        if d.oangle < 10.0:
+                        if d.oangle < 15.0:
                             n_parallel_and_overlap += 1
                         else:
                             n_notparallel_and_overlap += 1
