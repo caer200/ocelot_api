@@ -150,7 +150,7 @@ class CIFparser:
             dg_labels = sorted(
                 [line for line in list(set([s.strip('-') for s in pymatgen_dict['_atom_site_disorder_group']])) if
                  line != u'.'])
-            if len(dg_labels) > 0:
+            if len(dg_labels) > 1:
                 return True
         return False
 
