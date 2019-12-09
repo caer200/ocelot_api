@@ -4,6 +4,7 @@ from ocelot.routines.fileop import movefile
 import subprocess
 from pymatgen.core.structure import Element, Molecule, Site
 import numpy as np
+import re
 
 # http://www.esi.umontreal.ca/accelrys/life/insight2000.1/zindo/3_Implementation.html
 Zindo_elements = [
@@ -27,6 +28,21 @@ def conver2zindo(pmgmol):
         else:
             newsites.append(Site(s.species_string, s.coords))
     return Molecule.from_sites(newsites)
+
+
+def valence_electron(element):
+    configuration = element.data["Electronic structure"]
+    list_split = configuration.split('.')
+
+    valence_electrons = 0
+
+    for i in range(len(list_split)):
+        if 'sup' in list_split[i]:
+            electrons = re.search('<sup>(.*)</sup>', list_split[i])
+            if not int(electrons.group(1)) >= 10:
+                valence_electrons += int(electrons.group(1))
+
+    return valence_electrons
 
 
 ZINDO_INP_TEMPLATE = """
@@ -104,7 +120,8 @@ class ZindoJob:
         nvelect = 0
         for site in pmgmol.sites:
             element = Element(site.species_string)
-            nvelect += abs(min(element.common_oxidation_states))
+            #nvelect += abs(min(element.common_oxidation_states))
+            nvelect += valence_electron(element)
         return nvelect
 
     @staticmethod
@@ -185,11 +202,13 @@ class ZindoJob:
             warnings.warn('W: cannot parse tmo as this is not a dimer run!')
             return None
 
-        nmo_a = self.get_valence_electrons(self.mol_A)
-        nmo_d = self.get_valence_electrons(self.mol_D)
-        data = np.empty((nmo_a, nmo_d), dtype=dict)
+
         with open(tmofn, 'r') as f:
             ls = f.readlines()
+
+        nmo_a = int(ls[1].strip().split()[-2])
+        nmo_d = int(ls[1].strip().split()[-1])
+        data = np.empty((nmo_a, nmo_d), dtype=dict)
 
         for l in ls[3:]:
             imoa, imod, ti, ticm, emoa, emod = [float(number) for number in l.split()]
