@@ -15,6 +15,9 @@ Zindo_elements = [
 
 
 def conver2zindo(pmgmol):
+    """
+    this will replace an element that is not in Zindo_elements with an element in the same group
+    """
     if pmgmol is None:
         return None
     sites = pmgmol.sites
@@ -31,6 +34,10 @@ def conver2zindo(pmgmol):
 
 
 def valence_electron(element):
+    """
+    count valence electrons based on electronic configuration
+    if a subshell has > 10 electrons, this subshell is ignored
+    """
     configuration = element.data["Electronic structure"]
     list_split = configuration.split('.')
 
@@ -120,7 +127,7 @@ class ZindoJob:
         nvelect = 0
         for site in pmgmol.sites:
             element = Element(site.species_string)
-            #nvelect += abs(min(element.common_oxidation_states))
+            # nvelect += abs(min(element.common_oxidation_states))
             nvelect += valence_electron(element)
         return nvelect
 
@@ -201,7 +208,6 @@ class ZindoJob:
         if not self.isdimer:
             warnings.warn('W: cannot parse tmo as this is not a dimer run!')
             return None
-
 
         with open(tmofn, 'r') as f:
             ls = f.readlines()
