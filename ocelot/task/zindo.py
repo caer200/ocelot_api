@@ -212,8 +212,8 @@ class ZindoJob:
         with open(tmofn, 'r') as f:
             ls = f.readlines()
 
-        nmo_a = int(ls[1].strip().split()[-2])
-        nmo_d = int(ls[1].strip().split()[-1])
+        nmo_a = ZindoJob.get_valence_electrons(self.mol_A)
+        nmo_d = ZindoJob.get_valence_electrons(self.mol_D)
         data = np.empty((nmo_a, nmo_d), dtype=dict)
 
         for l in ls[3:]:
@@ -222,7 +222,7 @@ class ZindoJob:
             imod = int(imod)
             d = dict(ti=ti, emoa=emoa, emod=emod, imoa=imoa, imod=imod)
             data[imoa - 1][imod - 1] = d
-        return data
+        return data, nmo_a, nmo_d
 
     @staticmethod
     def dimer_run(jobname, wdir, zindobin, zindoctbin, zindolib, pmgmola, pmgmolb):
