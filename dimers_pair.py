@@ -17,7 +17,7 @@ def get_hh_coupling(coupling_data):
     """
     nmo_a = coupling_data[1]
     nmo_b = coupling_data[1]
-    hh_coupling = coupling_data[0][int(nmo_a / 2 - 1)][int(nmo_b / 2 - 1)]['ti']
+    hh_coupling = abs(int(coupling_data[0][int(nmo_a / 2 - 1)][int(nmo_b / 2 - 1)]['ti']))
     return hh_coupling
 
 
