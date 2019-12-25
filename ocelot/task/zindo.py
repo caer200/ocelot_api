@@ -16,7 +16,7 @@ Zindo_elements = [
 
 def conver2zindo(pmgmol):
     """
-    this will replace an element that is not in Zindo_elements with an element in the same group
+    this will replace elements that are not in Zindo_elements with elements in the same group
     """
     if pmgmol is None:
         return None
@@ -154,7 +154,7 @@ class ZindoJob:
         for site in pmgmol.sites:
             element = Element(site.species_string)
             # nelect += abs(min(element.common_oxidation_states))
-            datain += '{} {} {} {}\n'.format(site.x, site.y, site.z, element.number)
+            datain += '{:.6f} {:.6f} {:.6f} {:.6f}\n'.format(site.x, site.y, site.z, element.number)
             # if element.block == 's':
             #     ns += 2
             # elif element.block == 'p':
@@ -205,15 +205,32 @@ class ZindoJob:
         return cls(jobname, dimerpmgmol, isdimer=True, mol_A=pmgmol1, mol_D=pmgmol2)
 
     def parse_tmo(self, tmofn='tmo.dat'):
+        """
+        parse tmo.dat as NAxND array, NA is number of MOs in A, ND is number of MOs in D
+        NA, ND is decided by the number of valence eletrons, which is auto-gen by zindo
+        # of valence electronis by zindo auto-gen may NOT be identical to the real # of valence electrons!
+
+        :param tmofn:
+        :return: data[i][j] is the ti of i+1th MO of A and j+1th MO of B
+        """
         if not self.isdimer:
             warnings.warn('W: cannot parse tmo as this is not a dimer run!')
             return None
 
-        with open(tmofn, 'r') as f:
-            ls = f.readlines()
+        try:
+            with open(tmofn, 'r') as f:
+                ls = [l for l in f.readlines() if l.strip() != '']
+        except FileNotFoundError:
+            warnings.warn('W: cannot find zindo tmo file {} at {}!'.format(tmofn, os.getcwd()))
+            return None
 
-        nmo_a = ZindoJob.get_valence_electrons(self.mol_A)
-        nmo_d = ZindoJob.get_valence_electrons(self.mol_D)
+        # this is not safe, use # of electrons identified by zindo instead
+        # nmo_a = ZindoJob.get_valence_electrons(self.mol_A)
+        # nmo_d = ZindoJob.get_valence_electrons(self.mol_D)
+
+        nmo_a = int(ls[-1].split()[0])
+        nmo_d = int(ls[-1].split()[1])
+
         data = np.empty((nmo_a, nmo_d), dtype=dict)
 
         for l in ls[3:]:
@@ -226,6 +243,18 @@ class ZindoJob:
 
     @staticmethod
     def dimer_run(jobname, wdir, zindobin, zindoctbin, zindolib, pmgmola, pmgmolb):
+        """
+        perfrom zindo calculation for a dimer system, return parsed tmo.dat as NAxND array
+
+        :param jobname:
+        :param wdir: working dir
+        :param zindobin: binary path
+        :param zindoctbin: binary path
+        :param zindolib: dir path
+        :param pmgmola:
+        :param pmgmolb:
+        :return: tmo parsed data, # of AMOs, # of DMOs
+        """
         zj = ZindoJob.dimerjob_from_two_molecules(pmgmola, pmgmolb, jobname=jobname)
         whereami = os.getcwd()
         os.chdir(wdir)
@@ -247,6 +276,29 @@ class ZindoJob:
         movefile('mo.out', 'mo_D.out')
         p = subprocess.Popen("{} < {} > {}".format(zindoctbin, dimerinp, dimerout), shell=True, env=env)
         p.wait()
-        data = zj.parse_tmo('tmo.dat')
+        data, nmo_a, nmo_d = zj.parse_tmo('tmo.dat')
+
         os.chdir(whereami)
-        return data
+        return data, nmo_a, nmo_d
+
+    @staticmethod
+    def get_hh_coupling(coupling_data, nmo_a, nmo_d):
+        """
+
+        :param coupling_data: the return value of self.dimer_run()
+        :return: the HOMO-HOMO electronic coupling in meV
+        """
+        nmo_b = nmo_d
+        hh_coupling = coupling_data[int(nmo_a / 2 - 1)][int(nmo_b / 2 - 1)]['ti']
+        return hh_coupling
+
+    @staticmethod
+    def get_ll_coupling(coupling_data, nmo_a, nmo_d):
+        """
+
+        :param coupling_data: the return value of self.dimer_run()
+        :return: the HOMO-HOMO electronic coupling in meV
+        """
+        nmo_b = nmo_d
+        ll_coupling = coupling_data[int(nmo_a / 2)][int(nmo_b / 2)]['ti']
+        return ll_coupling

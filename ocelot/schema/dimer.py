@@ -8,6 +8,7 @@ from shapely.geometry import Polygon
 from ocelot.schema.omol import OMol
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
+from pymatgen.io.xyz import XYZ
 
 
 class Dimer:
@@ -93,6 +94,14 @@ class Dimer:
             sites += [Site('La', self.omol_var.geoc)]
         Molecule.from_sites(sites).to('xyz', fn)
 
+    def to_xyzstring(self, center_label=False):
+        sites = [s.to_pymatgen_site() for s in self.omol_ref.msites]
+        sites += [s.to_pymatgen_site() for s in self.omol_var.msites]
+        if center_label:
+            sites += [Site('La', self.omol_ref.geoc)]
+            sites += [Site('La', self.omol_var.geoc)]
+        return str(XYZ(Molecule.from_sites(sites)))
+
     @property
     def is_identical(self):
         """
@@ -105,9 +114,9 @@ class Dimer:
         return not self.is_identical
 
     @property
-    def is_close(self, cutoff=5.5):
+    def is_bone_close(self, cutoff=5.5):
         """
-        use to identify whether this dimer can have minimum wf overlap
+        use to identify whether this dimer can have minimum wf overlap, ONLY consider bone distance
 
         this should be called is_not_faraway...
 
@@ -116,12 +125,32 @@ class Dimer:
         """
         return self.minbonedist < cutoff
 
+    @property
+    def is_close(self, cutoff=5.5):
+        """
+        use to identify whether this dimer can have minimum wf overlap
+
+        this should be called is_not_faraway...
+
+        :param cutoff:
+        :return: bool
+        """
+        return self.mindist < cutoff
+
     # @property
     # def stack_type(self, cutoff=1.0):
     #     if self.oangle < 30.0 * cutoff:
     #         return 'face_to_face'
     #     else:
     #         return 'face_to_edge'
+
+    @property
+    def mindist(self):
+        """
+        :return: minimum dist between sites on different bones
+        """
+        distmat = cdist(self.omol_ref.coordmat, self.omol_var.coordmat)
+        return np.min(distmat)
 
     @property
     def minbonedist(self):

@@ -16,7 +16,6 @@ class Config:
         :var mols: a list of pmg Molecule obj
         :var omols: a list of omol obj
         :var z: # of non-solvent omols
-        :var dimers_array: z x z x n array, dimers[i][j][k] is the dimer of omols[i], omols[j] with translation vector as transv_fcs[k]
         :var transv_fcs: translation vector in fractional coords
 
         :param pstructure: pmg Structure obj
@@ -67,7 +66,7 @@ class Config:
 
     def get_dimers_array(self, maxfold=2, fast=False, symm=False):
         """
-        see init for return details
+        :var dimers_array: z x z x n array, dimers[i][j][k] is the dimer of omols[i], omols[j] with translation vector as transv_fcs[k]
 
         :param maxfold: translation vector in fc can be [h, h, h] where maxfold <= h <= maxfold
         :return: dimers_array, transv_fcs
@@ -76,7 +75,7 @@ class Config:
         transv_fcs = np.array(np.meshgrid(transv_1d, transv_1d, transv_1d)).T.reshape(-1,3)
         # symmetry dimers[i][j][transv_fcs[k]] = dimers[j][i][-transv_fcs[k]]
         nuni = int((len(transv_fcs)+1)/2)
-        uni_transv_fcs = transv_fcs[:nuni]  # as transv_fcs[i] == transv_fcs[len-i]
+        uni_transv_fcs = transv_fcs[:nuni]  # as transv_fcs[i] == -transv_fcs[len-i-1]
         if symm:
             dimers = np.empty((self.z, self.z, len(uni_transv_fcs)), dtype=Dimer)
             used_transv_fcs = uni_transv_fcs
@@ -94,13 +93,13 @@ class Config:
                         var_omol_k = deepcopy(var_omol)
                         for h in range(len(var_omol_k)):
                             var_omol_k.msites[h].coords += transv
-                        dimer_ijk = Dimer(ref_omol, var_omol_k, label="{}-{}_{}".format(i, j, k))
+                        dimer_ijk = Dimer(ref_omol, var_omol_k, label="{}_{}_{}".format(i, j, k))
                         # dimer_ji_nk = Dimer(ref_omol, var_omol_nk, label="{}-{}_{}".format(i, j, ntrans-k-1))
                     else:
                         msites = deepcopy(var_omol.msites)
                         for h in range(len(msites)):
                             msites[h].coords += transv
-                        dimer_ijk = Dimer(ref_omol, OMol(msites), label="{}-{}_{}".format(i, j, k))
+                        dimer_ijk = Dimer(ref_omol, OMol(msites), label="{}_{}_{}".format(i, j, k))
                     dimers[i][j][k] = dimer_ijk
         return dimers, transv_fcs
 
