@@ -7,7 +7,7 @@ from pymatgen.core.structure import Site, PeriodicSite, IMolecule, Molecule, Str
 from pymatgen.io.cif import CifFile
 
 """
-CIFparser: parse cif file into a list of configurations with no disorder
+CIFparser: to be deprecated, use DisParser instead
 PBCparser: get unwrapped structure and mols
 """
 
