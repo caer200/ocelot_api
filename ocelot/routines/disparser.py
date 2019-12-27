@@ -22,8 +22,8 @@ we assume the cif file contains following disorder-related fields
     _atom_site_disorder_group 
 
 if above fields do not exist, it is still possible the cif file contains disorder where
-    1. sites of alternative configuration are labeled by special character (? or ') as appendix, e.g. ALOVOO
-    2. sites of alternative configuration are labeled by capital letters as appendix, e.g. ASIXEH
+    1. sites of alternative configuration are labeled by special character (? or ') as suffix, e.g. ALOVOO
+    2. sites of alternative configuration are labeled by capital letters as suffix, e.g. ASIXEH
     3. disordered sites are simply ignored in the cif file s.t. the molecule is not complete, e.g. ABEGET01
     4. disordered sites are simply ignored in the cif file, but the molecule looks legit, e.g. AGAJUO
     5. disordered sites are not labeled, e.g. ANOPEA
@@ -32,7 +32,7 @@ I cannot find a way to process 2., 3., 4., 5. without checking deposition record
 will ignore them
 
 I will deal with 1. by artificially set (average) _atom_site_occupancy and _atom_site_disorder_group based on special character 
-appendix, this should be done intentionally
+suffix, this should be done intentionally
 
 configuration will be written with keys:
 ['_cell_length_a'],
@@ -152,7 +152,7 @@ class DisParser:  # chaos parser sounds cooler?
                          groupby(sorted(coord_data.keys(), key=lambda x: re.search(r"\w+", x).group(0)),
                                  key=lambda x: re.search(r"\w+", x).group(0))]
         for i in range(len(group_by_word)):
-            labels = sorted(group_by_word[i])  # this works if all disorder charaters are added as appendix
+            labels = sorted(group_by_word[i])  # this works if all disorder charaters are added as suffix
             if len(labels) == 1:
                 coord_data[labels[0]].append('1')
                 coord_data[labels[0]].append('.')  # convention for no disorder
@@ -399,7 +399,7 @@ class DisorderUnit:
     def __repr__(self):
         return "\n".join(self.labels)
 
-    def __init__(self, labels, occu, disorder_appendix="'|\?"):
+    def __init__(self, labels, occu, disorder_suffix="'|\?"):
         """
         #TODO what if one portion is occupied by >2 units?
         a collection of psites representing one possiblity for a portion of an asym unit
@@ -407,7 +407,7 @@ class DisorderUnit:
         xor pair is defined by the label, e.g. [A1, B2, C3] is paired with [A1?, B2?, C3?]
 
         """
-        self.disorder_appendix = disorder_appendix
+        self.disorder_suffix = disorder_suffix
         self.occu = occu
         self.labels = labels
         self.label_numbers = [re.search(r"\d+", lab).group(0) for lab in self.labels]
