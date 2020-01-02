@@ -6,14 +6,13 @@ import itertools
 import networkx.algorithms.isomorphism as iso
 from rdkit.Chem import Descriptors
 from rdkit import Chem
-# import copy
+import copy
 from pymatgen.core.periodic_table import Element
 import numpy as np
 import warnings
 from operator import eq
 from rdkit import DataStructs
 from rdkit.Chem.Fingerprints import FingerprintMols
-
 """
 we use graph as a shadow rdkit.mol class
 
@@ -26,8 +25,6 @@ functions should include
 6. from/to conformation
 7. display
 8. decomposition
-
-#TODO match is quite slow
 """
 
 
@@ -79,7 +76,7 @@ class GraphMolecule:
                 self.lgfr = None
 
     def to_conformer(self):
-        # TODO
+        #TODO
         pass
 
     def to_rdmol(self):
@@ -214,7 +211,7 @@ class GraphMolecule:
             nodes = list(self.graph.nodes(data=True))
             element = nodes[0][1]['symbol']
             if element in other.symbols.values():
-                return True
+                    return True
         elif len(self.graph) == 2:
             nodes = list(self.graph.nodes(data=True))
             elements = {nodes[0][1]['symbol'], nodes[1][1]['symbol']}
@@ -328,7 +325,7 @@ class GraphFragment:
         self.symbols = nx.get_node_attributes(self.graph, 'symbol')
 
     def to_conformer(self):
-        # TODO
+        #TODO
         pass
 
     def __eq__(self, other):
@@ -519,6 +516,7 @@ class GraphBackbone(GraphFragment):
         g = nx.from_dict_of_lists(d['graph_dict_of_lists'])
         nx.set_node_attributes(g, d['graph_node_symbols'])
         return cls(g, GraphMolecule.from_dict(d['parent_graph']), d['parition_scheme'])
+
 
 
 class GraphSidechain(GraphFragment):
