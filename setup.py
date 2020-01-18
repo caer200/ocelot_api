@@ -9,7 +9,7 @@ setup(
     author="qai222",
     author_email='qai222@uky.edu',
     url='',
-    packages=['ocelot', 'ocelot.schema', 'ocelot.routines', 'ocelot.task'],
+    packages=['ocelot', 'ocelot.schema', 'ocelot.routines', 'ocelot.task', 'tests'],
     install_requires=[],
     keywords='ocelot',
     classifiers=[
