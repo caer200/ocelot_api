@@ -8,7 +8,7 @@ default keywords for gaussian
 dev-ing
 """
 from pymatgen.core.structure import Molecule
-from copy import deepcopy
+import random
 import re
 from subprocess import Popen
 from scipy import optimize
@@ -27,6 +27,7 @@ SUGGESTED_route_parameters = {
     }
 }
 
+
 def gauss_in_gen(name, mol, type, func, basis, charge, spin, route_params, link0_params):
     mol_in = GaussianInput(mol, charge=charge, spin_multiplicity=spin, functional=func, basis_set=basis,
                            route_parameters=route_params, link0_parameters=link0_params, )
@@ -38,7 +39,7 @@ def gauss_in_gen(name, mol, type, func, basis, charge, spin, route_params, link0
 class WtuingJob:
 
     def __init__(self, func='uLC-wHPBE', basis='def2tzvp', name='', nproc=16, mem=50, conver=3,
-                 n_charge=0, n_spin=1, wdir='./', rps=SUGGESTED_route_parameters, scheme='Jh'):
+                 n_charge=0, n_spin=1, wdir='./', rps=SUGGESTED_route_parameters, scheme='Jh', bmin=0.05, bmax=0.5):
 
         self.name = name
         self.func = func
@@ -47,10 +48,9 @@ class WtuingJob:
         self.mem = mem
         # self.route_params = route_params
         self.link0_params = {'%nproc': nproc, '%mem': str(mem) + 'GB'}
-        self.super_omega = 10
-
 
         # tunging params
+        self.bounds = (bmin, bmax)
         self.conver = conver
         self.scheme = scheme  # Jl Jh Jn O2
         self.route_params = rps
@@ -67,6 +67,8 @@ class WtuingJob:
             self.a_spin = self.n_spin - 1
 
         # tuning var
+        self.omega = random.uniform(*self.bounds)
+        # self.super_omega = self.omega
         self.cycle = 0
         self.ocycle = 0
         self.mol = None
@@ -76,7 +78,13 @@ class WtuingJob:
         job.wait()
         return fn.split('.')[0] + '.log'
 
-    def omega_tune(self, dis=3, tol=1e-02, bounds=(0.05, 0.5)):
+    def omega_tune(self, dis=3, tol=1e-04, deltaomega=0.2):
+
+        if self.ocycle > 0:
+            bounds = (self.omega - deltaomega, self.omega + deltaomega)
+        else:
+            bounds = self.bounds
+
         self.cycle = 0
         whereami = os.getcwd()
         os.chdir(self.wdir)
@@ -91,8 +99,9 @@ class WtuingJob:
         os.chdir(whereami)
         return omega_opt, C_opt, num
 
-    def geo_opt(self):
-        rps = deepcopy(self.route_params)
+    def geo_opt(self, rps={}):
+        iop_route_param = 'iop(3/107={}, 3/108={})'.format(self.omega_iopstr, self.omega_iopstr)
+        rps[iop_route_param] = ''
         rps['opt'] = ''
         fnin = gauss_in_gen(
             name=self.name,
@@ -108,18 +117,19 @@ class WtuingJob:
         fnout = self.gauss_run(fnin)
         return Molecule.from_file(fnout)  # Return mol
 
-    def tuning_cycle(self, eps=0.05,
-                     dis=3, tol=1e-2, max_cycles=5, bounds=(0.05, 0.5)):
+    def tuning_cycle(self, eps=0.01,
+                     dis=3, tol=1e-3, max_cycles=5):
         while True:
-            omega = self.omega_tune(dis=dis, tol=tol, bounds=bounds)[0]
-            print('new-->old', omega, self.super_omega)
-            if abs(omega - self.super_omega) <= eps:
-                self.super_omega = omega
+            oldomega = self.omega
+            omega = self.omega_tune(dis=dis, tol=tol)[0]
+            print('new-->old', omega, oldomega)
+            if abs(omega - oldomega) <= eps and self.ocycle > 0:
+                self.omega = omega
                 break
             elif self.ocycle >= max_cycles:
                 print('tuning cycle went over max cycles')
                 break
-            self.super_omega = omega
+            self.omega = omega
             self.mol = self.geo_opt()
             self.ocycle += 1
 
@@ -197,34 +207,74 @@ class WtuingJob:
         '''
         Run Gaussian in subprocess and wait for termination. Extract data from output when done
         '''
-        self.cycle += 1
-        self.n_in_fn = gauss_in_gen(mol=self.mol, charge=self.n_charge, spin=self.n_spin, type='tune_n' + str(self.cycle), basis=self.basis, route_params=self.route_params, link0_params=self.link0_params, name=self.name, func=self.func)
-        self.c_in_fn = gauss_in_gen(mol=self.mol, charge=self.c_charge, spin=self.c_spin, type='tune_c' + str(self.cycle), basis=self.basis, route_params=self.route_params, link0_params=self.link0_params, name=self.name, func=self.func)
-        self.a_in_fn = gauss_in_gen(mol=self.mol, charge=self.a_charge, spin=self.a_spin, type='tune_a' + str(self.cycle), basis=self.basis, route_params=self.route_params, link0_params=self.link0_params, name=self.name, func=self.func)
-
+        self.n_in_fn = gauss_in_gen(mol=self.mol, charge=self.n_charge, spin=self.n_spin,
+                                    type='tune_n' + str(self.cycle), basis=self.basis, route_params=self.route_params,
+                                    link0_params=self.link0_params, name=self.name, func=self.func)
         self.n_out_fn = self.gauss_run(self.n_in_fn)
-        self.c_out_fn = self.gauss_run(self.c_in_fn)
-        self.a_out_fn = self.gauss_run(self.a_in_fn)
-
         self.n_e, self.n_homo, self.n_lumo = self.omega_extract(self.n_out_fn)
-        self.c_e, self.c_homo, self.c_lumo = self.omega_extract(self.c_out_fn)
-        self.a_e, self.a_homo, self.a_lumo = self.omega_extract(self.a_out_fn)
+        if self.scheme == 'Jh':
+            self.c_in_fn = gauss_in_gen(mol=self.mol, charge=self.c_charge, spin=self.c_spin,
+                                        type='tune_c' + str(self.cycle), basis=self.basis,
+                                        route_params=self.route_params, link0_params=self.link0_params, name=self.name,
+                                        func=self.func)
+            self.c_out_fn = self.gauss_run(self.c_in_fn)
+            self.c_e, self.c_homo, self.c_lumo = self.omega_extract(self.c_out_fn)
+        elif self.scheme == 'Jl':
+            self.a_in_fn = gauss_in_gen(mol=self.mol, charge=self.a_charge, spin=self.a_spin,
+                                        type='tune_a' + str(self.cycle), basis=self.basis,
+                                        route_params=self.route_params, link0_params=self.link0_params, name=self.name,
+                                        func=self.func)
+            self.a_out_fn = self.gauss_run(self.a_in_fn)
+            self.a_e, self.a_homo, self.a_lumo = self.omega_extract(self.a_out_fn)
+        else:
+
+            self.c_in_fn = gauss_in_gen(mol=self.mol, charge=self.c_charge, spin=self.c_spin,
+                                        type='tune_c' + str(self.cycle), basis=self.basis,
+                                        route_params=self.route_params, link0_params=self.link0_params, name=self.name,
+                                        func=self.func)
+            self.a_in_fn = gauss_in_gen(mol=self.mol, charge=self.a_charge, spin=self.a_spin,
+                                        type='tune_a' + str(self.cycle), basis=self.basis,
+                                        route_params=self.route_params, link0_params=self.link0_params, name=self.name,
+                                        func=self.func)
+
+            self.c_out_fn = self.gauss_run(self.c_in_fn)
+            self.a_out_fn = self.gauss_run(self.a_in_fn)
+
+            self.c_e, self.c_homo, self.c_lumo = self.omega_extract(self.c_out_fn)
+            self.a_e, self.a_homo, self.a_lumo = self.omega_extract(self.a_out_fn)
+
+        self.cycle += 1
 
     def omega_FindC(self):
         '''
         Calculate scheme value from extracted data
+        Set the optimization criterion (the value to minimize),
+        available options are:
+        J2---((HOMO-IP)^2+(A_HOMO+EA)^2)
+        Jh---(HOMO-IP)
+        Jl---(LUMO+EA)
+        Jn2---((HOMO-IP)^2+(LUMO+EA)^2)
+        O2---((A_HOMO-LUMO)^2+(C_LUMO-HOMO)^2)
         :return: Jn, Jl, Jh value (depending on scheme)
         '''
-        IP = self.n_e - self.c_e
-        EA = self.n_e - self.a_e
-        J2 = (self.n_homo - IP) ** 2 + (self.a_homo + EA) ** 2
-        J = J2 ** 0.5
-        gap = self.n_lumo - self.n_homo
-        Jh = abs(self.n_homo - IP)
-        Jl = abs(self.n_lumo + EA)
-        Jn2 = Jh ** 2 + Jl ** 2
-        Jn = Jn2 ** 0.5
-        O2 = (self.n_homo - self.c_lumo) ** 2 + (self.n_lumo - self.a_homo) ** 2
+        if self.scheme == 'Jh':
+            IP = self.n_e - self.c_e
+            Jh = abs(self.n_homo - IP)
+        elif self.scheme == 'Jl':
+            EA = self.n_e - self.a_e
+            Jl = abs(self.n_lumo + EA)
+        elif self.scheme == 'J2':
+            IP = self.n_e - self.c_e
+            EA = self.n_e - self.a_e
+            J2 = (self.n_homo - IP) ** 2 + (self.a_homo + EA) ** 2
+        elif self.scheme == 'Jn2':
+            IP = self.n_e - self.c_e
+            Jh = abs(self.n_homo - IP)
+            EA = self.n_e - self.a_e
+            Jl = abs(self.n_lumo + EA)
+            Jn2 = Jh ** 2 + Jl ** 2
+        elif self.scheme == 'O2':
+            O2 = (self.n_homo - self.c_lumo) ** 2 + (self.n_lumo - self.a_homo) ** 2
         C = eval(self.scheme)
         return C
 
@@ -253,5 +303,4 @@ class WtuingJob:
         with open(name, 'w') as fn:
             fn.write(self.name + '\n')
             fn.write(self.func + '/' + self.basis + '\n')
-            fn.write('omega: ' + str(self.super_omega) + '\n')
-
+            fn.write('omega: ' + str(self.omega) + '\n')
