@@ -1,4 +1,4 @@
-from ocelot.schema.msite import MSite
+from ocelot.schema.ocelotsite import MSite
 import numpy as np
 
 

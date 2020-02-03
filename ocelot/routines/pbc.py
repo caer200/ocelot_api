@@ -1,7 +1,6 @@
 import math
 from copy import deepcopy
-from ocelot.schema.element import Element
-from ocelot.schema.omol import OMol
+from ocelot.schema.conformer import MolConformer, Element
 from pymatgen.util.coord import pbc_shortest_vectors
 from pymatgen.core.structure import Site, PeriodicSite, IMolecule, Molecule, Structure
 from pymatgen.io.cif import CifFile
@@ -185,7 +184,7 @@ class PBCparser:
         """
         psites = pstructure.sites
         for isite in range(len(psites)):
-            psites[isite].properties['isite'] = isite
+            psites[isite].properties['siteid'] = isite
         pindices = range(len(psites))
         visited = []
         block_list = []
@@ -208,8 +207,7 @@ class PBCparser:
                                                                      psites[block[pointer]]._frac_coords,
                                                                      psites[i]._frac_coords, )
 
-                    cutoff = Element.covalent_radii[psites[block[pointer]].species_string] + Element.covalent_radii[
-                        psites[i].species_string]
+                    cutoff = Element(psites[block[pointer]].species_string).atomic_radius + Element(psites[i].species_string).atomic_radius
                     cutoff *= 1.3
                     if distance < cutoff:
                         block.append(i)
@@ -258,17 +256,17 @@ class PBCparser:
         """
         mols, unwrap_structure, psiteblocks = PBCparser.unwrap(pstructure)
 
-        omols = []
+        moleconformers = []
         for mm in mols:
-            omol = OMol.from_pymatgen_mol(mm)
-            if not omol.is_solvent:
-                omols.append(omol)
+            mc = MolConformer.from_pmgmol(mm)
+            if not mc.is_solvent:
+                moleconformers.append(mc)
 
-        if len(omols) > 1:
-            refpoint = omols[0].backbone.geoc
+        if len(moleconformers) > 1:
+            refpoint = moleconformers[0].backbone.geoc
             refpoint = unwrap_structure.lattice.get_fractional_coords(refpoint)
-            for i in range(1, len(omols)):
-                varmol = omols[i]
+            for i in range(1, len(moleconformers)):
+                varmol = moleconformers[i]
                 varpoint = varmol.backbone.geoc
                 varpoint = unwrap_structure.lattice.get_fractional_coords(varpoint)
                 distance, fctrans = PBCparser.get_dist_and_trans(unwrap_structure.lattice, refpoint, varpoint)
@@ -285,11 +283,11 @@ class PBCparser:
                 mols.append(mol)
             unwrap_structure = Structure.from_sites(sorted(psites, key=lambda x: x.species_string))
 
-            omols = []
+            moleconformers = []
             for m in mols:
-                omol = OMol.from_pymatgen_mol(m)
-                if not omol.is_solvent:
-                    omols.append(omol)
-            return mols, omols, unwrap_structure
+                mc = MolConformer.from_pmgmol(m)
+                if not mc.is_solvent:
+                    moleconformers.append(mc)
+            return mols, moleconformers, unwrap_structure
 
-        return mols, omols, unwrap_structure
+        return mols, moleconformers, unwrap_structure

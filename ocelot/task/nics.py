@@ -5,7 +5,7 @@ from scipy.spatial.distance import pdist, squareform
 import warnings
 from pymatgen.core.structure import Molecule
 from pymatgen.io.gaussian import GaussianInput
-from ocelot.schema.msite import MSite
+from ocelot.schema.ocelotsite import MSite
 from ocelot.schema.msitelist import MSitelist
 
 """
@@ -35,7 +35,8 @@ class NICSjob:
         notice this could be different from backbone, as backbone contains other fr connected to lfr with single bond 
         (eg. BDT 3mer)
 
-        :param normal_idx: 0, 1
+
+              :param normal_idx: 0, 1
         :return: a MSitelist objects
         """
         if self.omol.largest_fused_ring is None:

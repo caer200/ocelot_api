@@ -67,40 +67,42 @@ def valence_electron(element):
 
     return valence_electrons
 
+from scipy.spatial.distance import pdist
+from scipy.spatial.distance import squareform
 def pmgmol_to_rdmol(pmg_mol):
     m = pmg_mol
     charge = m.charge
-
-    rdmol = Chem.MolFromSmarts("[#" + str(m.sites[0].species.elements[0].number) + "]")
-    rwmol = Chem.RWMol(rdmol)
-    for s in m.sites[1:]:
-        rwmol.AddAtom(Chem.Atom(s.species.elements[0].number))
-    rdmol = rwmol.GetMol()
-    conf = Chem.Conformer(rdmol.GetNumAtoms())
+    numsites = len(m)
+    conf = Chem.Conformer(numsites)
     coordmat = m.cart_coords
-    for i in range(rdmol.GetNumAtoms()):
+    for i in range(numsites):
         conf.SetAtomPosition(i, (coordmat[i][0], coordmat[i][1], coordmat[i][2]))
+
+    mat = np.zeros((numsites, numsites), dtype=bool)
+    distmat = squareform(pdist(coordmat))
+    for i in range(numsites):
+        istring = pmg_mol[i].species_string
+        irad = Element(istring).atomic_radius
+        if irad is None:
+            continue
+        for j in range(i + 1, numsites):
+            jstring = pmg_mol[j].species_string
+            jrad = Element(jstring).atomic_radius
+            if jrad is None:
+                continue
+            cutoff = (irad + jrad) * 1.30
+            if 1e-5 < distmat[i][j] < cutoff:
+                mat[i][j] = True
+                mat[j][i] = True
+    ap = ACParser(mat, charge, m.atomic_numbers, sani=True)
+    rdmol, smiles = ap.parse(charged_fragments=False, force_single=False, expliciths=True)
     rdmol.AddConformer(conf)
-    dMat = Chem.Get3DDistanceMatrix(rdmol)  # distance matrix
-    pt = Chem.GetPeriodicTable()
-    AC = np.zeros((len(m), len(m))).astype(int)  # atomic connectivity
-    for i in range(len(m)):
-        a_i = rdmol.GetAtomWithIdx(i)
-        Rcov_i = pt.GetRcovalent(a_i.GetAtomicNum()) * 1.30
-        for j in range(i + 1, len(m)):
-            a_j = rdmol.GetAtomWithIdx(j)
-            Rcov_j = pt.GetRcovalent(a_j.GetAtomicNum()) * 1.30
-            if dMat[i, j] <= Rcov_i + Rcov_j:
-                AC[i, j] = 1
-                AC[j, i] = 1
-    ap = ACParser(AC, charge, m.atomic_numbers)
-    rdmol, smiles = ap.parse(charged_fragments=False, force_single=False, sanitize=True, expliciths=True)
     return rdmol, smiles
 
 
 class ACParser:
 
-    def __init__(self, ac, charge, atomnumberlist):
+    def __init__(self, ac, charge, atomnumberlist, sani=True):
         """
         :var self.valences_list: a list of possible valence assignment, valences_list[i] is one possbile way to assign jth atom
         valence based on  valences_list[i][j].
@@ -109,6 +111,7 @@ class ACParser:
         :param pmg_molecule:
         """
         self.AC = ac
+        self.sani = sani
         self.atomic_numbers = atomnumberlist
         self.natoms = len(self.atomic_numbers)
         self.charge = charge
@@ -296,6 +299,12 @@ class ACParser:
             return False
 
     def parse_bonds(self, charged_fragments):
+        """
+        find the best BO
+
+        :param charged_fragments:
+        :return:
+        """
         best_BO = self.AC.copy()
         for valences in self.valences_list:
             UA, DU_from_AC = self.getUADU(valences, self.AC_valence)
@@ -367,7 +376,8 @@ class ACParser:
 
             if (abs(charge) > 0):
                 a.SetFormalCharge(int(charge))
-        mol = clean_charges(mol)
+        if self.sani:
+            mol = clean_charges(mol)
         return mol
 
     def set_atomic_radicals(self, mol, BO_valences):
@@ -379,15 +389,14 @@ class ACParser:
                 a.SetNumRadicalElectrons(abs(int(charge)))
         return mol
 
-    def parse(self, charged_fragments=True, force_single=False, sanitize=True, expliciths=True):
+    def parse(self, charged_fragments=True, force_single=False, expliciths=True):
         BO = self.parse_bonds(charged_fragments)
         mol = self.init_rdmol()
         mol = self.addBO2mol(mol, BO, charged_fragments, force_single)
-        mol = chiral_stereo_check(mol)
-
+        if self.sani:
+            mol = chiral_stereo_check(mol)
         smiles = Chem.MolToSmiles(mol, allHsExplicit=expliciths, isomericSmiles=True)
-
-        m = Chem.MolFromSmiles(smiles, sanitize=sanitize)
+        m = Chem.MolFromSmiles(smiles, sanitize=self.sani)
         smiles = Chem.MolToSmiles(m, isomericSmiles=True, allHsExplicit=expliciths)
 
         return mol, smiles  # m is just used to get canonical smiles
