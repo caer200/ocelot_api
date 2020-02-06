@@ -247,10 +247,11 @@ class PBCparser:
         return mols, unwrap_str_sorted, unwrap_pblock_list
 
     @staticmethod
-    def squeeze(pstructure):
+    def squeeze(pstructure: Structure):
         """
         after unwrapping, the mols can be far away from each other, this tries to translate them s.t. they stay together
 
+        :rtype:
         :param pstructure:
         :return:
         """

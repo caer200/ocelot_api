@@ -22,6 +22,11 @@ from pymatgen.util.coord import pbc_shortest_vectors
 
 from ocelot.routines.pbc import PBCparser
 
+
+class DisorderParserError(Exception):
+    pass
+
+
 """
 DisParser: parse cif file into a list of configurations with no disorder
 
@@ -162,10 +167,6 @@ class CifFileError(Exception):
     pass
 
 
-class DisorderParserError(Exception):
-    pass
-
-
 class AtomLabel:
     def __init__(self, label: str):
         """
@@ -200,28 +201,31 @@ class AtomLabel:
     def __eq__(self, other):
         return self.label == other.label
 
-    @property
-    def is_tag_nonword(self):
-        return re.search(r"^\W$", self.tag)
 
-    def get_labels_with_same_ei(self, als):
-        """
-        get a list of atomlabel whose ei == al.ei
+class CifLegitError(Exception):
+    pass
 
-        :param al:
-        :param als:
-        :return:
-        """
-        sameei = []
-        for alj in als:
-            if self.ei == alj.ei and self != alj:
-                sameei.append(alj)
-        return sameei
+
+def is_nonword(s: str):
+    return re.search(r"^\W$", s)
+
+
+def get_labels_by_ei(al: AtomLabel, als):
+    """
+    get a list of atomlabel whose ei == al.ei
+
+    :param al:
+    :param als:
+    :return:
+    """
+    sameei = []
+    for alj in als:
+        if al.ei == alj.ei and al != alj:
+            sameei.append(alj)
+    return sameei
 
 
 class DisParser:  # chaos parser sounds cooler?
-
-    labels: [AtomLabel]
 
     def __init__(self, cifstring: str):
         self.cifstring = cifstring
@@ -229,6 +233,7 @@ class DisParser:  # chaos parser sounds cooler?
         self.data['_atom_site_fract_x'] = [braket2float(x) for x in self.data['_atom_site_fract_x']]
         self.data['_atom_site_fract_y'] = [braket2float(x) for x in self.data['_atom_site_fract_y']]
         self.data['_atom_site_fract_z'] = [braket2float(x) for x in self.data['_atom_site_fract_z']]
+
         try:
             labels = self.data['_atom_site_label']
             self.labels = [AtomLabel(lab) for lab in labels]
@@ -246,11 +251,11 @@ class DisParser:  # chaos parser sounds cooler?
 
     @property
     def labels_with_nonword_suffix(self):
-        return [l for l in self.labels if l.is_tag_nonword]
+        return [l for l in self.labels if is_nonword(l.tag)]
 
     @property
     def labels_with_word_or_no_suffix(self):
-        return [l for l in self.labels if not l.is_tag_nonword ]
+        return [l for l in self.labels if not is_nonword(l.tag)]
 
     @classmethod
     def from_ciffile(cls, fn):
@@ -258,14 +263,11 @@ class DisParser:  # chaos parser sounds cooler?
             s = f.read()
         return cls(s)
 
-    @property
-    def was_fitted(self):
-        if '_atom_site_occupancy' in self.data.keys() and '_atom_site_disorder_group' in self.data.keys():
-            return True
-
     def classify(self):
         """
         one cif file belongs to one of the following categories:
+
+            dis-0: has _atom_site_occupancy AND _atom_site_disorder_group
 
             nodis-0: no dup in self.eis, set(self.tags) is {""}
 
@@ -277,27 +279,29 @@ class DisParser:  # chaos parser sounds cooler?
 
             weird: else
         """
-        tag_set = set(self.tags)
-        if tag_set == {""} and not self.was_fitted:
-            return 'nodis-0'
+        if '_atom_site_occupancy' in self.data.keys() and '_atom_site_disorder_group' in self.data.keys():
+            return 'dis-0'
         else:
-            len_nonword_tagset = len([l.tag for l in self.labels if l.is_tag_nonword])
-            if len_nonword_tagset == 1:
-                if all(len(AtomLabel(al).get_labels_with_same_ei(self.labels)) == 0 for al in self.labels_with_nonword_suffix):
-                    return 'dis-2'
-                if all(len(AtomLabel(al).get_labels_with_same_ei(self.labels)) == 1 for al in self.labels_with_nonword_suffix):
-                    return 'dis-1'
-                else:
-                    return 'weird'
-            elif len_nonword_tagset > 1:
-                raise DisorderParserError('more than one possible nonword suffix')
+            tag_set = set(self.tags)
+            if tag_set == {""}:
+                return 'nodis-0'
             else:
-                return 'nodis-1'
+                len_nonword_tagset = len([tag for tag in tag_set if is_nonword(tag)])
+                if len_nonword_tagset == 1:
+                    if all(len(get_labels_by_ei(al, self.labels)) == 0 for al in self.labels_with_nonword_suffix):
+                        return 'dis-2'
+                    elif all(len(get_labels_by_ei(al, self.labels)) == 1 for al in self.labels_with_nonword_suffix):
+                        return 'dis-1'
+                    else:
+                        return 'weird'
+                elif len_nonword_tagset > 1:
+                    raise DisorderParserError('more than one possible nonword suffix')
+                else:
+                    return 'nodis-1'
 
     def get_coord_data(self):
         """
         coord_data[<atom_label>] = [x, y, z, symbol]
-
         """
         coord_data = map(list, zip(self.data['_atom_site_fract_x'],
                                    self.data['_atom_site_fract_y'],
@@ -341,8 +345,7 @@ class DisParser:  # chaos parser sounds cooler?
         newdata['_atom_site_disorder_group'] = idisgs
         return newdata
 
-
-    def dis2_to_coorddata(self, cutoff=1.5):
+    def dis2_to_dis0(self, cutoff=1.5):
         """
         c20 <--> c16?
 
@@ -703,7 +706,7 @@ class DisorderUnit:
         """
         self.psites = psites
         self.occu = [s.properties['occu'] for s in psites]
-        self.labels = [s.properties['label'] for s in psites]
+        self.labels= [s.properties['label'] for s in psites]
 
     @staticmethod
     def form_pairs_from_asym(psites):

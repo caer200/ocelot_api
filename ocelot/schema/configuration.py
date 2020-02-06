@@ -1,24 +1,23 @@
 from copy import deepcopy
+from typing import List
 
 import numpy as np
 from pymatgen.core.sites import PeriodicSite
-from pymatgen.core.structure import Structure
+from pymatgen.core.structure import Structure, Molecule
 
 from ocelot.routines.pbc import PBCparser
 from ocelot.schema.conformer import ConformerDimer, MolConformer, conformer_addhmol
 
 
 class Config:
+    zreal: int
+    unwrap_structure: Structure
+    mols: List[Molecule]
+    pstructure: Structure
 
     def __init__(self, pstructure):
         """
-        :var unwrap_structure: pmg Structure obj
-        :var mols: a list of pmg Molecule obj
-        :var molconformers: a list of MolConformer obj
-        :var z: # of non-solvent
-        :var transv_fcs: translation vector in fractional coords
-
-        :param pstructure: pmg Structure obj
+        :param pstructure: Structure without disorder
         """
         self.pstructure = pstructure
         self.mols, self.molconformers, self.unwrap_structure = PBCparser.squeeze(self.pstructure)
@@ -38,12 +37,9 @@ class Config:
 
         pymatgen_structure, mols, omols, z, dimers_dict_array
         """
-        d = {"@module": self.__class__.__module__,
-             "@class": self.__class__.__name__}
-        d['pymatgen_structure'] = self.pstructure.as_dict()
-        d['mols'] = [m.as_dict() for m in self.mols]
-        d['mcs'] = [m.as_dict() for m in self.molconformers]
-        d['z'] = self.z
+        d = {"@module": self.__class__.__module__, "@class": self.__class__.__name__,
+             'pymatgen_structure': self.pstructure.as_dict(), 'mols': [m.as_dict() for m in self.mols],
+             'mcs': [m.as_dict() for m in self.molconformers], 'z': self.z}
 
         dimers_array, transv_fcs = self.get_dimers_array(dimermaxfold)
         dimers_dictarray = np.empty((self.z, self.z, len(transv_fcs)), dtype=dict)
@@ -66,10 +62,11 @@ class Config:
 
     def get_dimers_array(self, maxfold=2, fast=False, symm=False):
         """
-        :var dimers_array: z x z x n array, dimers[i][j][k] is the dimer of omols[i], omols[j] with translation vector as transv_fcs[k]
-
+        :param fast:
+        :param symm:
         :param maxfold: translation vector in fc can be [h, h, h] where maxfold <= h <= maxfold
-        :return: dimers_array, transv_fcs
+        :return: dimers_array, z x z x n array, dimers[i][j][k] is the dimer of omols[i], omols[j] with translation vector as transv_fcs[k]
+                 transv_fcs
         """
         transv_1d = list(range(-maxfold, maxfold + 1))
         transv_fcs = np.array(np.meshgrid(transv_1d, transv_1d, transv_1d)).T.reshape(-1, 3)

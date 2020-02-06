@@ -97,5 +97,6 @@ for k in keys:
     # if not isdis:
     #     if check_label_disorder(pdict):
     #         print(csdid)
-        with open('{}.cif'.format(csdid), 'w') as f:
-            f.write(cifstring)
+        if csdid == 'ALOVOO':
+            with open('{}.cif'.format(csdid), 'w') as f:
+                f.write(cifstring)

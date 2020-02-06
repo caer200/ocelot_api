@@ -1,9 +1,9 @@
 from rdkit import Chem
 from rdkit import DataStructs
-from rdkit.Chem.Fingerprints import FingerprintMols
-from rdkit.Chem import Descriptors
 from rdkit.Chem import AllChem
-from rdkit.Chem import Descriptors3D as descriptors3d
+from rdkit.Chem import Descriptors
+from rdkit.Chem import Descriptors3D as D3d
+from rdkit.Chem.Fingerprints import FingerprintMols
 
 """
 commonly used rdkit functions
@@ -17,7 +17,7 @@ class RdFunc:
         """
         AllChem.ComputeMolVolume in rdkit
 
-        :return: volume in \AA^3
+        :return: volume in A^3
         """
         return AllChem.ComputeMolVolume(m, confId=-1, gridSpacing=0.2, boxMargin=2.0)
 
@@ -41,16 +41,16 @@ class RdFunc:
         :return: dict
         """
         d = dict(
-            Asphericity=descriptors3d.Asphericity(mol),
-            Eccentricity=descriptors3d.Eccentricity(mol),
-            InertialShapeFactor=descriptors3d.InertialShapeFactor(mol),
-            NPR1=descriptors3d.NPR1(mol),
-            NPR2=descriptors3d.NPR2(mol),
-            PMI1=descriptors3d.PMI1(mol),
-            PMI2=descriptors3d.PMI2(mol),
-            PMI3=descriptors3d.PMI3(mol),
-            RadiusOfGyration=descriptors3d.RadiusOfGyration(mol),
-            SpherocityIndex=descriptors3d.SpherocityIndex(mol),
+            Asphericity=D3d.Asphericity(mol),
+            Eccentricity=D3d.Eccentricity(mol),
+            InertialShapeFactor=D3d.InertialShapeFactor(mol),
+            NPR1=D3d.NPR1(mol),
+            NPR2=D3d.NPR2(mol),
+            PMI1=D3d.PMI1(mol),
+            PMI2=D3d.PMI2(mol),
+            PMI3=D3d.PMI3(mol),
+            RadiusOfGyration=D3d.RadiusOfGyration(mol),
+            SpherocityIndex=D3d.SpherocityIndex(mol),
         )
         return d
 
@@ -69,23 +69,23 @@ class RdFunc:
             return None
 
     @staticmethod
-    def from_string(format, string):
+    def from_string(fmt, string):
         """
         construct a rdmol
 
-        :param format: 'smiles', 'hsmiles', 'smarts', 'inchi'
+        :param fmt: 'smiles', 'hsmiles', 'smarts', 'inchi'
         :param string:
         :return:
         """
-        if format == 'smiles':
+        if fmt == 'smiles':
             rdmol = Chem.MolFromSmiles(string)
             rdmol = Chem.AddHs(rdmol)
-        elif format == 'hsmiles':
+        elif fmt == 'hsmiles':
             rdmol = Chem.MolFromSmiles(string)
             rdmol = Chem.AddHs(rdmol, explicitOnly=True)
-        elif format == 'smarts':
+        elif fmt == 'smarts':
             rdmol = Chem.MolFromSmarts(string)
-        elif format == 'inchi':
+        elif fmt == 'inchi':
             rdmol = Chem.MolFromInchi(string)
         else:
             rdmol = None
@@ -135,6 +135,8 @@ class RdFunc:
 
         see Landrum2012 for more details
 
+        :param m1:
+        :param m2:
         :param str metric: "Tanimoto", "Dice", "Cosine", "Sokal", "Russel", "RogotGoldberg", "AllBit", "Kulczynski", "McConnaughey", "Asymmetric", "BraunBlanquet",
         :return:
         """

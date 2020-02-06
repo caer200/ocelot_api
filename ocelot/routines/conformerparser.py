@@ -1,12 +1,15 @@
+import copy
+from scipy.spatial.distance import pdist
+from scipy.spatial.distance import squareform
+import itertools
+import re
+from collections import defaultdict
+
+import networkx as nx
+import numpy as np
+from pymatgen.core.periodic_table import Element
 from rdkit import Chem
 from rdkit.Chem import AllChem
-import itertools
-from collections import defaultdict
-import copy
-import networkx as nx
-from pymatgen.core.periodic_table import Element
-import re
-import numpy as np
 
 """
 modified based on Jan H. Jensen's implementation in xyz2mol
@@ -15,7 +18,6 @@ will replace xyz2mol in routines
 
 
 def chiral_stereo_check(mol):
-
     Chem.SanitizeMol(mol)
     Chem.DetectBondStereochemistry(mol, -1)
     Chem.AssignStereochemistry(mol, flagPossibleStereoCenters=True, force=True)
@@ -67,8 +69,9 @@ def valence_electron(element):
 
     return valence_electrons
 
-from scipy.spatial.distance import pdist
-from scipy.spatial.distance import squareform
+
+
+
 def pmgmol_to_rdmol(pmg_mol):
     m = pmg_mol
     charge = m.charge
@@ -107,8 +110,6 @@ class ACParser:
         :var self.valences_list: a list of possible valence assignment, valences_list[i] is one possbile way to assign jth atom
         valence based on  valences_list[i][j].
         :var self.atomic_valence_electrons: atomic_valence_electrons[i] is the #_of_ve of ith atom
-
-        :param pmg_molecule:
         """
         self.AC = ac
         self.sani = sani
@@ -400,4 +401,3 @@ class ACParser:
         smiles = Chem.MolToSmiles(m, isomericSmiles=True, allHsExplicit=expliciths)
 
         return mol, smiles  # m is just used to get canonical smiles
-

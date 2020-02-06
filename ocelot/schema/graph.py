@@ -44,9 +44,8 @@ class BasicGraph:
     def __repr__(self):
         outs = ["{}:".format(self.__class__.__name__)]
         for n in self.graph.nodes:
-            outs.append( '{} {}'.format(n, self.symbols[n]))
+            outs.append('{} {}'.format(n, self.symbols[n]))
         return "; ".join(outs)
-
 
     def __eq__(self, other):
         """
@@ -189,6 +188,7 @@ class BasicGraph:
         :return:
         """
         draw_chemgraph(self.graph, output, dpi)
+
 
 def draw_chemgraph(graph, output, dpi=600):
     f = plt.figure()
@@ -418,6 +418,7 @@ class MolGraph(BasicGraph):
 
         the list of frags is reversely sorted by graph size
 
+        :param additional_criteria:
         :param bone_selection:
         :return:
         """

@@ -16,6 +16,7 @@ from scipy.spatial.distance import squareform
 from shapely.geometry import Polygon
 
 from ocelot.routines.conformerparser import ACParser
+from ocelot.routines.geometry import angle_btw, Fitter
 from ocelot.routines.geometry import coord_transform
 from ocelot.routines.geometry import get_proj_point2plane, alpha_shape
 from ocelot.routines.geometry import norm
@@ -80,6 +81,38 @@ class SiteidOperation:
     @property
     def siteids(self):
         return [s.properties['siteid'] for s in self]
+
+    def get_site_byid(self, siteid, multimatch=False):
+        """
+        :param int siteid:
+        :param bool multimatch: if Ture, return a list, otherwise a site
+        :return: (a list of) msite obj
+        """
+        if multimatch:
+            sites_matches = []
+            for s in self:
+                if s.properties['siteid'] == siteid:
+                    sites_matches.append(s)
+            if len(sites_matches) == 0:
+                raise SiteidError('cannot get site by id: {}'.format(siteid))
+            return sites_matches
+        else:
+            for s in self:
+                if s.properties['siteid'] == siteid:
+                    return s
+
+    def get_sites_byids(self, siteids, copy=False):
+        self.checkstatus('all assigned', 'unique ids')
+        if not set(siteids).issubset(set(self.siteids)):
+            raise SiteidError('siteids is not a subset of sitelist when init conformer')
+        rs = []
+        for s in self:
+            if s.properties['siteid'] in siteids:
+                if copy:
+                    rs.append(deepcopy(s))
+                else:
+                    rs.append(s)
+        return rs
 
     @property
     def status(self):
@@ -188,68 +221,6 @@ class BasicConformer(SiteidOperation):
             outs.append(s.__repr__() + '\t' + s.properties.__repr__())
         return "\n".join(outs)
 
-    # @property
-    # def status(self):
-    #     """
-    #     check status based on conformer.siteids
-    #
-    #     :return:
-    #     """
-    #     s = []
-    #
-    #     if self.siteids[0] == 0:
-    #         s.append('0start')
-    #     else:
-    #         s.append('not0strat')
-    #
-    #     if set(self.siteids) == {None}:
-    #         s.append('all none')
-    #     elif None in set(self.siteids):
-    #         s.append('partially none')
-    #     else:
-    #         s.append('all assigned')
-    #
-    #     try:
-    #         cri = all(a + 1 == b for a, b in zip(self.siteids, self.siteids[1:]))
-    #         if cri:
-    #             s.append('continuous')
-    #         else:
-    #             s.append('not continuous')
-    #     except TypeError:
-    #         pass
-    #
-    #     if len(set(self.siteids)) < len(self.siteids):
-    #         s.append('duplicate ids')
-    #     else:
-    #         s.append('unique ids')
-    #
-    #     return s
-    #
-    # def assign_siteid(self, siteids=None):
-    #     """
-    #     :param siteids: default None means siteid = index, otherwise siteid = siteids[i]
-    #     :return:
-    #     """
-    #     if siteids is None:
-    #         for i in range(len(self)):
-    #             self[i].properties['siteid'] = i
-    #     elif len(siteids) == len(self) and all(isinstance(i, int) for i in siteids):
-    #         for i in range(len(self)):
-    #             self[i].properties['siteid'] = siteids[i]
-    #     else:
-    #         raise SiteidError('siteids are not legit!')
-    #
-    # @property
-    # def siteids(self):
-    #     return [s.properties['siteid'] for s in self]
-    #
-    # def checkstatus(self, *args):
-    #     for a in args:
-    #         if a in self.status:
-    #             pass
-    #         else:
-    #             raise SiteidError('no <{}> in status!'.format(a))
-
     @property
     def cart_coords(self):
         coords = np.zeros((len(self), 3))
@@ -344,6 +315,8 @@ class BasicConformer(SiteidOperation):
 
         if site is not a legit atom (e.g. bq in nics), it cannot have any bond
 
+        :param sites:
+        :param distmat:
         :param co: coefficient for cutoff, default 1.3, based on covalent rad
         :return: bool matrix
         """
@@ -400,7 +373,7 @@ class BasicConformer(SiteidOperation):
 
         don't use this as it's slow...
 
-        :return: volume in \AA^3
+        :return: volume in A^3
         """
         mat = np.empty((len(self), 4))
         for i in range(len(self)):
@@ -445,25 +418,6 @@ class BasicConformer(SiteidOperation):
                     r.append(s)
         return r
 
-    def get_site_byid(self, siteid, multimatch=False):
-        """
-        :param int siteid:
-        :param bool multimatch: if Ture, return a list, otherwise a site
-        :return: (a list of) msite obj
-        """
-        if multimatch:
-            sites_matches = []
-            for s in self:
-                if s.properties['siteid'] == siteid:
-                    sites_matches.append(s)
-            if len(sites_matches) == 0:
-                raise SiteidError('cannot get site by id: {}'.format(siteid))
-            return sites_matches
-        else:
-            for s in self:
-                if s.properties['siteid'] == siteid:
-                    return s
-
     def issubset(self, other):
         """
         :param other:
@@ -473,7 +427,7 @@ class BasicConformer(SiteidOperation):
 
     def sort_by_siteid(self):
         self.checkstatus('all assigned')
-        self._sites = sorted(self._sites, key=lambda x: x.properties['siteid'])
+        self.sites = sorted(self.sites, key=lambda x: x.properties['siteid'])
 
     def rotate_along(self, theta, end1, end2, unit='degree'):
         """
@@ -496,7 +450,8 @@ class BasicConformer(SiteidOperation):
             v = s.coords - end1
             s.coords = end1 + rotate_along_axis(v, end2 - end1, theta, thetaunit=unit)
 
-    def rotate_along_de_matrix(self, theta, end1, end2, unit='degree'):
+    @staticmethod
+    def rotate_along_de_matrix(theta, end1, end2, unit='degree'):
         """
         rotation matrix :func:`~BasicConformer.rotate_along`
         """
@@ -644,26 +599,15 @@ class BasicConformer(SiteidOperation):
 
         the sites should have been assigned siteids
 
+        :param copy:
+        :param charge:
+        :param spin_multiplicity:
+        :param validate_proximity:
+        :param siteidcheck:
         :param siteids: a list of siteid
         :param sites: all sites (in a mol)
         """
-        rs = []
-        try:
-            sites_idx = [s.properties['siteid'] for s in sites]
-        except KeyError:
-            raise SiteidError('siteid key not found')
-        if any(not isinstance(i, int) for i in sites_idx):
-            raise SiteidError('not all siteids are int')
-        if len(set(sites_idx)) != len(sites_idx):
-            raise SiteidError('not all siteids are unique')
-        if not set(siteids).issubset(set(sites_idx)):
-            raise ConformerInitError('siteids is not a subset of sitelist when init conformer')
-        for s in sites:
-            if s.properties['siteid'] in siteids:
-                if copy:
-                    rs.append(deepcopy(s))
-                else:
-                    rs.append(s)
+        rs = SiteidOperation(sites).get_sites_byids(siteids, copy)
         return cls.from_sites(rs, charge, spin_multiplicity, validate_proximity, siteidcheck)
 
     @classmethod
@@ -739,9 +683,6 @@ class BondConformer(BasicConformer):
         return norm(self.a.coords - self.b.coords)
 
 
-from ocelot.routines.geometry import angle_btw, Fitter
-
-
 class RingConformer(BasicConformer):
     def __init__(self, sites, charge=0, spin_multiplicity=1, validate_proximity=True, siteids=None):
         super().__init__(sites, charge, spin_multiplicity, validate_proximity, siteids)
@@ -800,6 +741,7 @@ class RingConformer(BasicConformer):
         """
         whether two rings are on the same plane with tol
 
+        :param v2:
         :param tol: degree default 20
         :param tolunit: degree/radian
         :return: bool
@@ -1088,6 +1030,9 @@ class FragConformer(BasicConformer):
     ):
         """
 
+        :param conformer_properties:
+        :param rings:
+        :param joints:
         :param sites:
         :param charge:
         :param spin_multiplicity:
@@ -1139,23 +1084,7 @@ class FragConformer(BasicConformer):
                      rings=None,
                      joints=None,
                      ):
-        rs = []
-        try:
-            sites_idx = [s.properties['siteid'] for s in sites]
-        except KeyError:
-            raise SiteidError('siteid key not found')
-        if any(not isinstance(i, int) for i in sites_idx):
-            raise SiteidError('not all siteids are int')
-        if len(set(sites_idx)) != len(sites_idx):
-            raise SiteidError('not all siteids are unique')
-        if not set(siteids).issubset(set(sites_idx)):
-            raise ConformerInitError('siteids is not a subset of sitelist when init conformer')
-        for s in sites:
-            if s.properties['siteid'] in siteids:
-                if copy:
-                    rs.append(deepcopy(s))
-                else:
-                    rs.append(s)
+        rs = SiteidOperation(sites).get_sites_byids(siteids, copy)
         return cls.from_sites(
             rs, charge, spin_multiplicity, validate_proximity,
             ('all assigned', 'unique ids'), siteids=None,
@@ -1322,7 +1251,6 @@ class MolConformer(BasicConformer):
         else:
             self.conformer_properties = prop
 
-
     def calculate_conformer_properties(self):
         pass
 
@@ -1349,8 +1277,11 @@ class MolConformer(BasicConformer):
             # print(bc_joint_site)
             v_sc_position = bc_joint_site.coords - self.geoc
             sc_position_angle = angle_btw(v_sc_position, bone_conformer.pfit_vp, 'degree')
-            scc = SidechainConformer.from_siteids(scg.graph.nodes, self.sites, copy=False, joints=scg.graph.graph['joints'],
-                                            rings=None, conformer_properties={'sc_position_angle': sc_position_angle, 'bc_joint_siteid': bc_joint_site_id})
+            scc = SidechainConformer.from_siteids(scg.graph.nodes, self.sites, copy=False,
+                                                  joints=scg.graph.graph['joints'],
+                                                  rings=None,
+                                                  conformer_properties={'sc_position_angle': sc_position_angle,
+                                                                        'bc_joint_siteid': bc_joint_site_id})
             sccs.append(scc)
 
         return bone_conformer, sccs, bg, scgs  # sccs <--> scgs bijection
@@ -1426,21 +1357,10 @@ class ConformerDimer:
 
         vslipnorm, pslip, qslip, oslip, pangle, qangle, oangle, jmol, label, omol_ref, omol_var
         """
-        d = {
-            "@module": self.__class__.__module__,
-            "@class": self.__class__.__name__,
-        }
-        d['vslipnorm'] = self.vslipnorm
-        d['pslip'] = self.pslip
-        d['qslip'] = self.qslip
-        d['oslip'] = self.oslip
-        d['pangle'] = self.pangle
-        d['qangle'] = self.qangle
-        d['oangle'] = self.oangle
-        d['jmol'] = self.jmol
-        d['label'] = self.label
-        d['ref'] = self.conformer_ref.as_dict()
-        d['var'] = self.conformer_var.as_dict()
+        d = {"@module": self.__class__.__module__, "@class": self.__class__.__name__, 'vslipnorm': self.vslipnorm,
+             'pslip': self.pslip, 'qslip': self.qslip, 'oslip': self.oslip, 'pangle': self.pangle,
+             'qangle': self.qangle, 'oangle': self.oangle, 'jmol': self.jmol, 'label': self.label,
+             'ref': self.conformer_ref.as_dict(), 'var': self.conformer_var.as_dict()}
         return d
 
     @classmethod
