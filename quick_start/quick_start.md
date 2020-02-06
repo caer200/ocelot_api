@@ -1,17 +1,57 @@
 
 ## Installation
-1. clone the release branch (e.g. `v0.01`) by 
+0. make sure `conda` works properly
+1. clone the latest stable (e.g. `v0.2`) by 
     ```bash
-    git clone --single-branch --branch v0.01 git@github.com:caer200/ocelot_api.git
+    git clone --single-branch --branch v0.2 git@github.com:caer200/ocelot_api.git
     ```
-2. make sure `conda` is working, create a new venv with
+2. this yields a folder called `ocelot_api`, create a new venv with
     ```bash
-    conda env create -f env.yml
+    conda env create -f venv/env.yml
     ``` 
-3. this yields a folder called `ocelot_api`, run `python setup.py install` there
+   or
+   ```bash
+   conda create --name ocelot venv/spec-file.txt
+   ```
+3. run `python setup.py install` there
+
+## schema
+
+A `MolGraph` is a graph consists of integer nodes (nodename) and edges connecting them.
+For each node, there is an string attribute denotes the element.
+
+A `MolGraph` can be partitioned into a set of `FragmentGraph`. A `FragmentGraph` contains
+the information of `joints` at which fragmentation happened. The `FragmentGraph` is
+used to represent different functional fragments commonly seen in functional organic
+molecules.
+
+One level above the `MolGrap` is the molecualr graph that contains
+ details of bonds and basic information about the electronic system.
+This is the "molecule" drawn by chemists and 
+can be nicely described by the molecule class in `rdkit`. It should be noticed that
+converting `MolGraph` to `rdkit.mol` is not trivial. 
+We use the method from [xyz2mol](https://github.com/jensengroup/xyz2mol) by 
+[Jensen Group](https://github.com/jensengroup).
+
+With conformational information, a `MolGraph`/`FragmentGraph`
+ becomes a `MolConformer`/`FragConformer` that can
+be uniquely defined by the Cartesian coordinates (xyz) of its atoms. Basically, 
+they are `pymatgen.Molecule` except for each `site`, there is a property `siteid`
+that can be mapped to the nodes in `MoleGraph`. 
+
+Adding periodicity to a `MolConformer` yields a `Config`, which is just a 
+`pymatgen.strcuture` with no disordered sites. Disorder should be represented by
+a set of weighted `Config`, as this API is used primarily for 
+handling organic molecular crystals in which the number of possible configurations is limited
+by molecular structure.
+
+## Disorder
 
 
-let's say there's a cif file here
+
+For more info see [disorder_test](../tests/disorder_test)
+
+
 
 ## Quick Start
 

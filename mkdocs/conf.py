@@ -22,10 +22,10 @@ copyright = '2019, Ai, Qianxiang'
 author = 'Ai, Qianxiang'
 
 # The short X.Y version
-version = '0.01'
+version = '0.2'
 
 # The full version, including alpha/beta/rc tags
-release = '0.01'
+release = '0.2'
 
 
 # -- General configuration ---------------------------------------------------

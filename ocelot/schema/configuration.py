@@ -106,7 +106,10 @@ class Config:
 
     def get_bone_config(self):
         """
-        :return: a configuration that has only terminated backbones
+        :return:
+            a configuration that has only terminated backbones
+            a pmg structure that has only terminated backbones
+            a list of pmg molecules
         """
 
         terminated_backbone_hmols = [
