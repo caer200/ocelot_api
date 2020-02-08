@@ -1,13 +1,14 @@
-import sys
 import re
+import sys
+from collections import OrderedDict
+
 import numpy as np
 import numpy.matlib
+from numba import jit
+from pymatgen.core.structure import Molecule
+from pymatgen.io.gaussian import GaussianInput
 from scipy.linalg import blas
 from scipy.linalg import lapack
-from numba import jit
-from collections import OrderedDict
-from pymatgen.io.gaussian import GaussianInput
-from pymatgen.core.structure import Molecule
 
 '''
 electronic coupling calculator with
@@ -270,7 +271,7 @@ class ElectronicCoupling:
                 matrix_elements.append(overlap_value)
         overlap = ElectronicCoupling.create_matrix(overlap_matrix, matrix_elements, nbf)
         overlap = ElectronicCoupling.make_symmetric(overlap)
-        overlap = np.matrix(overlap)
+        overlap = np.array(overlap)
 
         return overlap
 

@@ -1,15 +1,12 @@
-from ocelot.schema.config import Config, np
-from ocelot.routines.pbc import CIFparser
-from ocelot.schema.dimercollection import DimerCollection
+from ocelot.schema.conformer import DimerCollection
+from ocelot.schema.configuration import Config
+from ocelot.routines.disparser import DisParser
 
 def inspect_cif(ciffile):
-    with open(ciffile, "r") as myfile:
-        data = myfile.read()
-    cp = CIFparser.from_cifstring(data)
-    clean_cif_strings = cp.get_clean_cifs_stringlist()
-
-    c = Config.from_cifstring(clean_cif_strings[0])
-    return c
+    dp = DisParser.from_ciffile(ciffile)
+    confs = dp.to_configs()
+    conf = confs[0][0]
+    return Config(conf)
 
 
 # fname = './tipge-bw.cif'
@@ -18,8 +15,10 @@ def inspect_cif(ciffile):
 # dc = DimerCollection(dimer_arrays[0][0])
 # dc.to_xyz('dc.xyz')
 
-fname = 'POSCAR'
-c = Config.from_file(fname)
-dimer_arrays, trans = c.get_dimers_array(maxfold=1, fast=False, symm=False)
+# fname = 'POSCAR'
+# c = Config.from_file(fname)
+c = inspect_cif('tipge-bw.cif')
+
+dimer_arrays, trans = c.get_dimers_array(maxfold=1, fast=True, symm=False)
 dc = DimerCollection(dimer_arrays[0][0])
 dc.to_xyz('dc.xyz')

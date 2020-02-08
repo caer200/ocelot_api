@@ -1,4 +1,6 @@
 from collections import OrderedDict
+
+
 # from schema.dimercollection import DimerCollection
 
 class PackingIdentifier:

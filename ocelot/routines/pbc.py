@@ -1,158 +1,14 @@
 import math
 from copy import deepcopy
-from ocelot.schema.element import Element
-from ocelot.schema.omol import OMol
+
+from pymatgen.core.structure import Site, PeriodicSite, Molecule, Structure
 from pymatgen.util.coord import pbc_shortest_vectors
-from pymatgen.core.structure import Site, PeriodicSite, IMolecule, Molecule, Structure
-from pymatgen.io.cif import CifFile
+
+from ocelot.schema.conformer import MolConformer, Element
 
 """
-CIFparser: to be deprecated, use DisParser instead
 PBCparser: get unwrapped structure and mols
 """
-
-
-class CIFparser:
-
-    def __init__(self, cifstring, identifier, pymatgen_dict, clean_dicts, clean_cifstrings, nconfig, is_disorder):
-
-        self.cifstring = cifstring
-        self.identifier = identifier
-        self.pymatgen_dict = pymatgen_dict
-        self.clean_dicts = clean_dicts
-        self.clean_cifstrings = clean_cifstrings
-        self.nconfig = nconfig
-        self.is_disorder = is_disorder
-
-    @classmethod
-    def from_cifstring(cls, cifstring):
-        cifdata = CifFile.from_string(cifstring).data
-        identifier = '_'.join(list(cifdata.keys()))
-        pymatgen_dict = list(cifdata.items())[0][1].data
-        is_disorder = CIFparser.isdisorder(pymatgen_dict)
-        clean_dicts = CIFparser.split_pymatgen_dict(pymatgen_dict, is_disorder, identifier)
-        clean_cifstrings = [CIFparser.get_config_dict_string(d) for d in clean_dicts]
-        nconfig = len(clean_dicts)
-        return cls(cifstring, identifier, pymatgen_dict, clean_dicts, clean_cifstrings, nconfig, is_disorder)
-
-    @staticmethod
-    def get_config_dict_string(d):
-        s = d['identifier'] + '\n'
-        s += 'loop_\n _symmetry_equiv_pos_as_xyz\n' + '\n'.join(["'" + xyz + "'" for xyz in d['symop']]) + '\n\n'
-        s += '_cell_length_a\t' + d['a'] + '\n'
-        s += '_cell_length_b\t' + d['b'] + '\n'
-        s += '_cell_length_c\t' + d['c'] + '\n'
-        s += '_cell_angle_alpha\t' + d['A'] + '\n'
-        s += '_cell_angle_beta\t' + d['B'] + '\n'
-        s += '_cell_angle_gamma\t' + d['C'] + '\n'
-        s += 'loop_\n _atom_site_label\n _atom_site_type_symbol\n _atom_site_fract_x\n _atom_site_fract_y\n _atom_site_fract_z\n _atom_site_occupancy\n _atom_site_disorder_group\n'
-
-        for site in d['msites']:
-            line = '\t'.join(site)
-            s += line + '\n'
-        return s
-
-    @staticmethod
-    def write_config_dict(d, cifn):
-        """
-        write config_dict into minimum readable cif file
-        :return:
-        """
-        s = CIFparser.get_config_dict_string(d)
-        with open(cifn, 'w') as f:
-            f.write(s)
-
-    def get_clean_cifs_stringlist(self):
-        res = []
-        for i in range(len(self.clean_dicts)):
-            cleandict = self.clean_dicts[i]
-            res.append(self.get_config_dict_string(cleandict))
-        return res
-
-    def write_clean_cifs(self, prefix='cleanconfig'):
-        fns = []
-        for i in range(self.nconfig):
-            fn = '{}-{}.cif'.format(prefix, i)
-            self.write_config_dict(self.clean_dicts[i], fn)
-            fns.append(fn)
-        return fns
-
-    @staticmethod
-    def split_pymatgen_dict(pymatgen_dict, isdisorder, identifier):
-        if not isdisorder:
-            config_d = dict(
-                identifier='data_{}_config-{}'.format(identifier, 0),
-                a=pymatgen_dict['_cell_length_a'],
-                b=pymatgen_dict['_cell_length_b'],
-                c=pymatgen_dict['_cell_length_c'],
-                A=pymatgen_dict['_cell_angle_alpha'],
-                B=pymatgen_dict['_cell_angle_beta'],
-                C=pymatgen_dict['_cell_angle_gamma'],
-            )
-            if '_space_group_symop_operation_xyz' in pymatgen_dict.keys():
-                config_d['symop'] = pymatgen_dict['_space_group_symop_operation_xyz']
-            elif '_symmetry_equiv_pos_as_xyz' in pymatgen_dict.keys():
-                config_d['symop'] = pymatgen_dict['_symmetry_equiv_pos_as_xyz']
-            sites = []
-            for j in range(len(pymatgen_dict['_atom_site_label'])):
-                site = [
-                    pymatgen_dict['_atom_site_label'][j],
-                    pymatgen_dict['_atom_site_type_symbol'][j],
-                    pymatgen_dict['_atom_site_fract_x'][j],
-                    pymatgen_dict['_atom_site_fract_y'][j],
-                    pymatgen_dict['_atom_site_fract_z'][j],
-                    '1.0',
-                    '.'
-                ]
-                sites.append(site)
-            config_d['msites'] = sites
-            return [config_d]
-        else:
-            config_ds = []
-            dg_labels = sorted(
-                [line for line in list(set([s.strip('-') for s in pymatgen_dict['_atom_site_disorder_group']]))
-                 if line != u'.'])
-            for l in dg_labels:
-                config_d = dict(
-                    identifier='data_{}_config-{}'.format(identifier, l),
-                    a=pymatgen_dict['_cell_length_a'],
-                    b=pymatgen_dict['_cell_length_b'],
-                    c=pymatgen_dict['_cell_length_c'],
-                    A=pymatgen_dict['_cell_angle_alpha'],
-                    B=pymatgen_dict['_cell_angle_beta'],
-                    C=pymatgen_dict['_cell_angle_gamma'],
-                )
-                if '_space_group_symop_operation_xyz' in pymatgen_dict.keys():
-                    config_d['symop'] = pymatgen_dict['_space_group_symop_operation_xyz']
-                elif '_symmetry_equiv_pos_as_xyz' in pymatgen_dict.keys():
-                    config_d['symop'] = pymatgen_dict['_symmetry_equiv_pos_as_xyz']
-                sites = []
-                for j in range(len(pymatgen_dict['_atom_site_label'])):
-                    if pymatgen_dict['_atom_site_disorder_group'][j].strip('-') == l \
-                            or pymatgen_dict['_atom_site_disorder_group'][j] == u'.':
-                        site = [
-                            pymatgen_dict['_atom_site_label'][j],
-                            pymatgen_dict['_atom_site_type_symbol'][j],
-                            pymatgen_dict['_atom_site_fract_x'][j],
-                            pymatgen_dict['_atom_site_fract_y'][j],
-                            pymatgen_dict['_atom_site_fract_z'][j],
-                            '1.0',
-                            pymatgen_dict['_atom_site_disorder_group'][j]
-                        ]
-                        sites.append(site)
-                config_d['msites'] = sites
-                config_ds.append(config_d)
-            return config_ds
-
-    @staticmethod
-    def isdisorder(pymatgen_dict):
-        if '_atom_site_disorder_group' in pymatgen_dict.keys():
-            dg_labels = sorted(
-                [line for line in list(set([s.strip('-') for s in pymatgen_dict['_atom_site_disorder_group']])) if
-                 line != u'.'])
-            if len(dg_labels) > 1:
-                return True
-        return False
 
 
 class PBCparser:
@@ -185,7 +41,7 @@ class PBCparser:
         """
         psites = pstructure.sites
         for isite in range(len(psites)):
-            psites[isite].properties['isite'] = isite
+            psites[isite].properties['siteid'] = isite
         pindices = range(len(psites))
         visited = []
         block_list = []
@@ -208,14 +64,15 @@ class PBCparser:
                                                                      psites[block[pointer]]._frac_coords,
                                                                      psites[i]._frac_coords, )
 
-                    cutoff = Element.covalent_radii[psites[block[pointer]].species_string] + Element.covalent_radii[
-                        psites[i].species_string]
+                    cutoff = Element(psites[block[pointer]].species_string).atomic_radius + Element(
+                        psites[i].species_string).atomic_radius
                     cutoff *= 1.3
                     if distance < cutoff:
                         block.append(i)
                         psites[i] = PeriodicSite(psites[i].species_string, psites[i]._frac_coords + fctrans,
                                                  pstructure.lattice, properties=deepcopy(psites[i].properties))
-                        unwrap_block.append(Site(psites[i].species_string, psites[i].coords, properties=deepcopy(psites[i].properties)))
+                        unwrap_block.append(
+                            Site(psites[i].species_string, psites[i].coords, properties=deepcopy(psites[i].properties)))
                         # unwrap.append(psites[i])
                         unwrap_pblock.append(psites[i])
                 visited.append(block[pointer])
@@ -249,26 +106,27 @@ class PBCparser:
         return mols, unwrap_str_sorted, unwrap_pblock_list
 
     @staticmethod
-    def squeeze(pstructure):
+    def squeeze(pstructure: Structure):
         """
         after unwrapping, the mols can be far away from each other, this tries to translate them s.t. they stay together
 
+        :rtype:
         :param pstructure:
         :return:
         """
         mols, unwrap_structure, psiteblocks = PBCparser.unwrap(pstructure)
 
-        omols = []
+        moleconformers = []
         for mm in mols:
-            omol = OMol.from_pymatgen_mol(mm)
-            if not omol.is_solvent:
-                omols.append(omol)
+            mc = MolConformer.from_pmgmol(mm)
+            if not mc.is_solvent:
+                moleconformers.append(mc)
 
-        if len(omols) > 1:
-            refpoint = omols[0].backbone.geoc
+        if len(moleconformers) > 1:
+            refpoint = moleconformers[0].backbone.geoc
             refpoint = unwrap_structure.lattice.get_fractional_coords(refpoint)
-            for i in range(1, len(omols)):
-                varmol = omols[i]
+            for i in range(1, len(moleconformers)):
+                varmol = moleconformers[i]
                 varpoint = varmol.backbone.geoc
                 varpoint = unwrap_structure.lattice.get_fractional_coords(varpoint)
                 distance, fctrans = PBCparser.get_dist_and_trans(unwrap_structure.lattice, refpoint, varpoint)
@@ -285,11 +143,11 @@ class PBCparser:
                 mols.append(mol)
             unwrap_structure = Structure.from_sites(sorted(psites, key=lambda x: x.species_string))
 
-            omols = []
+            moleconformers = []
             for m in mols:
-                omol = OMol.from_pymatgen_mol(m)
-                if not omol.is_solvent:
-                    omols.append(omol)
-            return mols, omols, unwrap_structure
+                mc = MolConformer.from_pmgmol(m)
+                if not mc.is_solvent:
+                    moleconformers.append(mc)
+            return mols, moleconformers, unwrap_structure
 
-        return mols, omols, unwrap_structure
+        return mols, moleconformers, unwrap_structure

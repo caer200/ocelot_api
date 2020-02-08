@@ -1,12 +1,18 @@
-from copy import deepcopy
-import numpy as np
-from ocelot.routines.geometry import genlinepts, angle_btw
-from scipy.spatial.distance import pdist, squareform
 import warnings
+from copy import deepcopy
+
+import numpy as np
 from pymatgen.core.structure import Molecule
+from pymatgen.core.structure import Site
 from pymatgen.io.gaussian import GaussianInput
-from ocelot.schema.msite import MSite
-from ocelot.schema.msitelist import MSitelist
+from scipy.spatial.distance import pdist
+from scipy.spatial.distance import squareform
+
+from ocelot.routines.geometry import angle_btw
+from ocelot.routines.geometry import genlinepts
+from ocelot.schema.conformer import MolConformer
+from ocelot.schema.conformer import RingConformer
+from ocelot.schema.conformer import _coordination_rule
 
 """
 given a non-solvent omol, generate input for nics scan, parse output
@@ -14,13 +20,28 @@ the omol should be reoriented
 """
 
 
-class NICSjob:
+class NicsError(Exception):
+    pass
 
-    def __init__(self, omol, nmrscheme='GIAO'):
+
+class NICSjob:
+    lgfr: [RingConformer]
+
+    def __init__(self, omol: MolConformer, nmrscheme='GIAO'):
         self.omol = omol
         self.nmrscheme = nmrscheme
         if self.omol.is_solvent:
+            NicsError('NICS does not work for solvent-like molecule')
+        if self.omol.is_solvent:
             warnings.warn('W: trying to do NICS job for a solvent-like molecule')
+
+        bone, sccs, backbone_graph, scgs = self.omol.partition(scheme='lgfr')
+        lgfr = bone.rings
+        geocs = [r.geoc for r in lgfr]  # nx3
+        dmat = squareform(pdist(np.array(geocs)))
+        maxi, maxj = np.unravel_index(dmat.argmax(), dmat.shape)  # idx for rings at two ends
+        fr = sorted(lgfr, key=lambda r: np.linalg.norm(r.geoc - lgfr[maxi].geoc))
+        self.lgfr = fr
 
     def plot_path(self):
         """
@@ -35,51 +56,52 @@ class NICSjob:
         notice this could be different from backbone, as backbone contains other fr connected to lfr with single bond 
         (eg. BDT 3mer)
 
-        :param normal_idx: 0, 1
+
+              :param normal_idx: 0, 1
         :return: a MSitelist objects
         """
-        if self.omol.largest_fused_ring is None:
-            warnings.warn('W: nics_sigma_structure is not working for solvent-like omol')
-            return None
-        lgfr = self.omol.largest_fused_ring
-        geocs = [r.geoc for r in lgfr]  # nx3
-        dmat = squareform(pdist(np.array(geocs)))
-        maxi, maxj = np.unravel_index(dmat.argmax(), dmat.shape)  # idx for rings at two ends
-        fr = sorted(lgfr, key=lambda r: np.linalg.norm(r.geoc - lgfr[maxi].geoc))
+        lgfr = self.lgfr
 
         if normal_idx == 0:
-            ref_normal = fr[0].n1
+            ref_normal = lgfr[0].n1
         else:
-            ref_normal = fr[0].n2
-        normals = [r.normal_along(ref_normal) for r in fr]
+            ref_normal = lgfr[0].n2
+        normals = [r.normal_along(ref_normal) for r in lgfr]
         if any([n is None for n in normals]):
             warnings.warn('W: nics_sigma_structure failed as largest_fused_ring maybe too twisted')
             return None
 
         frsites = []
         for r in lgfr:
-            for s in r.msites:
+            for s in r.sites:
                 if s not in frsites:
                     frsites.append(s)
 
-        sigma_sites = deepcopy(self.omol.msites)
+        sigma_sites = deepcopy(self.omol.sites)
 
         terminated_sites_id = []
         added_hydrogens = []
+        nbrmap = self.omol.get_nbrmap_based_on_siteid(1.3)
 
         for i in range(len(lgfr)):
-            for s in lgfr[i].msites:
-                if s.insaturation == 1 and s.siteid not in terminated_sites_id:
-                    terminated_sites_id.append(s.siteid)
-                    hs = MSite('H', 1.0 * normals[i] + s.coords, siteid=-10)
+            ringconf = lgfr[i]
+            for s in ringconf.sites:
+                nbs = nbrmap[s.properties['siteid']]
+                unsaturation = _coordination_rule[s.species_string] - len(nbs)
+                if unsaturation == 1 and s.properties['siteid'] not in terminated_sites_id:
+                    terminated_sites_id.append(s.properties['siteid'])
+                    hs = Site('H', 1.0 * normals[i] + s.coords, properties={'siteid': -10})
                     added_hydrogens.append(hs)
-                for nb in s.nbs:
-                    if nb.siteid not in terminated_sites_id and nb.insaturation == 1 and nb not in frsites and all(
-                            [nb not in ring.msites for ring in self.omol.rings]):
-                        terminated_sites_id.append(nb.siteid)
-                        hs = MSite('H', 1.0 * normals[i] + nb.coords, siteid=-10)
+                for nb in nbs:
+                    nbsite = self.omol.get_site_byid(nb)
+                    nb_unsaturation = _coordination_rule[nbsite.species_string] - len(
+                        nbrmap[nbsite.properties['siteid']])
+                    if nb not in terminated_sites_id and nb_unsaturation == 1 and nbsite not in frsites and all(
+                            nbsite not in ring.sites for ring in self.omol.rings):
+                        terminated_sites_id.append(nb)
+                        hs = Site('H', 1.0 * normals[i] + nbsite.coords, properties={'siteid': -10})
                         added_hydrogens.append(hs)
-        return MSitelist(sigma_sites + added_hydrogens)
+        return sigma_sites + added_hydrogens
 
     def nics_line_scan_path(self, step_size, nrings, height=1.7, normaldirection=0):
         """
@@ -97,12 +119,7 @@ class NICSjob:
         :param normaldirection: 0 or 1, as it's possible to have two different paths for bent molecules
         :return: pts, ring_idx, xnumbers, xticks
         """
-        lgfr = self.omol.largest_fused_ring[:nrings]
-        geocs = [r.geoc for r in lgfr]  # nx3
-        dmat = squareform(pdist(np.array(geocs)))
-        maxi, maxj = np.unravel_index(dmat.argmax(), dmat.shape)
-        fr = sorted(lgfr,
-                    key=lambda r: np.linalg.norm(r.geoc - lgfr[maxi].geoc))  # sorted based on dist from the edge ring
+        fr = self.lgfr[:nrings]
         available_normals = [fr[0].n1, fr[0].n2]
         normals = [r.normal_along(available_normals[normaldirection]) for r in fr]
 
@@ -118,7 +135,7 @@ class NICSjob:
             segend2 = nb_ring.geoc
             # nb_ring center -- cross_pt -- ring center -- prev_cross_pt -- prev ring center
             if i == 0:
-                bond_centers = sorted([b.center for b in ring.bonds],
+                bond_centers = sorted([b.geoc for b in ring.bonds_in_ring],
                                       key=lambda bc: angle_btw(segend2 - segend1, bc - segend1))
                 cross_point, start_point = sorted([bond_centers[0], bond_centers[-1]],
                                                   key=lambda c: np.linalg.norm(c - 0.5 * (segend2 + segend1)))
@@ -137,7 +154,7 @@ class NICSjob:
                 ring_idx += [i] * len(subpath)
             elif i != 0 and i != len(fr) - 2:
                 prev_cross_point = cross_point
-                bond_centers = sorted([b.center for b in ring.bonds],
+                bond_centers = sorted([b.geoc for b in ring.bonds_in_ring],
                                       key=lambda bc: angle_btw(segend2 - segend1, bc - segend1))
                 cross_point, start_point = sorted([bond_centers[0], bond_centers[-1]],
                                                   key=lambda c: np.linalg.norm(c - 0.5 * (segend2 + segend1)))
@@ -156,7 +173,7 @@ class NICSjob:
                 ring_idx += [i] * len(subpath)
             elif i == len(fr) - 2:
                 prev_cross_point = cross_point
-                bond_centers = sorted([b.center for b in ring.bonds],
+                bond_centers = sorted([b.geoc for b in ring.bonds_in_ring],
                                       key=lambda bc: angle_btw(segend2 - segend1, bc - segend1))
                 cross_point, start_point = sorted([bond_centers[0], bond_centers[-1]],
                                                   key=lambda c: np.linalg.norm(c - 0.5 * (segend2 + segend1)))
@@ -181,7 +198,7 @@ class NICSjob:
                 pts += subpath
                 ring_idx += [i + 1] * len(subpath)
 
-                bond_centers = sorted([b.center for b in nb_ring.bonds],
+                bond_centers = sorted([b.geoc for b in nb_ring.bonds_in_ring],
                                       key=lambda bc: angle_btw(segend1 - segend2, bc - segend2))
                 cross_point, end_point = sorted([bond_centers[0], bond_centers[-1]],
                                                 key=lambda c: np.linalg.norm(c - 0.5 * (segend2 + segend1)))
@@ -225,8 +242,8 @@ class NICSjob:
         """
         pts, pt_idx, xnumbers, xticks = self.nics_line_scan_path(step_size, nrings, height, normaldirection)
         sigma_mol_msites = self.nics_sigma_structure(normal_idx=1 - normaldirection)
-        sigma_pmgmol = Molecule.from_sites([ms.to_pymatgen_site() for ms in sigma_mol_msites])
-        total_pmgmol = self.omol.to_pymatgen_mol()
+        sigma_pmgmol = Molecule.from_sites(sigma_mol_msites)
+        total_pmgmol = self.omol.pmgmol
         chunksize = maxnbq
 
         total_ginobj = GaussianInput(total_pmgmol, charge, spin_multiplicity, title, functional, basis_set,

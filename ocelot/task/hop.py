@@ -1,12 +1,12 @@
-from ocelot.task.zindo import ZindoJob, conver2zindo
-from ocelot.schema.dimercollection import DimerCollection
 import json
-from pymatgen.core.structure import Molecule
 import os
-from scipy.spatial.distance import cdist
+
 import numpy as np
 
-#TODO parallel zindo calculations
+from ocelot.schema.conformer import DimerCollection
+from ocelot.task.zindo import ZindoJob, conver2zindo
+
+# TODO parallel zindo calculations
 """
 for a certain crystal config, get perocalation pathway
 """
@@ -46,7 +46,8 @@ class Hop:
         note there is another symmetry in transv_fcs from cart product, transv_fcs[i] == -transv_fcs[len-i-1]
         that is k2 == len-k1-1
 
-        :param lenij:
+        :param leni:
+        :param lenj:
         :param lenk:
         :return:
         """
@@ -131,8 +132,8 @@ class Hop:
                 subwdir = '{}/dimers/{}'.format(workdir, lab)
                 os.system('mkdir -p {}'.format(subwdir))
 
-                mol_A = conver2zindo(dimers[idimer].omol_ref.to_pymatgen_mol())
-                mol_D = conver2zindo(dimers[idimer].omol_var.to_pymatgen_mol())
+                mol_A = conver2zindo(dimers[idimer].conformer_ref.pmgmol)
+                mol_D = conver2zindo(dimers[idimer].conformer_var.pmgmol)
                 coupling_data, nmo_a, nmo_d = ZindoJob.dimer_run(lab,
                                                                  subwdir,
                                                                  self.zindobin,
@@ -154,7 +155,7 @@ class Hop:
         for lab in data.keys():
             i, j, k = [int(idx) for idx in lab.split('_')]
             symdata[lab] = data[lab]
-            symlab = '_'.join([str(index) for index in  [j, i, lenk - k - 1]])
+            symlab = '_'.join([str(index) for index in [j, i, lenk - k - 1]])
             symlabentry = [data[lab][0], data[lab][1], dimer_array[j, i, lenk - k - 1].to_xyzstring()]
             symdata[symlab] = symlabentry
         with open('{}/symdata2.json'.format(workdir), 'w') as f:
@@ -174,6 +175,8 @@ class Hop:
         we look at a supercell, in which the coupling is represented as augmented_data[mp_i][mp_j][i][j]
         which is the coupling between supercellmesh[mp_i] ith mol and supercellmesh[mp_j] jth mol
 
+        :param motype:
+        :param workdir:
         :param dimer_array:
         :param transv_fcs:
         :param symdata:
@@ -192,7 +195,7 @@ class Hop:
         super_cell_mesh = Hop.get_intger_mesh(size_x, size_y, size_z)
         mesh_size = len(super_cell_mesh)
         augmented_data = np.zeros((mesh_size, mesh_size, leni, lenj))
-        mat_v_x2y = super_cell_mesh[np.newaxis,:,:]-super_cell_mesh[:,np.newaxis,:]
+        mat_v_x2y = super_cell_mesh[np.newaxis, :, :] - super_cell_mesh[:, np.newaxis, :]
         for mi in range(mesh_size):
             for mj in range(mesh_size):
                 # v_mi2mj = super_cell_mesh[mj] - super_cell_mesh[mi]
@@ -218,6 +221,7 @@ class Hop:
         hopdata[x] gives a list of molecules (represented by [mp_i, mol_i])
         that are connected to the molecule [mp_i=0, mol_i=x], including the molecule itself
 
+        :param motype:
         :param supercell_mesh: 3xn meshpoints
         :param supercell_data:
         :param cutoff: in meV
@@ -266,7 +270,7 @@ class Hop:
 
     def get_hopping_network_s2(self, symdata, cutoff, supercell=(1, 1, 1), motype='hh'):
         mesh, augdata = self.supercell_proj(self.dimer_array, self.tranv_fcs, symdata, super_cell_size=supercell,
-                                           motype=motype, workdir=self.workdir)
+                                            motype=motype, workdir=self.workdir)
         # this gives 'll_netdata4.json' or 'hh_netdata4.json'
         network = self.hopping(augdata, mesh, cutoff, self.workdir, motype)
         return mesh, augdata, network
@@ -339,5 +343,3 @@ class Hop:
     #     with open('{}/netdata4.json'.format(workdir), 'w') as f:
     #         json.dump(network, f)
     #     return network
-
-

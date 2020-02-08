@@ -1,0 +1,542 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ocelot.task.hop &mdash; ocelot 0.2 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> ocelot
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#schema">schema</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#disorder">Disorder</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#bone-config">Bone Config</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#backbone-and-sidechain">Backbone and Sidechain</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ocelot.html">ocelot package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">ocelot</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>ocelot.task.hop</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ocelot.task.hop</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">ocelot.schema.conformer</span> <span class="kn">import</span> <span class="n">DimerCollection</span>
+<span class="kn">from</span> <span class="nn">ocelot.task.zindo</span> <span class="kn">import</span> <span class="n">ZindoJob</span><span class="p">,</span> <span class="n">conver2zindo</span>
+
+<span class="c1"># TODO parallel zindo calculations</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">for a certain crystal config, get perocalation pathway</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<div class="viewcode-block" id="IJK"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.hop.IJK">[docs]</a><span class="k">class</span> <span class="nc">IJK</span><span class="p">:</span>
+<div class="viewcode-block" id="IJK.__init__"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.hop.IJK.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ijk</span><span class="p">,</span> <span class="n">klen</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ijk</span> <span class="o">=</span> <span class="n">ijk</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">klen</span> <span class="o">=</span> <span class="n">klen</span></div>
+
+    <span class="k">def</span> <span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">klen</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">klen</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="n">i1</span><span class="p">,</span> <span class="n">j1</span><span class="p">,</span> <span class="n">k1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ijk</span>
+        <span class="n">i2</span><span class="p">,</span> <span class="n">j2</span><span class="p">,</span> <span class="n">k2</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">ijk</span>
+        <span class="k">if</span> <span class="n">i1</span> <span class="o">==</span> <span class="n">j2</span> <span class="ow">and</span> <span class="n">j1</span> <span class="o">==</span> <span class="n">i2</span> <span class="ow">and</span> <span class="n">k2</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">klen</span> <span class="o">-</span> <span class="n">k1</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="Hop"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.hop.Hop">[docs]</a><span class="k">class</span> <span class="nc">Hop</span><span class="p">:</span>
+
+<div class="viewcode-block" id="Hop.__init__"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.hop.Hop.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">zindobin</span><span class="p">,</span> <span class="n">zindoctbin</span><span class="p">,</span> <span class="n">zindolib</span><span class="p">,</span> <span class="n">wdir</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">workdir</span> <span class="o">=</span> <span class="n">wdir</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">zindobin</span> <span class="o">=</span> <span class="n">zindobin</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">zindoctbin</span> <span class="o">=</span> <span class="n">zindoctbin</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">zindolib</span> <span class="o">=</span> <span class="n">zindolib</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">config</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dimer_array</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tranv_fcs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get_dimers_array</span><span class="p">(</span><span class="n">maxfold</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">fast</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">symm</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Hop.unique_ijk"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.hop.Hop.unique_ijk">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">unique_ijk</span><span class="p">(</span><span class="n">leni</span><span class="p">,</span> <span class="n">lenj</span><span class="p">,</span> <span class="n">lenk</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        given dimer_array from config.get_dimers_array with symm=False</span>
+<span class="sd">        get unique ijk combinations</span>
+<span class="sd">        using symmetry dimer_array[i][j][k1] == dimer_array[j][i][k2] where transv_fcs[k1] == -transv_fcs[k2]</span>
+<span class="sd">        note there is another symmetry in transv_fcs from cart product, transv_fcs[i] == -transv_fcs[len-i-1]</span>
+<span class="sd">        that is k2 == len-k1-1</span>
+
+<span class="sd">        :param leni:</span>
+<span class="sd">        :param lenj:</span>
+<span class="sd">        :param lenk:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">i_s</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">leni</span><span class="p">))</span>
+        <span class="n">j_s</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">lenj</span><span class="p">))</span>
+        <span class="n">k_s</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">lenk</span><span class="p">))</span>
+        <span class="n">ijks</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">i_s</span><span class="p">,</span> <span class="n">j_s</span><span class="p">,</span> <span class="n">k_s</span><span class="p">))</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="n">unique_ijks</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">ijk</span> <span class="ow">in</span> <span class="n">ijks</span><span class="p">:</span>
+            <span class="n">ijkobj</span> <span class="o">=</span> <span class="n">IJK</span><span class="p">(</span><span class="n">ijk</span><span class="p">,</span> <span class="n">lenk</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">ijkobj</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">unique_ijks</span><span class="p">:</span>
+                <span class="n">unique_ijks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ijkobj</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">ijkob</span><span class="o">.</span><span class="n">ijk</span> <span class="k">for</span> <span class="n">ijkob</span> <span class="ow">in</span> <span class="n">unique_ijks</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="Hop.screen_dimers"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.hop.Hop.screen_dimers">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">screen_dimers</span><span class="p">(</span><span class="n">dimer_array</span><span class="p">,</span> <span class="n">close</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">unique</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        :param dimer_array: ijk array as in config.get_dimers_array()</span>
+<span class="sd">        :param close:</span>
+<span class="sd">        :param unique: apply symmetry in dimer_array</span>
+<span class="sd">        :return a list of dimers that are unique and close</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">unique</span><span class="p">:</span>
+            <span class="n">ni</span><span class="p">,</span> <span class="n">nj</span><span class="p">,</span> <span class="n">nk</span> <span class="o">=</span> <span class="n">dimer_array</span><span class="o">.</span><span class="n">shape</span>
+            <span class="n">unique_ijks</span> <span class="o">=</span> <span class="n">Hop</span><span class="o">.</span><span class="n">unique_ijk</span><span class="p">(</span><span class="n">ni</span><span class="p">,</span> <span class="n">nj</span><span class="p">,</span> <span class="n">nk</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">ijk</span> <span class="ow">in</span> <span class="n">unique_ijks</span><span class="p">:</span>
+                <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span> <span class="o">=</span> <span class="n">ijk</span>
+                <span class="n">dimer</span> <span class="o">=</span> <span class="n">dimer_array</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">close</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">dimer</span><span class="o">.</span><span class="n">is_bone_close</span> <span class="ow">and</span> <span class="n">dimer</span><span class="o">.</span><span class="n">is_not_identical</span><span class="p">:</span>
+                        <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dimer</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">dimer</span><span class="o">.</span><span class="n">is_not_identical</span><span class="p">:</span>
+                        <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dimer</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">dimer</span> <span class="ow">in</span> <span class="n">dimer_array</span><span class="o">.</span><span class="n">flatten</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">close</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">dimer</span><span class="o">.</span><span class="n">is_bone_close</span> <span class="ow">and</span> <span class="n">dimer</span><span class="o">.</span><span class="n">is_not_identical</span><span class="p">:</span>
+                        <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dimer</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">dimer</span><span class="o">.</span><span class="n">is_not_identical</span><span class="p">:</span>
+                        <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dimer</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">results</span></div>
+
+<div class="viewcode-block" id="Hop.group_dimers"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.hop.Hop.group_dimers">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">group_dimers</span><span class="p">(</span><span class="n">dimers</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        subgroup into dimercollection such that all dimers in one collection share the same ref_omol</span>
+
+<span class="sd">        :param dimers:</span>
+<span class="sd">        :return: dimercolls: a dict of dimer lists, dimercolls[x] are dimers with i==x</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">dimercolls</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">dimers</span><span class="p">:</span>
+            <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">label</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">)]</span>  <span class="c1"># I should prob make ijk an attribute</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">dimercolls</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="n">dimercolls</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">dimercolls</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">dimercolls</span></div>
+
+<div class="viewcode-block" id="Hop.run_zindo"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.hop.Hop.run_zindo">[docs]</a>    <span class="k">def</span> <span class="nf">run_zindo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alldimers</span><span class="p">,</span> <span class="n">workdir</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Run zindo for all the dimers provided and calculate electronic coupling.</span>
+<span class="sd">        xzy files are written for each of the dimer in the respective folder. xyz file for the dimers is also written.</span>
+
+<span class="sd">        :param alldimers:</span>
+<span class="sd">        :param workdir: working directory to run zindo</span>
+<span class="sd">        :return: data[dimer.label] = [hhcoupling, llcoupling, xyzstring]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">dimercolls</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">group_dimers</span><span class="p">(</span><span class="n">alldimers</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">dimercolls</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">dimers</span> <span class="o">=</span> <span class="n">dimercolls</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">dimercoll</span> <span class="o">=</span> <span class="n">DimerCollection</span><span class="p">(</span><span class="n">dimers</span><span class="p">)</span>
+            <span class="n">dimercoll</span><span class="o">.</span><span class="n">to_xyz</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">/dimercoll_</span><span class="si">{}</span><span class="s1">.xyz&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">workdir</span><span class="p">,</span> <span class="n">i</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">idimer</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dimers</span><span class="p">)):</span>
+                <span class="n">lab</span> <span class="o">=</span> <span class="n">dimers</span><span class="p">[</span><span class="n">idimer</span><span class="p">]</span><span class="o">.</span><span class="n">label</span>
+                <span class="n">subwdir</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">/dimers/</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">workdir</span><span class="p">,</span> <span class="n">lab</span><span class="p">)</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s1">&#39;mkdir -p </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">subwdir</span><span class="p">))</span>
+
+                <span class="n">mol_A</span> <span class="o">=</span> <span class="n">conver2zindo</span><span class="p">(</span><span class="n">dimers</span><span class="p">[</span><span class="n">idimer</span><span class="p">]</span><span class="o">.</span><span class="n">conformer_ref</span><span class="o">.</span><span class="n">pmgmol</span><span class="p">)</span>
+                <span class="n">mol_D</span> <span class="o">=</span> <span class="n">conver2zindo</span><span class="p">(</span><span class="n">dimers</span><span class="p">[</span><span class="n">idimer</span><span class="p">]</span><span class="o">.</span><span class="n">conformer_var</span><span class="o">.</span><span class="n">pmgmol</span><span class="p">)</span>
+                <span class="n">coupling_data</span><span class="p">,</span> <span class="n">nmo_a</span><span class="p">,</span> <span class="n">nmo_d</span> <span class="o">=</span> <span class="n">ZindoJob</span><span class="o">.</span><span class="n">dimer_run</span><span class="p">(</span><span class="n">lab</span><span class="p">,</span>
+                                                                 <span class="n">subwdir</span><span class="p">,</span>
+                                                                 <span class="bp">self</span><span class="o">.</span><span class="n">zindobin</span><span class="p">,</span>
+                                                                 <span class="bp">self</span><span class="o">.</span><span class="n">zindoctbin</span><span class="p">,</span>
+                                                                 <span class="bp">self</span><span class="o">.</span><span class="n">zindolib</span><span class="p">,</span>
+                                                                 <span class="n">mol_A</span><span class="p">,</span> <span class="n">mol_D</span><span class="p">)</span>
+                <span class="n">hhti</span> <span class="o">=</span> <span class="n">ZindoJob</span><span class="o">.</span><span class="n">get_hh_coupling</span><span class="p">(</span><span class="n">coupling_data</span><span class="p">,</span> <span class="n">nmo_a</span><span class="p">,</span> <span class="n">nmo_d</span><span class="p">)</span>
+                <span class="n">llti</span> <span class="o">=</span> <span class="n">ZindoJob</span><span class="o">.</span><span class="n">get_ll_coupling</span><span class="p">(</span><span class="n">coupling_data</span><span class="p">,</span> <span class="n">nmo_a</span><span class="p">,</span> <span class="n">nmo_d</span><span class="p">)</span>
+                <span class="n">data</span><span class="p">[</span><span class="n">lab</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">hhti</span><span class="p">,</span> <span class="n">llti</span><span class="p">,</span> <span class="n">dimers</span><span class="p">[</span><span class="n">idimer</span><span class="p">]</span><span class="o">.</span><span class="n">to_xyzstring</span><span class="p">()]</span>
+                <span class="n">dimers</span><span class="p">[</span><span class="n">idimer</span><span class="p">]</span><span class="o">.</span><span class="n">to_xyz</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">/</span><span class="si">{}</span><span class="s1">.xyz&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">subwdir</span><span class="p">,</span> <span class="n">lab</span><span class="p">))</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">/hopdata1.json&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">workdir</span><span class="p">),</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">data</span></div>
+
+<div class="viewcode-block" id="Hop.applysym_to_coupling_data"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.hop.Hop.applysym_to_coupling_data">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">applysym_to_coupling_data</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">dimer_array</span><span class="p">,</span> <span class="n">workdir</span><span class="p">):</span>
+        <span class="n">leni</span><span class="p">,</span> <span class="n">lenj</span><span class="p">,</span> <span class="n">lenk</span> <span class="o">=</span> <span class="n">dimer_array</span><span class="o">.</span><span class="n">shape</span>
+        <span class="n">symdata</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">lab</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">lab</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">)]</span>
+            <span class="n">symdata</span><span class="p">[</span><span class="n">lab</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">lab</span><span class="p">]</span>
+            <span class="n">symlab</span> <span class="o">=</span> <span class="s1">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">index</span><span class="p">)</span> <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">lenk</span> <span class="o">-</span> <span class="n">k</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]])</span>
+            <span class="n">symlabentry</span> <span class="o">=</span> <span class="p">[</span><span class="n">data</span><span class="p">[</span><span class="n">lab</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="n">lab</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">dimer_array</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">lenk</span> <span class="o">-</span> <span class="n">k</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">to_xyzstring</span><span class="p">()]</span>
+            <span class="n">symdata</span><span class="p">[</span><span class="n">symlab</span><span class="p">]</span> <span class="o">=</span> <span class="n">symlabentry</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">/symdata2.json&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">workdir</span><span class="p">),</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">symdata</span></div>
+
+<div class="viewcode-block" id="Hop.get_intger_mesh"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.hop.Hop.get_intger_mesh">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">get_intger_mesh</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">):</span>
+        <span class="n">xs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="n">x</span><span class="p">,</span> <span class="n">x</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="n">ys</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="n">y</span><span class="p">,</span> <span class="n">y</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="n">zs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="n">z</span><span class="p">,</span> <span class="n">z</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="n">ys</span><span class="p">,</span> <span class="n">zs</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Hop.supercell_proj"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.hop.Hop.supercell_proj">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">supercell_proj</span><span class="p">(</span><span class="n">dimer_array</span><span class="p">,</span> <span class="n">transv_fcs</span><span class="p">,</span> <span class="n">symdata</span><span class="p">,</span> <span class="n">super_cell_size</span><span class="p">,</span> <span class="n">motype</span><span class="p">,</span> <span class="n">workdir</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        we look at a supercell, in which the coupling is represented as augmented_data[mp_i][mp_j][i][j]</span>
+<span class="sd">        which is the coupling between supercellmesh[mp_i] ith mol and supercellmesh[mp_j] jth mol</span>
+
+<span class="sd">        :param motype:</span>
+<span class="sd">        :param workdir:</span>
+<span class="sd">        :param dimer_array:</span>
+<span class="sd">        :param transv_fcs:</span>
+<span class="sd">        :param symdata:</span>
+<span class="sd">        :param super_cell_size: 3x1 int tuple e.g. (6, 6, 6)</span>
+<span class="sd">        :return: supercellmesh, augmented_data</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">motype</span> <span class="o">==</span> <span class="s1">&#39;hh&#39;</span><span class="p">:</span>
+            <span class="n">moid</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">elif</span> <span class="n">motype</span> <span class="o">==</span> <span class="s1">&#39;ll&#39;</span><span class="p">:</span>
+            <span class="n">moid</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">moid</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="n">leni</span><span class="p">,</span> <span class="n">lenj</span><span class="p">,</span> <span class="n">lenk</span> <span class="o">=</span> <span class="n">dimer_array</span><span class="o">.</span><span class="n">shape</span>
+        <span class="n">size_x</span><span class="p">,</span> <span class="n">size_y</span><span class="p">,</span> <span class="n">size_z</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">super_cell_size</span><span class="p">]</span>
+        <span class="n">super_cell_mesh</span> <span class="o">=</span> <span class="n">Hop</span><span class="o">.</span><span class="n">get_intger_mesh</span><span class="p">(</span><span class="n">size_x</span><span class="p">,</span> <span class="n">size_y</span><span class="p">,</span> <span class="n">size_z</span><span class="p">)</span>
+        <span class="n">mesh_size</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">super_cell_mesh</span><span class="p">)</span>
+        <span class="n">augmented_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">mesh_size</span><span class="p">,</span> <span class="n">mesh_size</span><span class="p">,</span> <span class="n">leni</span><span class="p">,</span> <span class="n">lenj</span><span class="p">))</span>
+        <span class="n">mat_v_x2y</span> <span class="o">=</span> <span class="n">super_cell_mesh</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span> <span class="o">-</span> <span class="n">super_cell_mesh</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="p">:]</span>
+        <span class="k">for</span> <span class="n">mi</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">mesh_size</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">mj</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">mesh_size</span><span class="p">):</span>
+                <span class="c1"># v_mi2mj = super_cell_mesh[mj] - super_cell_mesh[mi]</span>
+                <span class="n">v_mi2mj</span> <span class="o">=</span> <span class="n">mat_v_x2y</span><span class="p">[</span><span class="n">mi</span><span class="p">][</span><span class="n">mj</span><span class="p">]</span>
+                <span class="n">lookup_v_in_transv_fcs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">transv_fcs</span> <span class="o">==</span> <span class="n">v_mi2mj</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">lookup_v_in_transv_fcs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">k</span> <span class="o">=</span> <span class="n">lookup_v_in_transv_fcs</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">leni</span><span class="p">):</span>
+                        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">lenj</span><span class="p">):</span>
+                            <span class="n">label</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">_</span><span class="si">{}</span><span class="s1">_</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
+                            <span class="k">if</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">symdata</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                                <span class="n">augmented_data</span><span class="p">[</span><span class="n">mi</span><span class="p">][</span><span class="n">mj</span><span class="p">][</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">symdata</span><span class="p">[</span><span class="n">label</span><span class="p">][</span><span class="n">moid</span><span class="p">]</span>
+                                <span class="n">augmented_data</span><span class="p">[</span><span class="n">mj</span><span class="p">][</span><span class="n">mi</span><span class="p">][</span><span class="n">j</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">symdata</span><span class="p">[</span><span class="n">label</span><span class="p">][</span><span class="n">moid</span><span class="p">]</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">/supercelldata3.json&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">workdir</span><span class="p">),</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">augmented_data</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span> <span class="n">f</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">super_cell_mesh</span><span class="p">,</span> <span class="n">augmented_data</span></div>
+
+<div class="viewcode-block" id="Hop.hopping"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.hop.Hop.hopping">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">hopping</span><span class="p">(</span><span class="n">supercell_data</span><span class="p">,</span> <span class="n">supercell_mesh</span><span class="p">,</span> <span class="n">cutoff</span><span class="p">,</span> <span class="n">workdir</span><span class="p">,</span> <span class="n">motype</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        a molecule is defined by meshpoint in the supercell mesh (mp_i) and mol index (mol_i) in a cell</span>
+<span class="sd">        hopdata[x] gives a list of molecules (represented by [mp_i, mol_i])</span>
+<span class="sd">        that are connected to the molecule [mp_i=0, mol_i=x], including the molecule itself</span>
+
+<span class="sd">        :param motype:</span>
+<span class="sd">        :param supercell_mesh: 3xn meshpoints</span>
+<span class="sd">        :param supercell_data:</span>
+<span class="sd">        :param cutoff: in meV</span>
+<span class="sd">        :param workdir:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">meshsize</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">supercell_mesh</span><span class="p">)</span>
+        <span class="n">number_of_mols</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">supercell_data</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="k">def</span> <span class="nf">conneted_neighbors</span><span class="p">(</span><span class="n">mp_i</span><span class="p">,</span> <span class="n">mol_i</span><span class="p">):</span>
+            <span class="n">list_of_connected</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">mp_j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">meshsize</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">mol_j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">number_of_mols</span><span class="p">):</span>
+                    <span class="n">ti</span> <span class="o">=</span> <span class="n">supercell_data</span><span class="p">[</span><span class="n">mp_i</span><span class="p">][</span><span class="n">mp_j</span><span class="p">][</span><span class="n">mol_i</span><span class="p">][</span><span class="n">mol_j</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">ti</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">cutoff</span><span class="p">:</span>
+                        <span class="n">list_of_connected</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">mp_j</span><span class="p">,</span> <span class="n">mol_j</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">list_of_connected</span>
+
+        <span class="n">network</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">mol_init_i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">number_of_mols</span><span class="p">):</span>
+            <span class="c1"># print(&#39;start {}&#39;.format(mol_init_i))</span>
+            <span class="n">mp_i_init</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">meshsize</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>  <span class="c1"># s.t. mesh[mp_i_init] = (0, 0, 0)</span>
+            <span class="n">in_network</span> <span class="o">=</span> <span class="p">[(</span><span class="n">mp_i_init</span><span class="p">,</span> <span class="n">mol_init_i</span><span class="p">)]</span>
+            <span class="n">pointer</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">in_network</span><span class="p">)</span> <span class="o">!=</span> <span class="n">pointer</span><span class="p">:</span>
+                <span class="n">focus_mol</span> <span class="o">=</span> <span class="n">in_network</span><span class="p">[</span><span class="n">pointer</span><span class="p">]</span>
+                <span class="c1"># print(&#39;looking at mp {} mol {}&#39;.format(*in_network[pointer]))</span>
+                <span class="k">for</span> <span class="n">connected</span> <span class="ow">in</span> <span class="n">conneted_neighbors</span><span class="p">(</span><span class="o">*</span><span class="n">focus_mol</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">connected</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">in_network</span><span class="p">:</span>
+                        <span class="c1"># print(&#39;find connected {}&#39;.format(connected))</span>
+                        <span class="n">in_network</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">connected</span><span class="p">)</span>
+                <span class="n">pointer</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">network</span><span class="p">[</span><span class="n">mol_init_i</span><span class="p">]</span> <span class="o">=</span> <span class="n">in_network</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">/</span><span class="si">{}</span><span class="s1">_netdata4.json&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">workdir</span><span class="p">,</span> <span class="n">motype</span><span class="p">),</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">network</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">network</span></div>
+
+<div class="viewcode-block" id="Hop.get_hopping_network_s1"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.hop.Hop.get_hopping_network_s1">[docs]</a>    <span class="k">def</span> <span class="nf">get_hopping_network_s1</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">dimers_to_be_used</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">screen_dimers</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dimer_array</span><span class="p">,</span> <span class="n">close</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">unique</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="c1"># this gives &#39;hopdata1.json&#39;</span>
+        <span class="n">hopdata</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">run_zindo</span><span class="p">(</span><span class="n">dimers_to_be_used</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">workdir</span><span class="p">)</span>
+        <span class="c1"># this gives &#39;symdata2.json&#39;</span>
+        <span class="n">symdata</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">applysym_to_coupling_data</span><span class="p">(</span><span class="n">hopdata</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dimer_array</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">workdir</span><span class="p">)</span>
+        <span class="c1"># this gives &#39;supercelldata3.json&#39;</span>
+        <span class="k">return</span> <span class="n">hopdata</span><span class="p">,</span> <span class="n">symdata</span></div>
+
+<div class="viewcode-block" id="Hop.get_hopping_network_s2"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.hop.Hop.get_hopping_network_s2">[docs]</a>    <span class="k">def</span> <span class="nf">get_hopping_network_s2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">symdata</span><span class="p">,</span> <span class="n">cutoff</span><span class="p">,</span> <span class="n">supercell</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">motype</span><span class="o">=</span><span class="s1">&#39;hh&#39;</span><span class="p">):</span>
+        <span class="n">mesh</span><span class="p">,</span> <span class="n">augdata</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">supercell_proj</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dimer_array</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tranv_fcs</span><span class="p">,</span> <span class="n">symdata</span><span class="p">,</span> <span class="n">super_cell_size</span><span class="o">=</span><span class="n">supercell</span><span class="p">,</span>
+                                            <span class="n">motype</span><span class="o">=</span><span class="n">motype</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">workdir</span><span class="p">)</span>
+        <span class="c1"># this gives &#39;ll_netdata4.json&#39; or &#39;hh_netdata4.json&#39;</span>
+        <span class="n">network</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hopping</span><span class="p">(</span><span class="n">augdata</span><span class="p">,</span> <span class="n">mesh</span><span class="p">,</span> <span class="n">cutoff</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">workdir</span><span class="p">,</span> <span class="n">motype</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">mesh</span><span class="p">,</span> <span class="n">augdata</span><span class="p">,</span> <span class="n">network</span></div></div>
+
+    <span class="c1"># # this is an old implementaion with tuple as key for augdata, very slow</span>
+    <span class="c1"># augmented_data = {}</span>
+    <span class="c1"># for meshpoint_x in super_cell_mesh:</span>
+    <span class="c1">#     augmented_data[meshpoint_x] = {}</span>
+    <span class="c1">#     for meshpoint_y in super_cell_mesh:</span>
+    <span class="c1">#         augmented_data[meshpoint_x][meshpoint_y] = {}</span>
+    <span class="c1">#         v_x2y = tuple(meshpoint_y[i] - meshpoint_x[i] for i in range(3))</span>
+    <span class="c1">#         try:</span>
+    <span class="c1">#             k = transv_fcs.index(v_x2y)</span>
+    <span class="c1">#         except ValueError:</span>
+    <span class="c1">#             k = None</span>
+    <span class="c1">#         if k is not None:</span>
+    <span class="c1">#             for i in range(leni):</span>
+    <span class="c1">#                 augmented_data[meshpoint_x][meshpoint_y][i] = {}</span>
+    <span class="c1">#                 for j in range(lenj):</span>
+    <span class="c1">#                     label = &#39;{}_{}_{}&#39;.format(i, j, k)</span>
+    <span class="c1">#                     if label in symdata.keys():</span>
+    <span class="c1">#                         augmented_data[meshpoint_x][meshpoint_y][i][j] = symdata[label]</span>
+    <span class="c1">#                     else:</span>
+    <span class="c1">#                         augmented_data[meshpoint_x][meshpoint_y][i][</span>
+    <span class="c1">#                             j] = 0.0  # self coupling is already included here</span>
+    <span class="c1">#         else:</span>
+    <span class="c1">#             for i in range(leni):</span>
+    <span class="c1">#                 augmented_data[meshpoint_x][meshpoint_y][i] = {}</span>
+    <span class="c1">#                 for j in range(lenj):</span>
+    <span class="c1">#                     augmented_data[meshpoint_x][meshpoint_y][i][j] = 0.0</span>
+    <span class="c1"># return augmented_data</span>
+
+    <span class="c1"># @staticmethod</span>
+    <span class="c1"># def hopping(supercell_data, cutoff, workdir):</span>
+    <span class="c1">#     &quot;&quot;&quot;</span>
+    <span class="c1">#</span>
+    <span class="c1">#</span>
+    <span class="c1">#     :param supercell_data:</span>
+    <span class="c1">#     :param cutoff: in meV</span>
+    <span class="c1">#     :param workdir:</span>
+    <span class="c1">#     :return:</span>
+    <span class="c1">#     &quot;&quot;&quot;</span>
+    <span class="c1">#</span>
+    <span class="c1">#     mps = list(supercell_data.keys())</span>
+    <span class="c1">#     js = list(supercell_data[mps[0]][mps[0]][0].keys())</span>
+    <span class="c1">#</span>
+    <span class="c1">#     def conneted_neighbors(mpi):</span>
+    <span class="c1">#         mp_x = mpi[:3]</span>
+    <span class="c1">#         i = mpi[3]</span>
+    <span class="c1">#         list_of_mp_y_j = []</span>
+    <span class="c1">#         for mp_y in mps:</span>
+    <span class="c1">#             for j in js:</span>
+    <span class="c1">#                 ti = supercell_data[mp_x][mp_y][i][j]</span>
+    <span class="c1">#                 if abs(ti) &gt; cutoff:</span>
+    <span class="c1">#                     list_of_mp_y_j.append((*mp_y, j))</span>
+    <span class="c1">#         return list_of_mp_y_j</span>
+    <span class="c1">#</span>
+    <span class="c1">#     network = {}</span>
+    <span class="c1">#     for init_i in js:</span>
+    <span class="c1">#         mpi_init = (0, 0, 0, init_i)</span>
+    <span class="c1">#         in_network = [mpi_init]</span>
+    <span class="c1">#         pointer = 0</span>
+    <span class="c1">#         while len(in_network) != pointer:</span>
+    <span class="c1">#             focus_mpi = in_network[pointer]</span>
+    <span class="c1">#             for connected in conneted_neighbors(focus_mpi):</span>
+    <span class="c1">#                 if connected not in in_network:</span>
+    <span class="c1">#                     in_network.append(connected)</span>
+    <span class="c1">#             pointer += 1</span>
+    <span class="c1">#         network[init_i] = in_network</span>
+    <span class="c1">#     with open(&#39;{}/netdata4.json&#39;.format(workdir), &#39;w&#39;) as f:</span>
+    <span class="c1">#         json.dump(network, f)</span>
+    <span class="c1">#     return network</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Ai, Qianxiang
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

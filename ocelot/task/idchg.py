@@ -1,5 +1,6 @@
 import subprocess
-from ocelot.routines.mopac import MopacInput, MSite, MopacOutput
+
+from ocelot.routines.mopac import MopacInput, MopacOutput
 
 """
 identify charged site with mopac routines
@@ -14,17 +15,18 @@ class IdChg:
     def __init__(self, pmgmol, jobname, mopaccmd):
         self.pmgmol = pmgmol
         self.jobname = jobname
-        self.msites = [MSite.from_pymatgen_site(s) for s in pmgmol.sites]
+        self.sites = pmgmol.sites
         self.mopaccmd = mopaccmd
 
         self.inputname = self.jobname + '.mop'
         self.outputname = self.jobname + '.out'
 
     def write_inp(self, wdir):
-        min = MopacInput(self.msites, mopheader='CHARGES', comment_line='')
+        min = MopacInput(self.sites, mopheader='CHARGES', comment_line='')
         min.write_mopinput(wdir + '/' + self.inputname)
 
-    def parse_out(self, outfn):
+    @staticmethod
+    def parse_out(outfn):
         with open(outfn, 'r') as f:
             fstring = f.read()
         mout = MopacOutput(fstring=fstring, caltype='CHARGES')

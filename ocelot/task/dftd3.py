@@ -1,7 +1,7 @@
 import subprocess
 import warnings
+
 from ocelot.routines.fileop import createdir
-from pymatgen.core.structure import Structure
 
 """
 dftd3 from Grimme for pbc system

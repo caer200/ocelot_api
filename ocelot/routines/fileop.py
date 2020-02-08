@@ -1,8 +1,8 @@
-import shutil
-import os
 import glob
-import re
+import os
 import pickle
+import re
+import shutil
 
 
 def write_obj(obj, fname):
@@ -56,6 +56,7 @@ def movefile(what, where):
     except IOError:
         os.chmod(where, 777)
         shutil.move(what, where)
+
 
 def removefile(what):
     try:
@@ -175,7 +176,9 @@ def check_allgausslog(howmanylog):
         normal = 1
     return normal
 
+
 import inspect
+
 
 def retrieve_name(var):
     """

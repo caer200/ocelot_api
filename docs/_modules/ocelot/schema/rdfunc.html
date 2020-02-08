@@ -1,0 +1,345 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ocelot.schema.rdfunc &mdash; ocelot 0.2 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> ocelot
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#schema">schema</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#disorder">Disorder</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#bone-config">Bone Config</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#backbone-and-sidechain">Backbone and Sidechain</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ocelot.html">ocelot package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">ocelot</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>ocelot.schema.rdfunc</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ocelot.schema.rdfunc</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">rdkit</span> <span class="kn">import</span> <span class="n">Chem</span>
+<span class="kn">from</span> <span class="nn">rdkit</span> <span class="kn">import</span> <span class="n">DataStructs</span>
+<span class="kn">from</span> <span class="nn">rdkit.Chem</span> <span class="kn">import</span> <span class="n">AllChem</span>
+<span class="kn">from</span> <span class="nn">rdkit.Chem</span> <span class="kn">import</span> <span class="n">Descriptors</span>
+<span class="kn">from</span> <span class="nn">rdkit.Chem</span> <span class="kn">import</span> <span class="n">Descriptors3D</span> <span class="k">as</span> <span class="n">D3d</span>
+<span class="kn">from</span> <span class="nn">rdkit.Chem.Fingerprints</span> <span class="kn">import</span> <span class="n">FingerprintMols</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">commonly used rdkit functions</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<div class="viewcode-block" id="RdFunc"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.rdfunc.RdFunc">[docs]</a><span class="k">class</span> <span class="nc">RdFunc</span><span class="p">:</span>
+
+<div class="viewcode-block" id="RdFunc.get_volume"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.rdfunc.RdFunc.get_volume">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">get_volume</span><span class="p">(</span><span class="n">m</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        AllChem.ComputeMolVolume in rdkit</span>
+
+<span class="sd">        :return: volume in A^3</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">AllChem</span><span class="o">.</span><span class="n">ComputeMolVolume</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">confId</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">gridSpacing</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">boxMargin</span><span class="o">=</span><span class="mf">2.0</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="RdFunc.get_3ddescriptors"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.rdfunc.RdFunc.get_3ddescriptors">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">get_3ddescriptors</span><span class="p">(</span><span class="n">mol</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        using methods from rdkit</span>
+
+<span class="sd">        https://www.rdkit.org/docs/source/rdkit.Chem.Descriptors3D.html</span>
+
+<span class="sd">        Asphericity: 0 corresponds to spherical top molecules and 1 to linear molecules, For prolate (cigar-sh aped) molecules, ~ 0.25, whereas for oblate (disk-shaped) molecules, ~ 1.</span>
+
+<span class="sd">        Eccentricity: 0 corresponds to spherical top molecules and 1 to linear molecules.</span>
+
+<span class="sd">        RadiusOfGyration: a size descriptor based on the distribution of atomic masses in a molecule, a measure of molecular compactness for long-chain molecules and, specifically, small values are obtained when most o f the atoms are close to the center of mass</span>
+
+<span class="sd">        SpherocityIndex: spherosity index varies from zero for flat molecules, such as benzene, to unity for totally spherical molecules</span>
+
+<span class="sd">        :key: Asphericity, Eccentricity, InertialShapeFactor, NPR1, NPR2, PMI1, PMI2, PMI3, RadiusOfGyration, SpherocityIndex</span>
+
+<span class="sd">        :return: dict</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+            <span class="n">Asphericity</span><span class="o">=</span><span class="n">D3d</span><span class="o">.</span><span class="n">Asphericity</span><span class="p">(</span><span class="n">mol</span><span class="p">),</span>
+            <span class="n">Eccentricity</span><span class="o">=</span><span class="n">D3d</span><span class="o">.</span><span class="n">Eccentricity</span><span class="p">(</span><span class="n">mol</span><span class="p">),</span>
+            <span class="n">InertialShapeFactor</span><span class="o">=</span><span class="n">D3d</span><span class="o">.</span><span class="n">InertialShapeFactor</span><span class="p">(</span><span class="n">mol</span><span class="p">),</span>
+            <span class="n">NPR1</span><span class="o">=</span><span class="n">D3d</span><span class="o">.</span><span class="n">NPR1</span><span class="p">(</span><span class="n">mol</span><span class="p">),</span>
+            <span class="n">NPR2</span><span class="o">=</span><span class="n">D3d</span><span class="o">.</span><span class="n">NPR2</span><span class="p">(</span><span class="n">mol</span><span class="p">),</span>
+            <span class="n">PMI1</span><span class="o">=</span><span class="n">D3d</span><span class="o">.</span><span class="n">PMI1</span><span class="p">(</span><span class="n">mol</span><span class="p">),</span>
+            <span class="n">PMI2</span><span class="o">=</span><span class="n">D3d</span><span class="o">.</span><span class="n">PMI2</span><span class="p">(</span><span class="n">mol</span><span class="p">),</span>
+            <span class="n">PMI3</span><span class="o">=</span><span class="n">D3d</span><span class="o">.</span><span class="n">PMI3</span><span class="p">(</span><span class="n">mol</span><span class="p">),</span>
+            <span class="n">RadiusOfGyration</span><span class="o">=</span><span class="n">D3d</span><span class="o">.</span><span class="n">RadiusOfGyration</span><span class="p">(</span><span class="n">mol</span><span class="p">),</span>
+            <span class="n">SpherocityIndex</span><span class="o">=</span><span class="n">D3d</span><span class="o">.</span><span class="n">SpherocityIndex</span><span class="p">(</span><span class="n">mol</span><span class="p">),</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">d</span></div>
+
+<div class="viewcode-block" id="RdFunc.get_bond_order"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.rdfunc.RdFunc.get_bond_order">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">get_bond_order</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">atomidx1</span><span class="p">,</span> <span class="n">atomidx2</span><span class="p">):</span>
+        <span class="n">bt</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">GetBondBetweenAtoms</span><span class="p">(</span><span class="n">atomidx1</span><span class="p">,</span> <span class="n">atomidx2</span><span class="p">)</span><span class="o">.</span><span class="n">GetBondType</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">bt</span> <span class="o">==</span> <span class="n">Chem</span><span class="o">.</span><span class="n">BondType</span><span class="o">.</span><span class="n">SINGLE</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">1</span>
+        <span class="k">elif</span> <span class="n">bt</span> <span class="o">==</span> <span class="n">Chem</span><span class="o">.</span><span class="n">BondType</span><span class="o">.</span><span class="n">DOUBLE</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">2</span>
+        <span class="k">elif</span> <span class="n">bt</span> <span class="o">==</span> <span class="n">Chem</span><span class="o">.</span><span class="n">BondType</span><span class="o">.</span><span class="n">TRIPLE</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">3</span>
+        <span class="k">elif</span> <span class="n">bt</span> <span class="o">==</span> <span class="n">Chem</span><span class="o">.</span><span class="n">BondType</span><span class="o">.</span><span class="n">AROMATIC</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mf">1.5</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="RdFunc.from_string"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.rdfunc.RdFunc.from_string">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">from_string</span><span class="p">(</span><span class="n">fmt</span><span class="p">,</span> <span class="n">string</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        construct a rdmol</span>
+
+<span class="sd">        :param fmt: &#39;smiles&#39;, &#39;hsmiles&#39;, &#39;smarts&#39;, &#39;inchi&#39;</span>
+<span class="sd">        :param string:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">fmt</span> <span class="o">==</span> <span class="s1">&#39;smiles&#39;</span><span class="p">:</span>
+            <span class="n">rdmol</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">MolFromSmiles</span><span class="p">(</span><span class="n">string</span><span class="p">)</span>
+            <span class="n">rdmol</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">AddHs</span><span class="p">(</span><span class="n">rdmol</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">fmt</span> <span class="o">==</span> <span class="s1">&#39;hsmiles&#39;</span><span class="p">:</span>
+            <span class="n">rdmol</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">MolFromSmiles</span><span class="p">(</span><span class="n">string</span><span class="p">)</span>
+            <span class="n">rdmol</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">AddHs</span><span class="p">(</span><span class="n">rdmol</span><span class="p">,</span> <span class="n">explicitOnly</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">fmt</span> <span class="o">==</span> <span class="s1">&#39;smarts&#39;</span><span class="p">:</span>
+            <span class="n">rdmol</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">MolFromSmarts</span><span class="p">(</span><span class="n">string</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">fmt</span> <span class="o">==</span> <span class="s1">&#39;inchi&#39;</span><span class="p">:</span>
+            <span class="n">rdmol</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">MolFromInchi</span><span class="p">(</span><span class="n">string</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">rdmol</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="n">rdmol</span></div>
+
+<div class="viewcode-block" id="RdFunc.substructurematch"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.rdfunc.RdFunc.substructurematch">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">substructurematch</span><span class="p">(</span><span class="n">m1</span><span class="p">,</span> <span class="n">m2</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        substructure search with smarts, True if m2 has sub graph of m1</span>
+
+<span class="sd">        :param m1: pattern used to search</span>
+<span class="sd">        :param m2:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">patt</span> <span class="o">=</span> <span class="n">m1</span><span class="o">.</span><span class="n">to_smarts</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">m2</span><span class="o">.</span><span class="n">HasSubstructMatch</span><span class="p">(</span><span class="n">patt</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="RdFunc.getmolweight"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.rdfunc.RdFunc.getmolweight">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">getmolweight</span><span class="p">(</span><span class="n">mol</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">Descriptors</span><span class="o">.</span><span class="n">MolWt</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="RdFunc.to_smarts"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.rdfunc.RdFunc.to_smarts">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">to_smarts</span><span class="p">(</span><span class="n">rdmol</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">Chem</span><span class="o">.</span><span class="n">MolToSmarts</span><span class="p">(</span><span class="n">rdmol</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="RdFunc.n_nonsignlebond_electrons"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.rdfunc.RdFunc.n_nonsignlebond_electrons">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">n_nonsignlebond_electrons</span><span class="p">(</span><span class="n">m</span><span class="p">):</span>
+        <span class="n">nve</span> <span class="o">=</span> <span class="n">Descriptors</span><span class="o">.</span><span class="n">NumValenceElectrons</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+        <span class="n">nre</span> <span class="o">=</span> <span class="n">Descriptors</span><span class="o">.</span><span class="n">NumRadicalElectrons</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+        <span class="n">nbonds</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">GetBonds</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">nve</span> <span class="o">-</span> <span class="n">nre</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">nbonds</span></div>
+
+<div class="viewcode-block" id="RdFunc.unsaturation"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.rdfunc.RdFunc.unsaturation">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">unsaturation</span><span class="p">(</span><span class="n">m</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">RdFunc</span><span class="o">.</span><span class="n">n_nonsignlebond_electrons</span><span class="p">(</span><span class="n">m</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">GetAtoms</span><span class="p">())</span></div>
+
+<div class="viewcode-block" id="RdFunc.fingerprint"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.rdfunc.RdFunc.fingerprint">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">fingerprint</span><span class="p">(</span><span class="n">mol</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">FingerprintMols</span><span class="o">.</span><span class="n">FingerprintMol</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="RdFunc.fp_similarity"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.rdfunc.RdFunc.fp_similarity">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">fp_similarity</span><span class="p">(</span><span class="n">m1</span><span class="p">,</span> <span class="n">m2</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="s1">&#39;Tanimoto&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        use RDK fingerprint similarity based on different metrics</span>
+
+<span class="sd">        TODO add args to customize RDKfp, see https://www.rdkit.org/docs/source/rdkit.Chem.rdmolops.html#rdkit.Chem.rdmolops.RDKFingerprint</span>
+
+<span class="sd">        see Landrum2012 for more details</span>
+
+<span class="sd">        :param m1:</span>
+<span class="sd">        :param m2:</span>
+<span class="sd">        :param str metric: &quot;Tanimoto&quot;, &quot;Dice&quot;, &quot;Cosine&quot;, &quot;Sokal&quot;, &quot;Russel&quot;, &quot;RogotGoldberg&quot;, &quot;AllBit&quot;, &quot;Kulczynski&quot;, &quot;McConnaughey&quot;, &quot;Asymmetric&quot;, &quot;BraunBlanquet&quot;,</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">fps</span> <span class="o">=</span> <span class="p">[</span><span class="n">FingerprintMols</span><span class="o">.</span><span class="n">FingerprintMol</span><span class="p">(</span><span class="n">m1</span><span class="p">),</span> <span class="n">FingerprintMols</span><span class="o">.</span><span class="n">FingerprintMol</span><span class="p">(</span><span class="n">m2</span><span class="p">)]</span>
+        <span class="k">for</span> <span class="n">func</span> <span class="ow">in</span> <span class="n">DataStructs</span><span class="o">.</span><span class="n">similarityFunctions</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">func</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">metric</span><span class="p">:</span>
+                <span class="n">metric_function</span> <span class="o">=</span> <span class="n">func</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="k">return</span> <span class="n">DataStructs</span><span class="o">.</span><span class="n">FingerprintSimilarity</span><span class="p">(</span><span class="n">fps</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">fps</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">metric</span><span class="o">=</span><span class="n">metric_function</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Ai, Qianxiang
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

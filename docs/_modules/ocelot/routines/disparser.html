@@ -1,0 +1,1183 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ocelot.routines.disparser &mdash; ocelot 0.2 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> ocelot
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#schema">schema</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#disorder">Disorder</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#bone-config">Bone Config</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#backbone-and-sidechain">Backbone and Sidechain</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ocelot.html">ocelot package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">ocelot</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>ocelot.routines.disparser</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ocelot.routines.disparser</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">itertools</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
+<span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">groupby</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">pymatgen.core.operations</span> <span class="kn">import</span> <span class="n">SymmOp</span>
+<span class="kn">from</span> <span class="nn">pymatgen.core.structure</span> <span class="kn">import</span> <span class="n">Lattice</span>
+<span class="kn">from</span> <span class="nn">pymatgen.core.structure</span> <span class="kn">import</span> <span class="n">PeriodicSite</span>
+<span class="kn">from</span> <span class="nn">pymatgen.core.structure</span> <span class="kn">import</span> <span class="n">Structure</span>
+<span class="kn">from</span> <span class="nn">pymatgen.core.structure</span> <span class="kn">import</span> <span class="n">lattice_points_in_supercell</span>
+<span class="kn">from</span> <span class="nn">pymatgen.io.cif</span> <span class="kn">import</span> <span class="n">CifFile</span>
+<span class="kn">from</span> <span class="nn">pymatgen.io.cif</span> <span class="kn">import</span> <span class="n">_get_cod_data</span>
+<span class="kn">from</span> <span class="nn">pymatgen.io.cif</span> <span class="kn">import</span> <span class="n">str2float</span>
+<span class="kn">from</span> <span class="nn">pymatgen.io.cif</span> <span class="kn">import</span> <span class="n">sub_spgrp</span>
+<span class="kn">from</span> <span class="nn">pymatgen.symmetry.groups</span> <span class="kn">import</span> <span class="n">SYMM_DATA</span>
+<span class="kn">from</span> <span class="nn">pymatgen.symmetry.groups</span> <span class="kn">import</span> <span class="n">SpaceGroup</span>
+<span class="kn">from</span> <span class="nn">pymatgen.util.coord</span> <span class="kn">import</span> <span class="n">pbc_shortest_vectors</span>
+
+<span class="kn">from</span> <span class="nn">ocelot.routines.pbc</span> <span class="kn">import</span> <span class="n">PBCparser</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">DisParser: parse cif file into a list of configurations with no disorder</span>
+
+<span class="sd">this is used to parse disordered cif file to configurations of a supercell</span>
+
+<span class="sd">plz read </span>
+<span class="sd">[CSD API convention](https://downloads.ccdc.cam.ac.uk/documentation/API/descriptive_docs/crystal.html#disorder) </span>
+<span class="sd">first </span>
+
+<span class="sd">we assume the cif file contains following disorder-related fields</span>
+<span class="sd">    _atom_site_occupancy </span>
+<span class="sd">    _atom_site_disorder_group </span>
+<span class="sd">if both of the two keys exist, then we can extract configuration from the cif file with explicit occupancies</span>
+
+<span class="sd">if at least one of above fields does not exist, it is still possible the cif file contains disorder, this depends on</span>
+<span class="sd">the the values of dict[_atom_site_label], btw, &#39;_atom_site_label&#39; may not exist when using jmol to write cif</span>
+
+<span class="sd">the values of dict[_atom_site_label] form a list of *unique* labels, a label can be considered as a concatenation of </span>
+<span class="sd">    </span>
+<span class="sd">    E (an element symbol) + I (an index) + T (the third tag)</span>
+<span class="sd">    </span>
+<span class="sd">while CSD claims the alternative configurations should be labelled with a suffix question mark (?),</span>
+<span class="sd">this is certainly not true for e.g. ASIXEH</span>
+
+<span class="sd">so here a summary of representing disorder in cif file</span>
+
+<span class="sd">    1. EI is unique for each site, sites of the alternative configuration are labeled by a non-word T</span>
+<span class="sd">        in this case you cannot get &gt;1 alternative configurations, e.g. ALOVOO</span>
+<span class="sd">        </span>
+<span class="sd">    2. EI is not unique for each site, site with a non-word T is an alternative config for the site having the same EI, </span>
+<span class="sd">        still you cannot get &gt;1 alternative configurations e.g. x17059</span>
+<span class="sd">    </span>
+<span class="sd">    3. EI is not unique for each site, there is no site with a non-word T. Sites sharing the same EI representing </span>
+<span class="sd">        disorder, e.g. ASIXEH</span>
+<span class="sd">    </span>
+<span class="sd">    4. disordered sites are simply ignored in the cif file s.t. the molecule is not complete, e.g. ABEGET01</span>
+<span class="sd">    </span>
+<span class="sd">    5. disordered sites are simply ignored in the cif file, but the molecule looks legit, e.g. AGAJUO</span>
+<span class="sd">    </span>
+<span class="sd">    6. disordered sites are present in the cif file but not labeled at all, e.g. ANOPEA</span>
+
+<span class="sd">in case 1. it is possible to get the occupancies via CSD API, not always tho.</span>
+
+<span class="sd">I cannot find a way to process 3., 4., 5., 6. without checking deposition records or chemistry analysis, so this parser</span>
+<span class="sd">will ignore them. That is, there can be only one alternative configuration.</span>
+
+<span class="sd">I will deal with 1. by artificially set (average) _atom_site_occupancy and _atom_site_disorder_group based on special character </span>
+<span class="sd">suffix, this should be done intentionally</span>
+
+<span class="sd">configuration will be written with keys:</span>
+<span class="sd">[&#39;_cell_length_a&#39;],</span>
+<span class="sd">[&#39;_cell_length_b&#39;],</span>
+<span class="sd">[&#39;_cell_length_c&#39;],</span>
+<span class="sd">[&#39;_cell_angle_alpha&#39;],</span>
+<span class="sd">[&#39;_cell_angle_beta&#39;],</span>
+<span class="sd">[&#39;_cell_angle_gamma&#39;],</span>
+<span class="sd">[&#39;_space_group_symop_operation_xyz&#39;] or other symm labels</span>
+<span class="sd">[&#39;_atom_site_label&#39;],</span>
+<span class="sd">[&#39;_atom_site_type_symbol&#39;],</span>
+<span class="sd">[&#39;_atom_site_fract_x&#39;],</span>
+<span class="sd">[&#39;_atom_site_fract_y&#39;],</span>
+<span class="sd">[&#39;_atom_site_fract_z&#39;],</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="n">possible_symm_labels</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;_symmetry_equiv_pos_as_xyz&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;_symmetry_equiv_pos_as_xyz_&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;_space_group_symop_operation_xyz&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;_space_group_symop_operation_xyz_&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;_symmetry_space_group_name_H-M&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;_symmetry_space_group_name_H_M&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;_symmetry_space_group_name_H-M_&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;_symmetry_space_group_name_H_M_&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;_space_group_name_Hall&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;_space_group_name_Hall_&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;_space_group_name_H-M_alt&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;_space_group_name_H-M_alt_&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;_symmetry_space_group_name_hall&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;_symmetry_space_group_name_hall_&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;_symmetry_space_group_name_h-m&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;_symmetry_space_group_name_h-m_&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;_space_group_IT_number&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;_space_group_IT_number_&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;_symmetry_Int_Tables_number&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;_symmetry_Int_Tables_number_&quot;</span><span class="p">]</span>
+
+<span class="n">latt_labels</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;_cell_length_a&#39;</span><span class="p">,</span> <span class="s1">&#39;_cell_length_b&#39;</span><span class="p">,</span> <span class="s1">&#39;_cell_length_c&#39;</span><span class="p">,</span> <span class="s1">&#39;_cell_angle_alpha&#39;</span><span class="p">,</span> <span class="s1">&#39;_cell_angle_beta&#39;</span><span class="p">,</span> <span class="s1">&#39;_cell_angle_gamma&#39;</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="n">chemistry_labels</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;_cell_formula_units_Z&#39;</span><span class="p">,</span> <span class="s1">&#39;_chemical_formula_moiety&#39;</span><span class="p">,</span> <span class="s1">&#39;_chemical_formula_sum&#39;</span>
+<span class="p">]</span>
+
+<span class="n">coord_labels</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;_atom_site_label&#39;</span><span class="p">,</span> <span class="s1">&#39;_atom_site_type_symbol&#39;</span><span class="p">,</span> <span class="s1">&#39;_atom_site_fract_x&#39;</span><span class="p">,</span> <span class="s1">&#39;_atom_site_fract_y&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;_atom_site_fract_z&#39;</span>
+<span class="p">]</span>
+
+<span class="n">disorder_labels</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;_atom_site_occupancy&#39;</span><span class="p">,</span> <span class="s1">&#39;_atom_site_disorder_group&#39;</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="n">space_groups</span> <span class="o">=</span> <span class="p">{</span><span class="n">sub_spgrp</span><span class="p">(</span><span class="n">k</span><span class="p">):</span> <span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">SYMM_DATA</span><span class="p">[</span><span class="s1">&#39;space_group_encoding&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()}</span>
+<span class="n">space_groups</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">sub_spgrp</span><span class="p">(</span><span class="n">k</span><span class="p">):</span> <span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">SYMM_DATA</span><span class="p">[</span><span class="s1">&#39;space_group_encoding&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()})</span>
+
+
+<div class="viewcode-block" id="AtomLabel"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.disparser.AtomLabel">[docs]</a><span class="k">class</span> <span class="nc">AtomLabel</span><span class="p">:</span>
+<div class="viewcode-block" id="AtomLabel.__init__"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.disparser.AtomLabel.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        a class for atom label in cif file, overkill I guess...</span>
+
+<span class="sd">        :param label:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">label</span> <span class="o">=</span> <span class="n">label</span>
+        <span class="n">tmplabel</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">label</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">element</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;^[a-zA-Z]+&quot;</span><span class="p">,</span> <span class="n">tmplabel</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="n">tmplabel</span> <span class="o">=</span> <span class="n">tmplabel</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">element</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;^\d+&quot;</span><span class="p">,</span> <span class="n">tmplabel</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="n">tmplabel</span> <span class="o">=</span> <span class="n">tmplabel</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tag</span> <span class="o">=</span> <span class="n">tmplabel</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tag</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">AtomLabelError</span><span class="p">(</span><span class="s1">&#39;tag for </span><span class="si">{}</span><span class="s1"> is </span><span class="si">{}</span><span class="s1">, this is unlikely&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tag</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">ei</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">element</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">label</span>
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">label</span>
+
+    <span class="k">def</span> <span class="fm">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">hash</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">label</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">label</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">label</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">is_tag_nonword</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;^\W$&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tag</span><span class="p">)</span>
+
+<div class="viewcode-block" id="AtomLabel.get_labels_with_same_ei"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.disparser.AtomLabel.get_labels_with_same_ei">[docs]</a>    <span class="k">def</span> <span class="nf">get_labels_with_same_ei</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">als</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        get a list of atomlabel whose ei == al.ei</span>
+
+<span class="sd">        :param als:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">sameei</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">alj</span> <span class="ow">in</span> <span class="n">als</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ei</span> <span class="o">==</span> <span class="n">alj</span><span class="o">.</span><span class="n">ei</span> <span class="ow">and</span> <span class="bp">self</span> <span class="o">!=</span> <span class="n">alj</span><span class="p">:</span>
+                <span class="n">sameei</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">alj</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">sameei</span></div></div>
+
+
+<div class="viewcode-block" id="get_pmg_dict"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.disparser.get_pmg_dict">[docs]</a><span class="k">def</span> <span class="nf">get_pmg_dict</span><span class="p">(</span><span class="n">cifstring</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    use pmg dict to parse cifstring, only deal with one structure per file</span>
+
+<span class="sd">    :param cifstring:</span>
+<span class="sd">    :return:</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cifdata</span> <span class="o">=</span> <span class="n">CifFile</span><span class="o">.</span><span class="n">from_string</span><span class="p">(</span><span class="n">cifstring</span><span class="p">)</span><span class="o">.</span><span class="n">data</span>
+    <span class="n">idnetifiers</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">cifdata</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">idnetifiers</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;W: find more than 1 structures in this cif file!&#39;</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">idnetifiers</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;W: no structure found by pymatgen parser!&#39;</span><span class="p">)</span>
+    <span class="n">identifier</span> <span class="o">=</span> <span class="n">idnetifiers</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">pymatgen_dict</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">cifdata</span><span class="o">.</span><span class="n">items</span><span class="p">())[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">data</span>
+
+    <span class="c1"># jmol writes &#39;_atom_site_type_symbol&#39;, but not &#39;_atom_site_label&#39;</span>
+    <span class="k">if</span> <span class="s1">&#39;_atom_site_label&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">pymatgen_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;W: _atom_site_label not found in parsed dict&#39;</span><span class="p">)</span>
+        <span class="n">atom_site_label</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">symbols</span> <span class="o">=</span> <span class="n">pymatgen_dict</span><span class="p">[</span><span class="s1">&#39;_atom_site_type_symbol&#39;</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">symbols</span><span class="p">)):</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="n">symbols</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">atom_site_label</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">i</span><span class="p">))</span>
+        <span class="n">pymatgen_dict</span><span class="p">[</span><span class="s1">&#39;_atom_site_label&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">atom_site_label</span>
+    <span class="k">return</span> <span class="n">identifier</span><span class="p">,</span> <span class="n">pymatgen_dict</span></div>
+
+
+<div class="viewcode-block" id="apply_symmop"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.disparser.apply_symmop">[docs]</a><span class="k">def</span> <span class="nf">apply_symmop</span><span class="p">(</span><span class="n">psites</span><span class="p">,</span> <span class="n">ops</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    symmop and xyz in cif file:</span>
+
+<span class="sd">    lets say xyz -- op1 --&gt; x&#39;y&#39;z&#39; and xyz -- op2 --&gt; x!y!z! and</span>
+<span class="sd">    it is possible to have x&#39;y&#39;z&#39; is_close x!y!z!</span>
+
+<span class="sd">    this means one should take only x&#39;y&#39;z&#39; or x!y!z!, aka op1 is equivalent to op2 due to the symmetry implicated by</span>
+<span class="sd">    xyz/the asymmectric unit, e.g. ALOVOO.cif -- Z=2, asymmectric unit given by cif is one molecule, but there&#39;re 4 ops</span>
+
+<span class="sd">    so we need first check if the cif file behaves like this</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">op_xyzs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">op</span> <span class="ow">in</span> <span class="n">ops</span><span class="p">:</span>
+        <span class="n">n_xyzs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">ps</span> <span class="ow">in</span> <span class="n">psites</span><span class="p">:</span>
+            <span class="n">new_coord</span> <span class="o">=</span> <span class="n">op</span><span class="o">.</span><span class="n">operate</span><span class="p">(</span><span class="n">ps</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">)</span>
+            <span class="c1"># new_coord = np.array([i - math.floor(i) for i in new_coord])</span>
+            <span class="n">n_xyzs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_coord</span><span class="p">)</span>
+        <span class="n">op_xyzs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">n_xyzs</span><span class="p">)</span>
+
+    <span class="n">latt</span> <span class="o">=</span> <span class="n">psites</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">lattice</span>
+
+    <span class="k">def</span> <span class="nf">pbc_dist</span><span class="p">(</span><span class="n">fc1</span><span class="p">,</span> <span class="n">fc2</span><span class="p">,</span> <span class="n">lattice</span><span class="p">):</span>
+        <span class="n">v</span><span class="p">,</span> <span class="n">d2</span> <span class="o">=</span> <span class="n">pbc_shortest_vectors</span><span class="p">(</span><span class="n">lattice</span><span class="p">,</span> <span class="n">fc1</span><span class="p">,</span> <span class="n">fc2</span><span class="p">,</span> <span class="n">return_d2</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">d2</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+
+    <span class="k">def</span> <span class="nf">pbc_distmat</span><span class="p">(</span><span class="n">fcl1</span><span class="p">,</span> <span class="n">fcl2</span><span class="p">):</span>
+        <span class="n">distmat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">fcl1</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">fcl1</span><span class="p">)))</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">fcl1</span><span class="p">)):</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">fcl1</span><span class="p">)):</span>
+                <span class="n">distmat</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">pbc_dist</span><span class="p">(</span><span class="n">fcl1</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">fcl2</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">latt</span><span class="p">)</span>
+                <span class="n">distmat</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">distmat</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">distmat</span>
+
+    <span class="k">def</span> <span class="nf">two_xyzs_close</span><span class="p">(</span><span class="n">xyzs1</span><span class="p">,</span> <span class="n">xyzs2</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">):</span>
+        <span class="n">dmat</span> <span class="o">=</span> <span class="n">pbc_distmat</span><span class="p">(</span><span class="n">xyzs1</span><span class="p">,</span> <span class="n">xyzs2</span><span class="p">)</span>
+        <span class="n">almost_zeros</span> <span class="o">=</span> <span class="n">dmat</span><span class="p">[(</span><span class="n">dmat</span> <span class="o">&lt;</span> <span class="n">tol</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">almost_zeros</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="n">op_identities</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">ops</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">ops</span><span class="p">)),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">combinations</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ops</span><span class="p">)),</span> <span class="mi">2</span><span class="p">):</span>
+        <span class="n">ixyzs</span> <span class="o">=</span> <span class="n">op_xyzs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">jxyzs</span> <span class="o">=</span> <span class="n">op_xyzs</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">two_xyzs_close</span><span class="p">(</span><span class="n">ixyzs</span><span class="p">,</span> <span class="n">jxyzs</span><span class="p">):</span>
+            <span class="n">op_identities</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">op_identities</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="n">groups</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">0</span><span class="p">]]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ops</span><span class="p">)):</span>
+        <span class="k">for</span> <span class="n">ig</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">groups</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">op_identities</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">groups</span><span class="p">[</span><span class="n">ig</span><span class="p">]):</span>
+                <span class="n">groups</span><span class="p">[</span><span class="n">ig</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="n">item</span> <span class="k">for</span> <span class="n">sublist</span> <span class="ow">in</span> <span class="n">groups</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">sublist</span><span class="p">]:</span>
+            <span class="n">groups</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">i</span><span class="p">])</span>
+    <span class="n">unique_ops</span> <span class="o">=</span> <span class="p">[</span><span class="n">ops</span><span class="p">[</span><span class="n">g</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">groups</span><span class="p">]</span>
+
+    <span class="n">new_psites</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">ps</span> <span class="ow">in</span> <span class="n">psites</span><span class="p">:</span>
+        <span class="n">iasym</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">op</span> <span class="ow">in</span> <span class="n">unique_ops</span><span class="p">:</span>
+            <span class="n">new_coord</span> <span class="o">=</span> <span class="n">op</span><span class="o">.</span><span class="n">operate</span><span class="p">(</span><span class="n">ps</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">)</span>
+            <span class="n">new_coord</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">i</span> <span class="o">-</span> <span class="n">math</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">new_coord</span><span class="p">])</span>
+            <span class="n">new_properties</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">ps</span><span class="o">.</span><span class="n">properties</span><span class="p">)</span>
+            <span class="n">new_properties</span><span class="p">[</span><span class="s1">&#39;iasym&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">iasym</span>
+            <span class="n">new_ps</span> <span class="o">=</span> <span class="n">PeriodicSite</span><span class="p">(</span><span class="n">ps</span><span class="o">.</span><span class="n">species_string</span><span class="p">,</span> <span class="n">new_coord</span><span class="p">,</span> <span class="n">ps</span><span class="o">.</span><span class="n">lattice</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">new_properties</span><span class="p">))</span>
+            <span class="n">new_psites</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_ps</span><span class="p">)</span>
+            <span class="n">iasym</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="k">return</span> <span class="n">new_psites</span><span class="p">,</span> <span class="n">unique_ops</span></div>
+
+
+<div class="viewcode-block" id="braket2float"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.disparser.braket2float">[docs]</a><span class="k">def</span> <span class="nf">braket2float</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">str2float</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;cannot parse </span><span class="si">{}</span><span class="s1"> into float&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">s</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="get_psite_by_atomlable"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.disparser.get_psite_by_atomlable">[docs]</a><span class="k">def</span> <span class="nf">get_psite_by_atomlable</span><span class="p">(</span><span class="n">psites</span><span class="p">,</span> <span class="n">al</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">psites</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">properties</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="nb">str</span><span class="p">(</span><span class="n">al</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">s</span>
+    <span class="k">raise</span> <span class="n">AtomLabelError</span><span class="p">(</span><span class="s1">&#39;cannot find psite with atomlable </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">al</span><span class="p">)))</span></div>
+
+
+<div class="viewcode-block" id="get_psite_label"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.disparser.get_psite_label">[docs]</a><span class="k">def</span> <span class="nf">get_psite_label</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">AtomLabel</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">properties</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="get_nearest_label"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.disparser.get_nearest_label">[docs]</a><span class="k">def</span> <span class="nf">get_nearest_label</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">ali</span><span class="p">:</span> <span class="n">AtomLabel</span><span class="p">,</span> <span class="n">neighbor_labels</span><span class="p">:</span> <span class="p">[</span><span class="n">AtomLabel</span><span class="p">],</span> <span class="n">lattice</span><span class="p">:</span> <span class="n">Lattice</span><span class="p">,</span> <span class="n">cutoff</span><span class="o">=</span><span class="mf">1.5</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    given a list of potential neighbouring AtomLable, get the one that is closest and has the same element</span>
+
+<span class="sd">    :param data:</span>
+<span class="sd">    :param ali:</span>
+<span class="sd">    :param neighbor_labels:</span>
+<span class="sd">    :param lattice:</span>
+<span class="sd">    :param cutoff:</span>
+<span class="sd">    :return:</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ali_nbs_dictance</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">xi</span><span class="p">,</span> <span class="n">yi</span><span class="p">,</span> <span class="n">zi</span><span class="p">,</span> <span class="n">symboli</span><span class="p">,</span> <span class="n">occu</span><span class="p">,</span> <span class="n">disgrp</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">ali</span><span class="p">]</span>
+    <span class="n">fci</span> <span class="o">=</span> <span class="p">[</span><span class="n">xi</span><span class="p">,</span> <span class="n">yi</span><span class="p">,</span> <span class="n">zi</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">alj</span> <span class="ow">in</span> <span class="n">neighbor_labels</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">alj</span> <span class="o">==</span> <span class="n">ali</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">xj</span><span class="p">,</span> <span class="n">yj</span><span class="p">,</span> <span class="n">zj</span><span class="p">,</span> <span class="n">symbolj</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">alj</span><span class="p">][:</span><span class="mi">4</span><span class="p">]</span>
+        <span class="n">fcj</span> <span class="o">=</span> <span class="p">[</span><span class="n">xj</span><span class="p">,</span> <span class="n">yj</span><span class="p">,</span> <span class="n">zj</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">symboli</span> <span class="o">!=</span> <span class="n">symbolj</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">v</span><span class="p">,</span> <span class="n">d2</span> <span class="o">=</span> <span class="n">pbc_shortest_vectors</span><span class="p">(</span><span class="n">lattice</span><span class="p">,</span> <span class="n">fci</span><span class="p">,</span> <span class="n">fcj</span><span class="p">,</span> <span class="n">return_d2</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">dij</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">d2</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+        <span class="n">ali_nbs_dictance</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">alj</span><span class="p">,</span> <span class="n">dij</span><span class="p">])</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ali_nbs_dictance</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">DisorderParserError</span><span class="p">(</span>
+            <span class="s1">&#39;cannot find any same-symbol neighbors of label </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ali</span><span class="o">.</span><span class="n">label</span><span class="p">))</span>
+    <span class="n">ali_nbs_dictance</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">ali_nbs_dictance</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">nnb</span><span class="p">,</span> <span class="n">nnbdis</span> <span class="o">=</span> <span class="n">ali_nbs_dictance</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">nnbdis</span> <span class="o">&gt;</span> <span class="n">cutoff</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">DisorderParserError</span><span class="p">(</span>
+            <span class="s1">&#39;cannot find any same-symbol neighbors of label </span><span class="si">{}</span><span class="s1"> within </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">ali</span><span class="o">.</span><span class="n">label</span><span class="p">,</span> <span class="n">cutoff</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">nnb</span></div>
+
+
+<div class="viewcode-block" id="CifFileError"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.disparser.CifFileError">[docs]</a><span class="k">class</span> <span class="nc">CifFileError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span> <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="DisorderParserError"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.disparser.DisorderParserError">[docs]</a><span class="k">class</span> <span class="nc">DisorderParserError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span> <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="AtomLabelError"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.disparser.AtomLabelError">[docs]</a><span class="k">class</span> <span class="nc">AtomLabelError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span> <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="DisParser"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.disparser.DisParser">[docs]</a><span class="k">class</span> <span class="nc">DisParser</span><span class="p">:</span>  <span class="c1"># chaos parser sounds cooler?</span>
+
+    <span class="n">labels</span><span class="p">:</span> <span class="p">[</span><span class="n">AtomLabel</span><span class="p">]</span>
+
+<div class="viewcode-block" id="DisParser.__init__"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.disparser.DisParser.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cifstring</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        this can only handle one alternative configuration for the asymmetric unit</span>
+
+<span class="sd">        one asymmetric unit == inv_conf + disg1 + disg2</span>
+
+<span class="sd">        disg1 = disunit_a + disunit_b + ...</span>
+
+<span class="sd">        disg2 = disunit_a&#39; + disunit_b&#39; + ...</span>
+
+<span class="sd">        DisorderPair_a = disunit_a + disunit_a&#39;</span>
+
+<span class="sd">        if the cif file contains previouly fitted occu and disg,</span>
+<span class="sd">        we call it dis-0 and we use occu/disg info to get inv_conf, disg1, disg2</span>
+
+<span class="sd">        if there is no previously fitted info, we deal with the following situations:</span>
+
+<span class="sd">            dis-1:  set(self.tags) is [&quot;&quot;, &lt;non-word&gt;, &lt;word&gt;, ...], EI&lt;non-word&gt; -- EI,</span>
+
+<span class="sd">            note x17059.cif is dis-1 but it has hydrogens like H12A -- H12D, this can only be captured</span>
+<span class="sd">            by previously fitted disg and occu,</span>
+
+<span class="sd">            dis-2:  set(self.tags) is [&quot;&quot;, &lt;non-word&gt;, &lt;word&gt;, ...], EI&lt;non-word&gt; -- E&#39;I&#39; e.g. ALOVOO.cif</span>
+
+<span class="sd">            nodis-0: no dup in self.eis, set(self.tags) is {&quot;&quot;}</span>
+
+<span class="sd">            nodis-1: dup in self.eis, set(self.tags) is [&quot;&quot;, &lt;word&gt;, ...], this could be a dis as in ASIXEH</span>
+
+<span class="sd">            weird: else</span>
+
+<span class="sd">        for dis-1, dis-2, we fill the occu, disg fields in cifdata, so they can be coonverted to dis-0</span>
+
+<span class="sd">        Attributes:</span>
+<span class="sd">            data[atomlabel] = [x, y, z, symbol, occu, disgrp]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cifstring</span> <span class="o">=</span> <span class="n">cifstring</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">identifier</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cifdata</span> <span class="o">=</span> <span class="n">get_pmg_dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cifstring</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="s1">&#39;_atom_site_occupancy&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cifdata</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="ow">and</span> <span class="s1">&#39;_atom_site_disorder_group&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cifdata</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">was_fitted</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">was_fitted</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">was_fitted</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cifdata</span><span class="p">[</span><span class="s1">&#39;_atom_site_occupancy&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">braket2float</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cifdata</span><span class="p">[</span><span class="s1">&#39;_atom_site_occupancy&#39;</span><span class="p">]]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cifdata</span><span class="p">[</span><span class="s1">&#39;_atom_site_disorder_group&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">braket2float</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span>
+                                                         <span class="bp">self</span><span class="o">.</span><span class="n">cifdata</span><span class="p">[</span><span class="s1">&#39;_atom_site_disorder_group&#39;</span><span class="p">]]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">cifdata</span><span class="p">[</span><span class="s1">&#39;_atom_site_fract_x&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">braket2float</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cifdata</span><span class="p">[</span><span class="s1">&#39;_atom_site_fract_x&#39;</span><span class="p">]]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cifdata</span><span class="p">[</span><span class="s1">&#39;_atom_site_fract_y&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">braket2float</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cifdata</span><span class="p">[</span><span class="s1">&#39;_atom_site_fract_y&#39;</span><span class="p">]]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cifdata</span><span class="p">[</span><span class="s1">&#39;_atom_site_fract_z&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">braket2float</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cifdata</span><span class="p">[</span><span class="s1">&#39;_atom_site_fract_z&#39;</span><span class="p">]]</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">labels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cifdata</span><span class="p">[</span><span class="s1">&#39;_atom_site_label&#39;</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">CifFileError</span><span class="p">(</span><span class="s1">&#39;no _atom_site_label field in the cifstring!&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">labels</span> <span class="o">=</span> <span class="p">[</span><span class="n">AtomLabel</span><span class="p">(</span><span class="n">lab</span><span class="p">)</span> <span class="k">for</span> <span class="n">lab</span> <span class="ow">in</span> <span class="n">labels</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">eis</span> <span class="o">=</span> <span class="p">[</span><span class="n">al</span><span class="o">.</span><span class="n">ei</span> <span class="k">for</span> <span class="n">al</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">labels</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tags</span> <span class="o">=</span> <span class="p">[</span><span class="n">al</span><span class="o">.</span><span class="n">tag</span> <span class="k">for</span> <span class="n">al</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">labels</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">labels</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">labels</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="n">CifFileError</span><span class="p">(</span><span class="s1">&#39;duplicate labels found in the cifstring!&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">latparams</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cifdata</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">latt_labels</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lattice</span> <span class="o">=</span> <span class="n">Lattice</span><span class="o">.</span><span class="n">from_parameters</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">braket2float</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">latparams</span><span class="p">],</span> <span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">data</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">zip</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cifdata</span><span class="p">[</span><span class="s1">&#39;_atom_site_fract_x&#39;</span><span class="p">],</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cifdata</span><span class="p">[</span><span class="s1">&#39;_atom_site_fract_y&#39;</span><span class="p">],</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cifdata</span><span class="p">[</span><span class="s1">&#39;_atom_site_fract_z&#39;</span><span class="p">],</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cifdata</span><span class="p">[</span><span class="s1">&#39;_atom_site_type_symbol&#39;</span><span class="p">],</span>
+        <span class="p">))</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">labels</span><span class="p">,</span> <span class="n">data</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">data</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">labels</span><span class="p">)):</span>
+            <span class="n">al</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">labels</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">was_fitted</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">al</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cifdata</span><span class="p">[</span><span class="s1">&#39;_atom_site_occupancy&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">])</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">al</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cifdata</span><span class="p">[</span><span class="s1">&#39;_atom_site_disorder_group&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">al</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">al</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="DisParser.dis0data_to_disunit_pairs"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.disparser.DisParser.dis0data_to_disunit_pairs">[docs]</a>    <span class="k">def</span> <span class="nf">dis0data_to_disunit_pairs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">psites</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_psites_from_data</span><span class="p">()</span>
+        <span class="n">disu_pairs</span><span class="p">,</span> <span class="n">inv_conf</span> <span class="o">=</span> <span class="n">DisUnit</span><span class="o">.</span><span class="n">get_disunit_pairs_from_asym</span><span class="p">(</span><span class="n">psites</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">disu_pairs</span><span class="p">,</span> <span class="n">inv_conf</span></div>
+
+<div class="viewcode-block" id="DisParser.get_psites_from_data"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.disparser.DisParser.get_psites_from_data">[docs]</a>    <span class="k">def</span> <span class="nf">get_psites_from_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">ps</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">symbol</span><span class="p">,</span> <span class="n">occu</span><span class="p">,</span> <span class="n">disgrp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">occu</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">disgrp</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">DisorderParserError</span><span class="p">(</span><span class="s1">&#39;getting psites with None occu/disgrp&#39;</span><span class="p">)</span>
+            <span class="n">ps</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">PeriodicSite</span><span class="p">(</span><span class="n">symbol</span><span class="p">,</span> <span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">],</span> <span class="n">properties</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;occu&#39;</span><span class="p">:</span> <span class="n">occu</span><span class="p">,</span> <span class="s1">&#39;disg&#39;</span><span class="p">:</span> <span class="n">disgrp</span><span class="p">,</span> <span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="n">k</span><span class="o">.</span><span class="n">label</span><span class="p">},</span>
+                                   <span class="n">lattice</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">lattice</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">ps</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">labels_with_nonword_suffix</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">l</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">labels</span> <span class="k">if</span> <span class="n">l</span><span class="o">.</span><span class="n">is_tag_nonword</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">labels_with_word_or_no_suffix</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">l</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">labels</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">l</span><span class="o">.</span><span class="n">is_tag_nonword</span><span class="p">]</span>
+
+<div class="viewcode-block" id="DisParser.from_ciffile"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.disparser.DisParser.from_ciffile">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_ciffile</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">fn</span><span class="p">):</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">s</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="DisParser.classify"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.disparser.DisParser.classify">[docs]</a>    <span class="k">def</span> <span class="nf">classify</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        one cif file belongs to one of the following categories:</span>
+
+<span class="sd">            nodis-0: no dup in self.eis, set(self.tags) is {&quot;&quot;}</span>
+
+<span class="sd">            dis-1:  set(self.tags) is [&quot;&quot;, &lt;non-word&gt;, &lt;word&gt;, ...], EI&lt;non-word&gt; -- EI,</span>
+
+<span class="sd">            note x17059.cif has hydrogens like H12A -- H12D, this can only be captured</span>
+<span class="sd">            by previously fitted disg and occu, in general there</span>
+<span class="sd">            should be a check on whether disgs identified by the parser are identical to previously fitted</span>
+
+<span class="sd">            dis-2:  set(self.tags) is [&quot;&quot;, &lt;non-word&gt;, &lt;word&gt;, ...], EI&lt;non-word&gt; -- E&#39;I&#39; e.g. ALOVOO.cif</span>
+
+<span class="sd">            nodis-1: dup in self.eis, set(self.tags) is [&quot;&quot;, &lt;word&gt;, ...], this could be a dis as in ASIXEH</span>
+
+<span class="sd">            weird: else</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">tag_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tags</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">was_fitted</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;dis-0&quot;</span>
+
+        <span class="k">elif</span> <span class="n">tag_set</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;&quot;</span><span class="p">}:</span>
+            <span class="k">return</span> <span class="s2">&quot;nodis-0&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">len_nonword_tagset</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">([</span><span class="n">l</span><span class="o">.</span><span class="n">tag</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">labels</span> <span class="k">if</span> <span class="n">l</span><span class="o">.</span><span class="n">is_tag_nonword</span><span class="p">]))</span>
+            <span class="k">if</span> <span class="n">len_nonword_tagset</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">al</span><span class="o">.</span><span class="n">get_labels_with_same_ei</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">labels</span><span class="p">))</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">al</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">labels_with_nonword_suffix</span><span class="p">):</span>
+                    <span class="k">return</span> <span class="s1">&#39;dis-2&#39;</span>
+                <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">al</span><span class="o">.</span><span class="n">get_labels_with_same_ei</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">labels</span><span class="p">))</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">al</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">labels_with_nonword_suffix</span><span class="p">):</span>
+                    <span class="k">return</span> <span class="s1">&#39;dis-1&#39;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="s1">&#39;weird&#39;</span>
+            <span class="k">elif</span> <span class="n">len_nonword_tagset</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">DisorderParserError</span><span class="p">(</span><span class="s1">&#39;more than one possible nonword suffix&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="s1">&#39;nodis-1&#39;</span></div>
+
+<div class="viewcode-block" id="DisParser.data2cifdata"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.disparser.DisParser.data2cifdata">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">data2cifdata</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">cifdata</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        data[atomlable] = x, y, z, symbol, occu, group</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">newdata</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">ciflabel</span> <span class="ow">in</span> <span class="n">possible_symm_labels</span> <span class="o">+</span> <span class="n">latt_labels</span> <span class="o">+</span> <span class="n">chemistry_labels</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">ciflabel</span> <span class="ow">in</span> <span class="n">cifdata</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="n">newdata</span><span class="p">[</span><span class="n">ciflabel</span><span class="p">]</span> <span class="o">=</span> <span class="n">cifdata</span><span class="p">[</span><span class="n">ciflabel</span><span class="p">]</span>
+        <span class="n">labs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="n">xs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">ys</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">zs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">symbols</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">occus</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">idisgs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">lab</span> <span class="ow">in</span> <span class="n">labs</span><span class="p">:</span>
+            <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">symb</span><span class="p">,</span> <span class="n">occu</span><span class="p">,</span> <span class="n">idisg</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">lab</span><span class="p">]</span>
+            <span class="n">xs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+            <span class="n">ys</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+            <span class="n">zs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">z</span><span class="p">)</span>
+            <span class="n">symbols</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">symb</span><span class="p">)</span>
+            <span class="n">occus</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">occu</span><span class="p">)</span>
+            <span class="n">idisgs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">idisg</span><span class="p">)</span>
+        <span class="n">newdata</span><span class="p">[</span><span class="s1">&#39;_atom_site_label&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">l</span><span class="o">.</span><span class="n">label</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">labs</span><span class="p">]</span>
+        <span class="n">newdata</span><span class="p">[</span><span class="s1">&#39;_atom_site_type_symbol&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">symbols</span>
+        <span class="n">newdata</span><span class="p">[</span><span class="s1">&#39;_atom_site_fract_x&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">xs</span>
+        <span class="n">newdata</span><span class="p">[</span><span class="s1">&#39;_atom_site_fract_y&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ys</span>
+        <span class="n">newdata</span><span class="p">[</span><span class="s1">&#39;_atom_site_fract_z&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">zs</span>
+        <span class="n">newdata</span><span class="p">[</span><span class="s1">&#39;_atom_site_occupancy&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">occus</span>
+        <span class="n">newdata</span><span class="p">[</span><span class="s1">&#39;_atom_site_disorder_group&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">idisgs</span>
+        <span class="k">return</span> <span class="n">newdata</span></div>
+
+<div class="viewcode-block" id="DisParser.parse"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.disparser.DisParser.parse">[docs]</a>    <span class="k">def</span> <span class="nf">parse</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">classification</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">classify</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> thinks this cif file belongs to class </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">classification</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">classification</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;nodis-1&#39;</span><span class="p">,</span> <span class="s1">&#39;nodis-0&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">nodis_to_dis0</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="n">classification</span> <span class="o">==</span> <span class="s1">&#39;weird&#39;</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">CifFileError</span><span class="p">(</span><span class="s1">&#39;classified as weird, check your cif input please&#39;</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">classification</span> <span class="o">==</span> <span class="s1">&#39;dis-0&#39;</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+        <span class="k">elif</span> <span class="n">classification</span> <span class="o">==</span> <span class="s1">&#39;dis-1&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dis1_to_dis0</span><span class="p">()</span>
+
+        <span class="k">elif</span> <span class="n">classification</span> <span class="o">==</span> <span class="s1">&#39;dis-2&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dis2_to_dis0</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">DisorderParserError</span><span class="p">(</span><span class="s1">&#39;unknown classification!&#39;</span><span class="p">)</span>
+        <span class="n">disunit_pairs</span><span class="p">,</span> <span class="n">inv_conf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dis0data_to_disunit_pairs</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">disunit_pairs</span><span class="p">,</span> <span class="n">inv_conf</span></div>
+
+<div class="viewcode-block" id="DisParser.nodis_to_dis0"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.disparser.DisParser.nodis_to_dis0">[docs]</a>    <span class="k">def</span> <span class="nf">nodis_to_dis0</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">al</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">labels</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">al</span><span class="p">][</span><span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">al</span><span class="p">][</span><span class="mi">5</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;.&#39;</span></div>
+
+<div class="viewcode-block" id="DisParser.alijdict_to_disgs_and_update_data"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.disparser.DisParser.alijdict_to_disgs_and_update_data">[docs]</a>    <span class="k">def</span> <span class="nf">alijdict_to_disgs_and_update_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ali2alj</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="n">inv_conf</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">disg_a</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># alj, ends with word/empty suffix</span>
+        <span class="n">disg_b</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># ali, ends with non-word suffix</span>
+        <span class="k">for</span> <span class="n">al</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">labels</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">al</span> <span class="ow">in</span> <span class="n">ali2alj</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="n">disg_b</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">al</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">al</span><span class="p">][</span><span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.49</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">al</span><span class="p">][</span><span class="mi">5</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;2&#39;</span>
+            <span class="k">elif</span> <span class="n">al</span> <span class="ow">in</span> <span class="n">ali2alj</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+                <span class="n">disg_a</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">al</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">al</span><span class="p">][</span><span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.51</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">al</span><span class="p">][</span><span class="mi">5</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;1&#39;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">inv_conf</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">al</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">was_fitted</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">al</span><span class="p">][</span><span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">al</span><span class="p">][</span><span class="mi">5</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;.&#39;</span>
+        <span class="n">al_b2a</span> <span class="o">=</span> <span class="n">ali2alj</span>
+        <span class="n">al_a2b</span> <span class="o">=</span> <span class="p">{</span><span class="n">v</span><span class="p">:</span> <span class="n">k</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">ali2alj</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+
+        <span class="k">return</span> <span class="n">al_a2b</span><span class="p">,</span> <span class="n">al_b2a</span><span class="p">,</span> <span class="n">disg_a</span><span class="p">,</span> <span class="n">disg_b</span><span class="p">,</span> <span class="n">inv_conf</span></div>
+
+<div class="viewcode-block" id="DisParser.dis1_to_dis0"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.disparser.DisParser.dis1_to_dis0">[docs]</a>    <span class="k">def</span> <span class="nf">dis1_to_dis0</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        C20 -- C20?</span>
+
+<span class="sd">        dis-1:  set(self.tags) is [&quot;&quot;, &lt;non-word&gt;, &lt;word&gt;, ...], EI&lt;non-word&gt; -- EI,</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ali2alj</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">ali</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">labels_with_nonword_suffix</span><span class="p">:</span>
+            <span class="n">potential_matches</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">labels_with_word_or_no_suffix</span>
+            <span class="n">possible_alj</span> <span class="o">=</span> <span class="n">ali</span><span class="o">.</span><span class="n">get_labels_with_same_ei</span><span class="p">(</span><span class="n">potential_matches</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">possible_alj</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">DisorderParserError</span><span class="p">(</span><span class="s1">&#39;possible match for </span><span class="si">{}</span><span class="s1"> is not 1&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ali</span><span class="p">))</span>
+            <span class="n">alj</span> <span class="o">=</span> <span class="n">possible_alj</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">ali2alj</span><span class="p">[</span><span class="n">ali</span><span class="p">]</span> <span class="o">=</span> <span class="n">alj</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">alijdict_to_disgs_and_update_data</span><span class="p">(</span><span class="n">ali2alj</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="DisParser.dis2_to_dis0"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.disparser.DisParser.dis2_to_dis0">[docs]</a>    <span class="k">def</span> <span class="nf">dis2_to_dis0</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cutoff</span><span class="o">=</span><span class="mf">1.5</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        c20 &lt;--&gt; c16?</span>
+
+<span class="sd">        dis-2:  set(self.tags) is [&quot;&quot;, &lt;non-word&gt;, &lt;word&gt;, ...], EI&lt;non-word&gt; -- E&#39;I&#39; e.g. ALOVOO.cif</span>
+
+<span class="sd">        will write default occu and disg to self.data</span>
+
+<span class="sd">        this is rather unreliable, user should be warned</span>
+<span class="sd">        for each label with &lt;non-word&gt; tag, find nearest label (within the cutoff) as a counterpart</span>
+<span class="sd">        exception includes AGUHUG.cif (H -- OH disorder)</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;W: trying to parse disorder in dis-2 with cutoff </span><span class="si">{}</span><span class="s1">, this is unreliable!&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">cutoff</span><span class="p">))</span>
+        <span class="n">ali2alj</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">ali</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">labels_with_nonword_suffix</span><span class="p">:</span>
+            <span class="n">potential_matches</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">labels_with_word_or_no_suffix</span>
+            <span class="n">alj</span> <span class="o">=</span> <span class="n">get_nearest_label</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">ali</span><span class="p">,</span> <span class="p">[</span><span class="n">l</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">potential_matches</span> <span class="k">if</span>
+                                                     <span class="n">l</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ali2alj</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="ow">and</span> <span class="n">l</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ali2alj</span><span class="o">.</span><span class="n">values</span><span class="p">()],</span>
+                                    <span class="bp">self</span><span class="o">.</span><span class="n">lattice</span><span class="p">,</span> <span class="n">cutoff</span><span class="p">)</span>
+            <span class="n">ali2alj</span><span class="p">[</span><span class="n">ali</span><span class="p">]</span> <span class="o">=</span> <span class="n">alj</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">alijdict_to_disgs_and_update_data</span><span class="p">(</span><span class="n">ali2alj</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="DisParser.to_configs"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.disparser.DisParser.to_configs">[docs]</a>    <span class="k">def</span> <span class="nf">to_configs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">write_files</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">scaling_mat</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)):</span>
+        <span class="n">disunit_pairs</span><span class="p">,</span> <span class="n">inv_conf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse</span><span class="p">()</span>
+        <span class="n">cc</span> <span class="o">=</span> <span class="n">ConfigConstructor</span><span class="p">(</span><span class="n">disunit_pairs</span><span class="p">,</span> <span class="n">inv_conf</span><span class="p">)</span>
+
+        <span class="n">psites</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_psites_from_data</span><span class="p">()</span>
+
+        <span class="n">raw_symmops</span> <span class="o">=</span> <span class="n">get_symmop</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cifdata</span><span class="p">)</span>
+        <span class="n">psites</span><span class="p">,</span> <span class="n">symmops</span> <span class="o">=</span> <span class="n">apply_symmop</span><span class="p">(</span><span class="n">psites</span><span class="p">,</span> <span class="n">raw_symmops</span><span class="p">)</span>
+
+        <span class="n">pstructure</span> <span class="o">=</span> <span class="n">Structure</span><span class="o">.</span><span class="n">from_sites</span><span class="p">(</span><span class="n">psites</span><span class="p">,</span> <span class="n">to_unit_cell</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="c1"># sc, n_unitcell = ConfigConstructor.build_supercell_full_disorder(pstructure, scaling_mat)</span>
+        <span class="n">mols</span><span class="p">,</span> <span class="n">unwrap_str_sorted</span><span class="p">,</span> <span class="n">unwrap_pblock_list</span> <span class="o">=</span> <span class="n">PBCparser</span><span class="o">.</span><span class="n">unwrap</span><span class="p">(</span><span class="n">pstructure</span><span class="p">)</span>
+        <span class="n">sc</span><span class="p">,</span> <span class="n">n_unitcell</span> <span class="o">=</span> <span class="n">ConfigConstructor</span><span class="o">.</span><span class="n">build_supercell_full_disorder</span><span class="p">(</span><span class="n">unwrap_str_sorted</span><span class="p">,</span> <span class="n">scaling_mat</span><span class="p">)</span>
+
+        <span class="n">conf_ins</span> <span class="o">=</span> <span class="n">cc</span><span class="o">.</span><span class="n">gen_instructions</span><span class="p">(</span><span class="n">disunit_pairs</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">symmops</span><span class="p">),</span> <span class="n">n_unitcell</span><span class="p">)</span>
+        <span class="n">iconf</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">confs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">confin</span> <span class="ow">in</span> <span class="n">conf_ins</span><span class="p">:</span>
+            <span class="n">conf</span><span class="p">,</span> <span class="n">conf_occu</span> <span class="o">=</span> <span class="n">ConfigConstructor</span><span class="o">.</span><span class="n">dissc_to_config</span><span class="p">(</span><span class="n">sc</span><span class="p">,</span> <span class="n">disunit_pairs</span><span class="p">,</span> <span class="n">confin</span><span class="p">)</span>
+            <span class="n">confs</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">conf</span><span class="p">,</span> <span class="n">conf_occu</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">write_files</span><span class="p">:</span>
+                <span class="n">conf</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s1">&#39;cif&#39;</span><span class="p">,</span> <span class="s1">&#39;conf_</span><span class="si">{}</span><span class="s1">.cif&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">iconf</span><span class="p">))</span>  <span class="c1"># pymatgen somehow does not write disg field in the cif</span>
+            <span class="n">iconf</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">write_files</span><span class="p">:</span>
+            <span class="n">pstructure</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s1">&#39;cif&#39;</span><span class="p">,</span> <span class="s1">&#39;confgen_ps.cif&#39;</span><span class="p">)</span>
+            <span class="c1"># unwrap_str_sorted.to(&#39;cif&#39;, &#39;confgen_unwrap.cif&#39;)</span>
+        <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">confs</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="get_symmop"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.disparser.get_symmop">[docs]</a><span class="k">def</span> <span class="nf">get_symmop</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+    <span class="n">symops</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">symmetry_label</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;_symmetry_equiv_pos_as_xyz&quot;</span><span class="p">,</span>
+                           <span class="s2">&quot;_symmetry_equiv_pos_as_xyz_&quot;</span><span class="p">,</span>
+                           <span class="s2">&quot;_space_group_symop_operation_xyz&quot;</span><span class="p">,</span>
+                           <span class="s2">&quot;_space_group_symop_operation_xyz_&quot;</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">symmetry_label</span><span class="p">):</span>
+            <span class="n">xyz</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">symmetry_label</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">xyz</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;A 1-line symmetry op P1 CIF is detected!&quot;</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+                <span class="n">xyz</span> <span class="o">=</span> <span class="p">[</span><span class="n">xyz</span><span class="p">]</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">symops</span> <span class="o">=</span> <span class="p">[</span><span class="n">SymmOp</span><span class="o">.</span><span class="n">from_xyz_string</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+                          <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">xyz</span><span class="p">]</span>
+                <span class="k">break</span>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                <span class="k">continue</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">symops</span><span class="p">:</span>
+        <span class="c1"># Try to parse symbol</span>
+        <span class="k">for</span> <span class="n">symmetry_label</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;_symmetry_space_group_name_H-M&quot;</span><span class="p">,</span>
+                               <span class="s2">&quot;_symmetry_space_group_name_H_M&quot;</span><span class="p">,</span>
+                               <span class="s2">&quot;_symmetry_space_group_name_H-M_&quot;</span><span class="p">,</span>
+                               <span class="s2">&quot;_symmetry_space_group_name_H_M_&quot;</span><span class="p">,</span>
+                               <span class="s2">&quot;_space_group_name_Hall&quot;</span><span class="p">,</span>
+                               <span class="s2">&quot;_space_group_name_Hall_&quot;</span><span class="p">,</span>
+                               <span class="s2">&quot;_space_group_name_H-M_alt&quot;</span><span class="p">,</span>
+                               <span class="s2">&quot;_space_group_name_H-M_alt_&quot;</span><span class="p">,</span>
+                               <span class="s2">&quot;_symmetry_space_group_name_hall&quot;</span><span class="p">,</span>
+                               <span class="s2">&quot;_symmetry_space_group_name_hall_&quot;</span><span class="p">,</span>
+                               <span class="s2">&quot;_symmetry_space_group_name_h-m&quot;</span><span class="p">,</span>
+                               <span class="s2">&quot;_symmetry_space_group_name_h-m_&quot;</span><span class="p">]:</span>
+            <span class="n">sg</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">symmetry_label</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">sg</span><span class="p">:</span>
+                <span class="n">sg</span> <span class="o">=</span> <span class="n">sub_spgrp</span><span class="p">(</span><span class="n">sg</span><span class="p">)</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">spg</span> <span class="o">=</span> <span class="n">space_groups</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">sg</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">spg</span><span class="p">:</span>
+                        <span class="n">symops</span> <span class="o">=</span> <span class="n">SpaceGroup</span><span class="p">(</span><span class="n">spg</span><span class="p">)</span><span class="o">.</span><span class="n">symmetry_ops</span>
+                        <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;No _symmetry_equiv_pos_as_xyz type key found. &quot;</span> \
+                              <span class="s2">&quot;Spacegroup from </span><span class="si">%s</span><span class="s2"> used.&quot;</span> <span class="o">%</span> <span class="n">symmetry_label</span>
+                        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+                        <span class="k">break</span>
+                <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                    <span class="c1"># Ignore any errors</span>
+                    <span class="k">pass</span>
+
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">_get_cod_data</span><span class="p">():</span>
+                        <span class="k">if</span> <span class="n">sg</span> <span class="o">==</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;\s+&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+                                        <span class="n">d</span><span class="p">[</span><span class="s2">&quot;hermann_mauguin&quot;</span><span class="p">]):</span>
+                            <span class="n">xyz</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;symops&quot;</span><span class="p">]</span>
+                            <span class="n">symops</span> <span class="o">=</span> <span class="p">[</span><span class="n">SymmOp</span><span class="o">.</span><span class="n">from_xyz_string</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+                                      <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">xyz</span><span class="p">]</span>
+                            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;No _symmetry_equiv_pos_as_xyz type key found. &quot;</span> \
+                                  <span class="s2">&quot;Spacegroup from </span><span class="si">%s</span><span class="s2"> used.&quot;</span> <span class="o">%</span> <span class="n">symmetry_label</span>
+                            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+                            <span class="k">break</span>
+                <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                    <span class="k">continue</span>
+
+                <span class="k">if</span> <span class="n">symops</span><span class="p">:</span>
+                    <span class="k">break</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">symops</span><span class="p">:</span>
+        <span class="c1"># Try to parse International number</span>
+        <span class="k">for</span> <span class="n">symmetry_label</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;_space_group_IT_number&quot;</span><span class="p">,</span>
+                               <span class="s2">&quot;_space_group_IT_number_&quot;</span><span class="p">,</span>
+                               <span class="s2">&quot;_symmetry_Int_Tables_number&quot;</span><span class="p">,</span>
+                               <span class="s2">&quot;_symmetry_Int_Tables_number_&quot;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">symmetry_label</span><span class="p">):</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">i</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">braket2float</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">symmetry_label</span><span class="p">)))</span>
+                    <span class="n">symops</span> <span class="o">=</span> <span class="n">SpaceGroup</span><span class="o">.</span><span class="n">from_int_number</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">.</span><span class="n">symmetry_ops</span>
+                    <span class="k">break</span>
+                <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                    <span class="k">continue</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">symops</span><span class="p">:</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;No _symmetry_equiv_pos_as_xyz type key found. &quot;</span> \
+              <span class="s2">&quot;Defaulting to P1.&quot;</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="n">symops</span> <span class="o">=</span> <span class="p">[</span><span class="n">SymmOp</span><span class="o">.</span><span class="n">from_xyz_string</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;z&#39;</span><span class="p">]]</span>
+
+    <span class="k">return</span> <span class="n">symops</span></div>
+
+
+<div class="viewcode-block" id="DisUnitError"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.disparser.DisUnitError">[docs]</a><span class="k">class</span> <span class="nc">DisUnitError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span> <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="DisUnit"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.disparser.DisUnit">[docs]</a><span class="k">class</span> <span class="nc">DisUnit</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">l</span><span class="p">)</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">labels</span><span class="p">])</span>
+
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__repr__</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">labels</span><span class="p">)</span> <span class="o">==</span> <span class="nb">set</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">labels</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">hash</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">labels</span><span class="p">))</span>
+
+<div class="viewcode-block" id="DisUnit.__init__"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.disparser.DisUnit.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">psites</span><span class="p">:</span> <span class="p">[</span><span class="n">PeriodicSite</span><span class="p">]):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        a portion of an asymmetric unit representing one possibility</span>
+
+<span class="sd">        a pair of DisUnit is the basis of disorder, assuming maximal entropy</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sites</span> <span class="o">=</span> <span class="n">psites</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">labels</span> <span class="o">=</span> <span class="p">[</span><span class="n">AtomLabel</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">properties</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">])</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sites</span><span class="p">]</span>
+        <span class="n">occus</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">properties</span><span class="p">[</span><span class="s1">&#39;occu&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sites</span><span class="p">]</span>
+        <span class="n">disgs</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">properties</span><span class="p">[</span><span class="s1">&#39;disg&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sites</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">occu</span> <span class="o">=</span> <span class="n">occus</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">disg</span> <span class="o">=</span> <span class="n">disgs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">symbols</span> <span class="o">=</span> <span class="p">[</span><span class="n">l</span><span class="o">.</span><span class="n">element</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">labels</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">composition</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">symbols</span><span class="p">))</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">occus</span><span class="p">))</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">DisUnitError</span><span class="p">(</span><span class="s1">&#39;occu is not uniform for </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">)))</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">disgs</span><span class="p">))</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">DisUnitError</span><span class="p">(</span><span class="s1">&#39;disg is not uniform for </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">)))</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">geoc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sites</span><span class="p">:</span>
+            <span class="n">c</span> <span class="o">+=</span> <span class="n">s</span><span class="o">.</span><span class="n">coords</span>
+        <span class="k">return</span> <span class="n">c</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sites</span><span class="p">)</span>
+
+<div class="viewcode-block" id="DisUnit.get_disunit_pairs_from_asym"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.disparser.DisUnit.get_disunit_pairs_from_asym">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">get_disunit_pairs_from_asym</span><span class="p">(</span><span class="n">psites</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        get a list of xor disunit pairs</span>
+
+<span class="sd">        :param psites:</span>
+<span class="sd">        :return: [[ua, ua&#39;], [ub, ub&#39;], ...]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">units</span><span class="p">,</span> <span class="n">inv_conf</span> <span class="o">=</span> <span class="n">DisUnit</span><span class="o">.</span><span class="n">partition_asymmetric_unit</span><span class="p">(</span><span class="n">psites</span><span class="p">)</span>
+        <span class="n">pairs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">assigned</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">units</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">assigned</span><span class="p">:</span>
+                <span class="n">u1</span> <span class="o">=</span> <span class="n">units</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                <span class="n">potential_u2</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">units</span><span class="p">)):</span>
+                    <span class="k">if</span> <span class="n">j</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">assigned</span><span class="p">:</span>
+                        <span class="n">u2</span> <span class="o">=</span> <span class="n">units</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+                        <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">u1</span><span class="o">.</span><span class="n">occu</span> <span class="o">+</span> <span class="n">u2</span><span class="o">.</span><span class="n">occu</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1e-5</span> <span class="ow">and</span> <span class="n">u1</span><span class="o">.</span><span class="n">composition</span> <span class="o">==</span> <span class="n">u2</span><span class="o">.</span><span class="n">composition</span><span class="p">:</span>
+                            <span class="n">potential_u2</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">u2</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">u2</span><span class="o">.</span><span class="n">geoc</span> <span class="o">-</span> <span class="n">u1</span><span class="o">.</span><span class="n">geoc</span><span class="p">),</span> <span class="n">j</span><span class="p">])</span>
+                <span class="n">potential_u2</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                <span class="n">u2_real</span><span class="p">,</span> <span class="n">u2_dist</span><span class="p">,</span> <span class="n">u2_j</span> <span class="o">=</span> <span class="n">potential_u2</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">u2_dist</span> <span class="o">&gt;</span> <span class="mf">1.5</span><span class="p">:</span>
+                    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;at least one disunit is paired with another that is &gt;1.5 A far away, unlikely&#39;</span><span class="p">)</span>
+                    <span class="c1"># raise DisUnitError(&#39;at least one disunit is paired with another that is &gt;1.5 A far away, highly unlikely&#39;)</span>
+                <span class="n">pairs</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">u1</span><span class="p">,</span> <span class="n">u2_real</span><span class="p">])</span>
+                <span class="n">assigned</span> <span class="o">+=</span> <span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">u2_j</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">pairs</span><span class="p">,</span> <span class="n">inv_conf</span></div>
+
+<div class="viewcode-block" id="DisUnit.partition_asymmetric_unit"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.disparser.DisUnit.partition_asymmetric_unit">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">partition_asymmetric_unit</span><span class="p">(</span><span class="n">psites</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        all disorder units in a flat list within in one asym unit</span>
+
+<span class="sd">        :param psites:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">inv_conf</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">disordered_sites</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">ps</span> <span class="ow">in</span> <span class="n">psites</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">ps</span><span class="o">.</span><span class="n">properties</span><span class="p">[</span><span class="s1">&#39;occu&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">1e-3</span><span class="p">:</span>
+                <span class="n">disordered_sites</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ps</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">inv_conf</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ps</span><span class="p">)</span>
+        <span class="c1"># first group by occu</span>
+        <span class="n">group_by_occu</span> <span class="o">=</span> <span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">l</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">groupby</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">disordered_sites</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">properties</span><span class="p">[</span><span class="s1">&#39;occu&#39;</span><span class="p">]),</span>
+                                                     <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">properties</span><span class="p">[</span><span class="s1">&#39;occu&#39;</span><span class="p">])]</span>
+        <span class="c1"># within one group, group again by connection</span>
+        <span class="n">units</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">group_by_occu</span><span class="p">)):</span>
+            <span class="n">group</span> <span class="o">=</span> <span class="n">group_by_occu</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">mols</span><span class="p">,</span> <span class="n">unwrap_str_sorted</span><span class="p">,</span> <span class="n">unwrap_pblock_list</span> <span class="o">=</span> <span class="n">PBCparser</span><span class="o">.</span><span class="n">unwrap</span><span class="p">(</span><span class="n">Structure</span><span class="o">.</span><span class="n">from_sites</span><span class="p">(</span><span class="n">group</span><span class="p">))</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            the problem here is it thinks a(a&#39;)-b-c(c&#39;)-d(d&#39;) has two pairs of disunit, as there is no disorder at b</span>
+<span class="sd">            if a pblock is not far away from another, they should be one pblock</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="n">connected_blocks</span> <span class="o">=</span> <span class="n">DisUnit</span><span class="o">.</span><span class="n">get_connected_pblock</span><span class="p">(</span><span class="n">unwrap_pblock_list</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">pblock</span> <span class="ow">in</span> <span class="n">connected_blocks</span><span class="p">:</span>
+                <span class="n">units</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">DisUnit</span><span class="p">(</span><span class="n">pblock</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">units</span><span class="p">,</span> <span class="n">inv_conf</span></div>
+
+<div class="viewcode-block" id="DisUnit.get_connected_pblock"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.disparser.DisUnit.get_connected_pblock">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">get_connected_pblock</span><span class="p">(</span><span class="n">pblocks</span><span class="p">,</span> <span class="n">cutoff</span><span class="o">=</span><span class="mf">4.0</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">scipy.spatial.distance</span> <span class="kn">import</span> <span class="n">cdist</span>
+        <span class="kn">import</span> <span class="nn">networkx</span> <span class="k">as</span> <span class="nn">nx</span>
+
+        <span class="k">def</span> <span class="nf">get_coords</span><span class="p">(</span><span class="n">pb</span><span class="p">:</span> <span class="p">[</span><span class="n">PeriodicSite</span><span class="p">]):</span>
+            <span class="n">coords</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">pb</span><span class="p">),</span> <span class="mi">3</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">pb</span><span class="p">)):</span>
+                <span class="n">coords</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">pb</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">coords</span>
+            <span class="k">return</span> <span class="n">coords</span>
+
+        <span class="k">def</span> <span class="nf">get_shortest_distance_between_blocks</span><span class="p">(</span><span class="n">pb1</span><span class="p">,</span> <span class="n">pb2</span><span class="p">):</span>
+            <span class="n">pb1coords</span> <span class="o">=</span> <span class="n">get_coords</span><span class="p">(</span><span class="n">pb1</span><span class="p">)</span>
+            <span class="n">pb2coords</span> <span class="o">=</span> <span class="n">get_coords</span><span class="p">(</span><span class="n">pb2</span><span class="p">)</span>
+            <span class="n">distmat</span> <span class="o">=</span> <span class="n">cdist</span><span class="p">(</span><span class="n">pb1coords</span><span class="p">,</span> <span class="n">pb2coords</span><span class="p">)</span>
+            <span class="n">minid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unravel_index</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">distmat</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">),</span> <span class="n">distmat</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">distmat</span><span class="p">[</span><span class="n">minid</span><span class="p">]</span>
+
+        <span class="k">def</span> <span class="nf">get_block_graph</span><span class="p">(</span><span class="n">distmat</span><span class="p">,</span> <span class="n">cutoff</span><span class="p">):</span>
+            <span class="n">g</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">distmat</span><span class="p">)):</span>
+                <span class="n">g</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">distmat</span><span class="p">)):</span>
+                    <span class="n">g</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">distmat</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">cutoff</span><span class="p">:</span>
+                        <span class="n">g</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">g</span>
+
+        <span class="n">distmat_pblocks</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">pblocks</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">pblocks</span><span class="p">)))</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">pblocks</span><span class="p">)):</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">pblocks</span><span class="p">)):</span>
+                <span class="n">distmat_pblocks</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_shortest_distance_between_blocks</span><span class="p">(</span><span class="n">pblocks</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">pblocks</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
+                <span class="n">distmat_pblocks</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">distmat_pblocks</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span>
+        <span class="n">block_graph</span> <span class="o">=</span> <span class="n">get_block_graph</span><span class="p">(</span><span class="n">distmat_pblocks</span><span class="p">,</span> <span class="n">cutoff</span><span class="p">)</span>
+        <span class="n">connected_block_ids</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">connected_components</span><span class="p">(</span><span class="n">block_graph</span><span class="p">)</span>  <span class="c1"># [[1,3], [2, 4, 5], ...]</span>
+        <span class="n">merged_blocks</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">ids</span> <span class="ow">in</span> <span class="n">connected_block_ids</span><span class="p">:</span>
+            <span class="n">merged_block</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">ids</span><span class="p">:</span>
+                <span class="n">merged_block</span> <span class="o">+=</span> <span class="n">pblocks</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">merged_blocks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">merged_block</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">merged_blocks</span></div></div>
+
+
+<div class="viewcode-block" id="ConfigConstructor"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.disparser.ConfigConstructor">[docs]</a><span class="k">class</span> <span class="nc">ConfigConstructor</span><span class="p">:</span>
+
+<div class="viewcode-block" id="ConfigConstructor.__init__"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.disparser.ConfigConstructor.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inv_conf</span><span class="p">:</span> <span class="p">[</span><span class="n">PeriodicSite</span><span class="p">],</span> <span class="n">disunit_pairs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inv_conf</span> <span class="o">=</span> <span class="n">inv_conf</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">disunit_pairs</span> <span class="o">=</span> <span class="n">disunit_pairs</span></div>
+
+<div class="viewcode-block" id="ConfigConstructor.gen_instructions"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.disparser.ConfigConstructor.gen_instructions">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">gen_instructions</span><span class="p">(</span><span class="n">disunit_pairs</span><span class="p">,</span> <span class="n">n_asym</span><span class="p">,</span> <span class="n">n_cell</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        get all possible instructions, notice this is exponentially scaled</span>
+
+<span class="sd">        # of configs = 2^len(self.disunitpairs)^n_asym^n_cell where 2 comes from pairwise disordered occupancies</span>
+
+<span class="sd">        return a list of instruction to build a config</span>
+
+<span class="sd">        instruction is a nested tuple, instruction[icell][iasym][ipair] gives idis,</span>
+<span class="sd">        that is, instruction[1][2][3] == 4 means in the 2nd unitcell (icell=1),</span>
+<span class="sd">        the 3rd asymm unit (iasym=2),</span>
+<span class="sd">        the 4th disorder portion (ipair=3),</span>
+<span class="sd">        the 5th disorder unit (disunit_pairs[3][4], idis=4) is going to present</span>
+
+<span class="sd">        :param disunit_pairs:</span>
+<span class="sd">        :param n_asym:</span>
+<span class="sd">        :param n_cell:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pair_size</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">ipair</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">disunit_pairs</span><span class="p">)):</span>
+            <span class="n">pair_size</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">disunit_pairs</span><span class="p">[</span><span class="n">ipair</span><span class="p">]))</span>  <span class="c1"># should always be 2</span>
+        <span class="n">dis_ins_combinations</span> <span class="o">=</span> <span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">))</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">pair_size</span><span class="p">])</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="n">dis_ins_combinations</span><span class="p">,</span> <span class="n">repeat</span><span class="o">=</span><span class="n">n_asym</span><span class="p">)</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="n">results</span><span class="p">,</span> <span class="n">repeat</span><span class="o">=</span><span class="n">n_cell</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">results</span></div>
+
+<div class="viewcode-block" id="ConfigConstructor.build_supercell_full_disorder"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.disparser.ConfigConstructor.build_supercell_full_disorder">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">build_supercell_full_disorder</span><span class="p">(</span><span class="n">pstructure</span><span class="p">,</span> <span class="n">scaling_matrix</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        get a supercell with all disordered sites inside, should be used to generate a certain config based on instruction</span>
+
+<span class="sd">        :param pstructure:</span>
+<span class="sd">        :param scaling_matrix:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">scale_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">scaling_matrix</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int16</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">scale_matrix</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">):</span>
+            <span class="n">scale_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">scale_matrix</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">int16</span><span class="p">)</span>
+        <span class="n">new_lattice</span> <span class="o">=</span> <span class="n">Lattice</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">scale_matrix</span><span class="p">,</span> <span class="n">pstructure</span><span class="o">.</span><span class="n">_lattice</span><span class="o">.</span><span class="n">matrix</span><span class="p">))</span>
+        <span class="n">f_lat</span> <span class="o">=</span> <span class="n">lattice_points_in_supercell</span><span class="p">(</span><span class="n">scale_matrix</span><span class="p">)</span>
+        <span class="n">c_lat</span> <span class="o">=</span> <span class="n">new_lattice</span><span class="o">.</span><span class="n">get_cartesian_coords</span><span class="p">(</span><span class="n">f_lat</span><span class="p">)</span>
+        <span class="n">new_sites</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">site</span> <span class="ow">in</span> <span class="n">pstructure</span><span class="o">.</span><span class="n">sites</span><span class="p">:</span>
+            <span class="n">icell</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">c_lat</span><span class="p">:</span>
+                <span class="n">site_properties</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">site</span><span class="o">.</span><span class="n">properties</span><span class="p">)</span>
+                <span class="n">site_properties</span><span class="p">[</span><span class="s1">&#39;icell&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">icell</span>
+                <span class="n">s</span> <span class="o">=</span> <span class="n">PeriodicSite</span><span class="p">(</span><span class="n">site</span><span class="o">.</span><span class="n">species</span><span class="p">,</span> <span class="n">site</span><span class="o">.</span><span class="n">coords</span> <span class="o">+</span> <span class="n">v</span><span class="p">,</span>
+                                 <span class="n">new_lattice</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="n">site_properties</span><span class="p">,</span>
+                                 <span class="n">coords_are_cartesian</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">to_unit_cell</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                <span class="n">new_sites</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+                <span class="n">icell</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">new_charge</span> <span class="o">=</span> <span class="n">pstructure</span><span class="o">.</span><span class="n">_charge</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">det</span><span class="p">(</span><span class="n">scale_matrix</span><span class="p">)</span> <span class="k">if</span> <span class="n">pstructure</span><span class="o">.</span><span class="n">_charge</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="n">Structure</span><span class="o">.</span><span class="n">from_sites</span><span class="p">(</span><span class="n">new_sites</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="n">new_charge</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">c_lat</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ConfigConstructor.dissc_to_config"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.disparser.ConfigConstructor.dissc_to_config">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">dissc_to_config</span><span class="p">(</span><span class="n">sc</span><span class="p">,</span> <span class="n">disunit_pairs</span><span class="p">,</span> <span class="n">instruction</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        take instructions to generate a certain config from super cell</span>
+
+<span class="sd">        :param Structure sc: supercell structure</span>
+<span class="sd">        :param disunit_pairs:</span>
+<span class="sd">        :param instruction:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pool</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">config_occu</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">for</span> <span class="n">icell</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">instruction</span><span class="p">)):</span>
+            <span class="k">for</span> <span class="n">iasym</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">instruction</span><span class="p">[</span><span class="n">icell</span><span class="p">])):</span>
+                <span class="k">for</span> <span class="n">ipair</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">instruction</span><span class="p">[</span><span class="n">icell</span><span class="p">][</span><span class="n">iasym</span><span class="p">])):</span>
+                    <span class="n">idis</span> <span class="o">=</span> <span class="n">instruction</span><span class="p">[</span><span class="n">icell</span><span class="p">][</span><span class="n">iasym</span><span class="p">][</span><span class="n">ipair</span><span class="p">]</span>
+                    <span class="n">disu</span> <span class="o">=</span> <span class="n">disunit_pairs</span><span class="p">[</span><span class="n">ipair</span><span class="p">][</span><span class="n">idis</span><span class="p">]</span>
+                    <span class="n">config_occu</span> <span class="o">*=</span> <span class="n">disu</span><span class="o">.</span><span class="n">occu</span>
+                    <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">disu</span><span class="o">.</span><span class="n">labels</span><span class="p">:</span>
+                        <span class="n">pool</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">label</span><span class="o">.</span><span class="n">label</span><span class="p">,</span> <span class="n">iasym</span><span class="p">,</span> <span class="n">icell</span><span class="p">))</span>
+        <span class="n">conf_sites</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">ps</span> <span class="ow">in</span> <span class="n">sc</span><span class="o">.</span><span class="n">sites</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">ps</span><span class="o">.</span><span class="n">properties</span><span class="p">[</span><span class="s1">&#39;occu&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1e-3</span><span class="p">:</span>
+                <span class="n">conf_sites</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ps</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">plabel</span> <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">properties</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">]</span>
+                <span class="n">piasym</span> <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">properties</span><span class="p">[</span><span class="s1">&#39;iasym&#39;</span><span class="p">]</span>
+                <span class="n">picell</span> <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">properties</span><span class="p">[</span><span class="s1">&#39;icell&#39;</span><span class="p">]</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">plabel</span><span class="p">,</span> <span class="n">piasym</span><span class="p">,</span> <span class="n">picell</span><span class="p">)</span> <span class="ow">in</span> <span class="n">pool</span><span class="p">:</span>
+                    <span class="n">conf_sites</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ps</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Structure</span><span class="o">.</span><span class="n">from_sites</span><span class="p">(</span><span class="n">conf_sites</span><span class="p">),</span> <span class="n">config_occu</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Ai, Qianxiang
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

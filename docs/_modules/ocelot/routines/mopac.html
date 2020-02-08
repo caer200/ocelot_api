@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ocelot.routines.mopac &mdash; ocelot 0.01 documentation</title>
+  <title>ocelot.routines.mopac &mdash; ocelot 0.2 documentation</title>
   
 
   
@@ -58,7 +58,7 @@
             
             
               <div class="version">
-                0.01
+                0.2
               </div>
             
           
@@ -85,7 +85,10 @@
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#quick-start">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#schema">schema</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#disorder">Disorder</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#bone-config">Bone Config</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#backbone-and-sidechain">Backbone and Sidechain</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../ocelot.html">ocelot package</a></li>
 </ul>
 
@@ -150,40 +153,43 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ocelot.routines.mopac</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">ocelot.schema.msite</span> <span class="k">import</span> <span class="n">MSite</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">ocelot.schema.conformer</span> <span class="kn">import</span> <span class="n">Site</span>
 
 
 <div class="viewcode-block" id="MopacInput"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.mopac.MopacInput">[docs]</a><span class="k">class</span> <span class="nc">MopacInput</span><span class="p">:</span>
 
-<div class="viewcode-block" id="MopacInput.__init__"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.mopac.MopacInput.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msites</span><span class="p">,</span> <span class="n">mopheader</span><span class="o">=</span><span class="s1">&#39;CHARGES&#39;</span><span class="p">,</span> <span class="n">comment_line</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+<div class="viewcode-block" id="MopacInput.__init__"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.mopac.MopacInput.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sites</span><span class="p">,</span> <span class="n">mopheader</span><span class="o">=</span><span class="s1">&#39;CHARGES&#39;</span><span class="p">,</span> <span class="n">comment_line</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        does not support selective dynamics</span>
 
-<span class="sd">        :param msites:</span>
+<span class="sd">        :param sites:</span>
 <span class="sd">        :param mopheader:</span>
 <span class="sd">        :param comment_line:</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">msites</span> <span class="o">=</span> <span class="n">msites</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sites</span> <span class="o">=</span> <span class="n">sites</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">mopheader</span> <span class="o">=</span> <span class="n">mopheader</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">comment_line</span> <span class="o">=</span> <span class="n">comment_line</span></div>
 
 <div class="viewcode-block" id="MopacInput.sites2mopinput"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.mopac.MopacInput.sites2mopinput">[docs]</a>    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">sites2mopinput</span><span class="p">(</span><span class="n">msites</span><span class="p">,</span> <span class="n">header</span><span class="p">,</span> <span class="n">comment</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">sites2mopinput</span><span class="p">(</span><span class="n">sites</span><span class="p">:</span> <span class="p">[</span><span class="n">Site</span><span class="p">],</span> <span class="n">header</span><span class="p">,</span> <span class="n">comment</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        return the string of mopac input</span>
 
-<span class="sd">        :param sites:</span>
+<span class="sd">        :param sites: </span>
+<span class="sd">        :param header: </span>
+<span class="sd">        :param comment: </span>
 <span class="sd">        :return:</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">s</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
         <span class="n">s</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="se">\n</span><span class="si">{}</span><span class="se">\n</span><span class="s1"> </span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">header</span><span class="p">,</span> <span class="n">comment</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">msite</span> <span class="ow">in</span> <span class="n">msites</span><span class="p">:</span>
-            <span class="n">s</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="se">\t</span><span class="si">{:f}</span><span class="s1"> +1 </span><span class="si">{:f}</span><span class="s1"> +1 </span><span class="si">{:f}</span><span class="s1"> +1</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">msite</span><span class="o">.</span><span class="n">element</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">msite</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">msite</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">msite</span><span class="o">.</span><span class="n">z</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">site</span> <span class="ow">in</span> <span class="n">sites</span><span class="p">:</span>
+            <span class="n">s</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="se">\t</span><span class="si">{:f}</span><span class="s1"> +1 </span><span class="si">{:f}</span><span class="s1"> +1 </span><span class="si">{:f}</span><span class="s1"> +1</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">site</span><span class="o">.</span><span class="n">species_string</span><span class="p">,</span> <span class="n">site</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">site</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">site</span><span class="o">.</span><span class="n">z</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">s</span></div>
 
 <div class="viewcode-block" id="MopacInput.write_mopinput"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.mopac.MopacInput.write_mopinput">[docs]</a>    <span class="k">def</span> <span class="nf">write_mopinput</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mopfn</span><span class="p">):</span>
-        <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sites2mopinput</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">msites</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mopheader</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">comment_line</span><span class="p">)</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sites2mopinput</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sites</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mopheader</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">comment_line</span><span class="p">)</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">mopfn</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">s</span><span class="p">)</span></div>
 
@@ -202,20 +208,20 @@
                 <span class="n">x</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
                 <span class="n">y</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
                 <span class="n">z</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">z</span><span class="p">)</span>
-                <span class="n">sites</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">MSite</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">]))</span>
+                <span class="n">sites</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Site</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">]))</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">sites</span><span class="p">,</span> <span class="n">mopheader</span><span class="o">=</span><span class="n">mopheader</span><span class="p">,</span> <span class="n">comment_line</span><span class="o">=</span><span class="n">comment_line</span><span class="p">)</span></div></div>
 
 
 <div class="viewcode-block" id="MopacOutput"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.mopac.MopacOutput">[docs]</a><span class="k">class</span> <span class="nc">MopacOutput</span><span class="p">:</span>
 
-<div class="viewcode-block" id="MopacOutput.__init__"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.mopac.MopacOutput.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fstring</span><span class="p">,</span> <span class="n">caltype</span><span class="p">):</span>
+<div class="viewcode-block" id="MopacOutput.__init__"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.mopac.MopacOutput.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fstring</span><span class="p">,</span> <span class="n">caltype</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">fstring</span> <span class="o">=</span> <span class="n">fstring</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">caltype</span> <span class="o">=</span> <span class="n">caltype</span></div>
 
 <div class="viewcode-block" id="MopacOutput.parse_thermo"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.mopac.MopacOutput.parse_thermo">[docs]</a>    <span class="k">def</span> <span class="nf">parse_thermo</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">ls</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fstring</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
         <span class="n">fin</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="n">msites</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">sites</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">hof</span> <span class="o">=</span> <span class="n">gnorm</span> <span class="o">=</span> <span class="n">entropy</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="n">ithermal</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="n">icoords</span> <span class="o">=</span> <span class="mi">0</span>
@@ -237,7 +243,7 @@
                 <span class="n">x</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
                 <span class="n">y</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
                 <span class="n">z</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">z</span><span class="p">)</span>
-                <span class="n">msites</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">MSite</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">]))</span>
+                <span class="n">sites</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Site</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">]))</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">break</span>
         <span class="k">if</span> <span class="n">ithermal</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
@@ -251,7 +257,7 @@
             <span class="n">d</span><span class="p">[</span><span class="s1">&#39;gnorm&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">gnorm</span>
             <span class="n">d</span><span class="p">[</span><span class="s1">&#39;heat_of_formation_298&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">hof</span>
             <span class="n">d</span><span class="p">[</span><span class="s1">&#39;entropy&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">entropy</span>
-            <span class="n">d</span><span class="p">[</span><span class="s1">&#39;msites&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">as_dict</span><span class="p">()</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">msites</span><span class="p">]</span>
+            <span class="n">d</span><span class="p">[</span><span class="s1">&#39;sites&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">as_dict</span><span class="p">()</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">sites</span><span class="p">]</span>
             <span class="n">d</span><span class="p">[</span><span class="s1">&#39;fstring&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fstring</span>
             <span class="k">return</span> <span class="n">d</span>
         <span class="k">return</span> <span class="kc">None</span></div>
@@ -259,7 +265,7 @@
 <div class="viewcode-block" id="MopacOutput.parse_rlx_or_sp"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.mopac.MopacOutput.parse_rlx_or_sp">[docs]</a>    <span class="k">def</span> <span class="nf">parse_rlx_or_sp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">ls</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fstring</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
         <span class="n">fin</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="n">msites</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">sites</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">igeo</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="n">tot</span> <span class="o">=</span> <span class="n">hof</span> <span class="o">=</span> <span class="n">gnorm</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ls</span><span class="p">)):</span>
@@ -282,7 +288,7 @@
                     <span class="n">x</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
                     <span class="n">y</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
                     <span class="n">z</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">z</span><span class="p">)</span>
-                    <span class="n">msites</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">MSite</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">]))</span>
+                    <span class="n">sites</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Site</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">]))</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="k">break</span>
         <span class="k">if</span> <span class="n">fin</span><span class="p">:</span>
@@ -291,7 +297,7 @@
             <span class="n">d</span><span class="p">[</span><span class="s1">&#39;gnorm&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">gnorm</span>
             <span class="n">d</span><span class="p">[</span><span class="s1">&#39;heat_of_formation&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">hof</span>
             <span class="n">d</span><span class="p">[</span><span class="s1">&#39;total_energy&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tot</span>
-            <span class="n">d</span><span class="p">[</span><span class="s1">&#39;msites&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">as_dict</span><span class="p">()</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">msites</span><span class="p">]</span>
+            <span class="n">d</span><span class="p">[</span><span class="s1">&#39;sites&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">as_dict</span><span class="p">()</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">sites</span><span class="p">]</span>
             <span class="n">d</span><span class="p">[</span><span class="s1">&#39;fstring&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fstring</span>
             <span class="k">return</span> <span class="n">d</span>
         <span class="k">return</span> <span class="kc">None</span></div>
@@ -299,7 +305,7 @@
 <div class="viewcode-block" id="MopacOutput.parse_charges"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.mopac.MopacOutput.parse_charges">[docs]</a>    <span class="k">def</span> <span class="nf">parse_charges</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">ls</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fstring</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
         <span class="n">fin</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="n">msites</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">sites</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">icharge</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="n">igeo</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="n">total_charge</span> <span class="o">=</span> <span class="mi">0</span>
@@ -322,10 +328,10 @@
                     <span class="n">x</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
                     <span class="n">y</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
                     <span class="n">z</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">z</span><span class="p">)</span>
-                    <span class="n">msites</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">MSite</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">]))</span>
+                    <span class="n">sites</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Site</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">]))</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="k">break</span>
-            <span class="n">charges</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">msites</span><span class="p">))</span>
+            <span class="n">charges</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sites</span><span class="p">))</span>
             <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">ls</span><span class="p">[</span><span class="n">icharge</span> <span class="o">+</span> <span class="mi">2</span><span class="p">:]:</span>
                 <span class="n">items</span> <span class="o">=</span> <span class="n">l</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
                 <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">items</span><span class="p">)</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
@@ -355,7 +361,7 @@
             <span class="n">x</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
             <span class="n">y</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
             <span class="n">z</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">z</span><span class="p">)</span>
-            <span class="n">sites</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">MSite</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">]))</span>
+            <span class="n">sites</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Site</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">]))</span>
     <span class="k">return</span> <span class="n">sites</span></div>
 </pre></div>
 

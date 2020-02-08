@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ocelot.task.idchg &mdash; ocelot 0.01 documentation</title>
+  <title>ocelot.task.idchg &mdash; ocelot 0.2 documentation</title>
   
 
   
@@ -58,7 +58,7 @@
             
             
               <div class="version">
-                0.01
+                0.2
               </div>
             
           
@@ -85,7 +85,10 @@
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#quick-start">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#schema">schema</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#disorder">Disorder</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#bone-config">Bone Config</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#backbone-and-sidechain">Backbone and Sidechain</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../ocelot.html">ocelot package</a></li>
 </ul>
 
@@ -151,7 +154,8 @@
             
   <h1>Source code for ocelot.task.idchg</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">subprocess</span>
-<span class="kn">from</span> <span class="nn">ocelot.routines.mopac</span> <span class="k">import</span> <span class="n">MopacInput</span><span class="p">,</span> <span class="n">MSite</span><span class="p">,</span> <span class="n">MopacOutput</span>
+
+<span class="kn">from</span> <span class="nn">ocelot.routines.mopac</span> <span class="kn">import</span> <span class="n">MopacInput</span><span class="p">,</span> <span class="n">MopacOutput</span>
 
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">identify charged site with mopac routines</span>
@@ -163,20 +167,21 @@
 
 <div class="viewcode-block" id="IdChg"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.idchg.IdChg">[docs]</a><span class="k">class</span> <span class="nc">IdChg</span><span class="p">:</span>
 
-<div class="viewcode-block" id="IdChg.__init__"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.idchg.IdChg.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pmgmol</span><span class="p">,</span> <span class="n">jobname</span><span class="p">,</span> <span class="n">mopaccmd</span><span class="p">):</span>
+<div class="viewcode-block" id="IdChg.__init__"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.idchg.IdChg.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pmgmol</span><span class="p">,</span> <span class="n">jobname</span><span class="p">,</span> <span class="n">mopaccmd</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">pmgmol</span> <span class="o">=</span> <span class="n">pmgmol</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">jobname</span> <span class="o">=</span> <span class="n">jobname</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">msites</span> <span class="o">=</span> <span class="p">[</span><span class="n">MSite</span><span class="o">.</span><span class="n">from_pymatgen_site</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">pmgmol</span><span class="o">.</span><span class="n">sites</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sites</span> <span class="o">=</span> <span class="n">pmgmol</span><span class="o">.</span><span class="n">sites</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">mopaccmd</span> <span class="o">=</span> <span class="n">mopaccmd</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">inputname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">jobname</span> <span class="o">+</span> <span class="s1">&#39;.mop&#39;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">outputname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">jobname</span> <span class="o">+</span> <span class="s1">&#39;.out&#39;</span></div>
 
 <div class="viewcode-block" id="IdChg.write_inp"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.idchg.IdChg.write_inp">[docs]</a>    <span class="k">def</span> <span class="nf">write_inp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wdir</span><span class="p">):</span>
-        <span class="nb">min</span> <span class="o">=</span> <span class="n">MopacInput</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">msites</span><span class="p">,</span> <span class="n">mopheader</span><span class="o">=</span><span class="s1">&#39;CHARGES&#39;</span><span class="p">,</span> <span class="n">comment_line</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="nb">min</span> <span class="o">=</span> <span class="n">MopacInput</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sites</span><span class="p">,</span> <span class="n">mopheader</span><span class="o">=</span><span class="s1">&#39;CHARGES&#39;</span><span class="p">,</span> <span class="n">comment_line</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
         <span class="nb">min</span><span class="o">.</span><span class="n">write_mopinput</span><span class="p">(</span><span class="n">wdir</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputname</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="IdChg.parse_out"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.idchg.IdChg.parse_out">[docs]</a>    <span class="k">def</span> <span class="nf">parse_out</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outfn</span><span class="p">):</span>
+<div class="viewcode-block" id="IdChg.parse_out"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.idchg.IdChg.parse_out">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">parse_out</span><span class="p">(</span><span class="n">outfn</span><span class="p">):</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">outfn</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="n">fstring</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
         <span class="n">mout</span> <span class="o">=</span> <span class="n">MopacOutput</span><span class="p">(</span><span class="n">fstring</span><span class="o">=</span><span class="n">fstring</span><span class="p">,</span> <span class="n">caltype</span><span class="o">=</span><span class="s1">&#39;CHARGES&#39;</span><span class="p">)</span>

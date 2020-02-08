@@ -1,18 +1,15 @@
-from setuptools import setup
-
+try:
+    from setuptools import setup
+except ImportError:
+    from distutils.core import setup
 
 import os
 setup(
     name='ocelot',
-    version='0.01',
+    version='0.2',
     description="",
-    author="qai222",
+    author="Ai, Qianxiang",
     author_email='qai222@uky.edu',
-    url='',
-    packages=['ocelot', 'ocelot.schema', 'ocelot.routines', 'ocelot.task', 'tests'],
-    install_requires=[],
+    packages=['ocelot', 'ocelot.schema', 'ocelot.routines', 'ocelot.task'],
     keywords='ocelot',
-    classifiers=[
-        'Programming Language :: Python :: 3.6',
-    ]
 )

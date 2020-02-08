@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ocelot.routines.fileop &mdash; ocelot 0.01 documentation</title>
+  <title>ocelot.routines.fileop &mdash; ocelot 0.2 documentation</title>
   
 
   
@@ -58,7 +58,7 @@
             
             
               <div class="version">
-                0.01
+                0.2
               </div>
             
           
@@ -85,7 +85,10 @@
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#quick-start">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#schema">schema</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#disorder">Disorder</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#bone-config">Bone Config</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#backbone-and-sidechain">Backbone and Sidechain</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../ocelot.html">ocelot package</a></li>
 </ul>
 
@@ -150,11 +153,11 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ocelot.routines.fileop</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">shutil</span>
+<span></span><span class="kn">import</span> <span class="nn">glob</span>
 <span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">glob</span>
-<span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">import</span> <span class="nn">pickle</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">shutil</span>
 
 
 <div class="viewcode-block" id="write_obj"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.fileop.write_obj">[docs]</a><span class="k">def</span> <span class="nf">write_obj</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">fname</span><span class="p">):</span>
@@ -208,6 +211,7 @@
     <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
         <span class="n">os</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="n">where</span><span class="p">,</span> <span class="mi">777</span><span class="p">)</span>
         <span class="n">shutil</span><span class="o">.</span><span class="n">move</span><span class="p">(</span><span class="n">what</span><span class="p">,</span> <span class="n">where</span><span class="p">)</span></div>
+
 
 <div class="viewcode-block" id="removefile"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.fileop.removefile">[docs]</a><span class="k">def</span> <span class="nf">removefile</span><span class="p">(</span><span class="n">what</span><span class="p">):</span>
     <span class="k">try</span><span class="p">:</span>
@@ -327,7 +331,9 @@
         <span class="n">normal</span> <span class="o">=</span> <span class="mi">1</span>
     <span class="k">return</span> <span class="n">normal</span></div>
 
+
 <span class="kn">import</span> <span class="nn">inspect</span>
+
 
 <div class="viewcode-block" id="retrieve_name"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.fileop.retrieve_name">[docs]</a><span class="k">def</span> <span class="nf">retrieve_name</span><span class="p">(</span><span class="n">var</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>

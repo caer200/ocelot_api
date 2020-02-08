@@ -1,10 +1,12 @@
-import warnings
 import os
-from ocelot.routines.fileop import movefile
-import subprocess
-from pymatgen.core.structure import Element, Molecule, Site
-import numpy as np
 import re
+import subprocess
+import warnings
+
+import numpy as np
+from pymatgen.core.structure import Element, Molecule, Site
+
+from ocelot.routines.fileop import movefile
 
 # http://www.esi.umontreal.ca/accelrys/life/insight2000.1/zindo/3_Implementation.html
 Zindo_elements = [
@@ -285,6 +287,8 @@ class ZindoJob:
     def get_hh_coupling(coupling_data, nmo_a, nmo_d):
         """
 
+        :param nmo_a:
+        :param nmo_d:
         :param coupling_data: the return value of self.dimer_run()
         :return: the HOMO-HOMO electronic coupling in meV
         """
@@ -296,6 +300,8 @@ class ZindoJob:
     def get_ll_coupling(coupling_data, nmo_a, nmo_d):
         """
 
+        :param nmo_a:
+        :param nmo_d:
         :param coupling_data: the return value of self.dimer_run()
         :return: the HOMO-HOMO electronic coupling in meV
         """

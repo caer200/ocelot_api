@@ -1,12 +1,11 @@
 """
 originally written by Sean M. Ryno, Cheng Zhong, Haitao Sun, see /legacy/aw_tuning.py
 for a certain mol, get tuned w
-
 default keywords for gaussian
 'scf=(xqc,fermi,noincfock,ndamp=35,conver=6,vshift=500,novaracc)'
-
 dev-ing
 """
+<<<<<<< HEAD
 from pymatgen.core.structure import Molecule
 import random
 import re
@@ -14,6 +13,16 @@ from subprocess import Popen
 from scipy import optimize
 from pymatgen.io.gaussian import GaussianInput, GaussianOutput
 import os
+=======
+import os
+import random
+import re
+from subprocess import Popen
+
+from pymatgen.core.structure import Molecule
+from pymatgen.io.gaussian import GaussianInput, GaussianOutput
+from scipy import optimize
+>>>>>>> v0.2
 
 SUGGESTED_route_parameters = {
     'scf': {
@@ -73,7 +82,8 @@ class WtuingJob:
         self.ocycle = 0
         self.mol = None
 
-    def gauss_run(self, fn):
+    @staticmethod
+    def gauss_run(fn):
         job = Popen(['g16', fn])
         job.wait()
         return fn.split('.')[0] + '.log'
@@ -133,13 +143,13 @@ class WtuingJob:
             self.mol = self.geo_opt()
             self.ocycle += 1
 
-    # Various helper functions
-    def omega_extract(self, fn):
-        '''
+    @staticmethod
+    def omega_extract(fn):
+        """
         Pull important data from Log Files after run
         :param fn: Filename of Log File to be read
         :return: Energies of Molecule, HOMO and LUMO in eV
-        '''
+        """
         with open(fn, 'r') as f:
             LogFile = f.readlines()
         normal = 0
@@ -188,9 +198,9 @@ class WtuingJob:
         return str(int(float(self.omega) * 10000)).zfill(5) + '00000'
 
     def omega_format(self):
-        '''
+        """
         Format IOp strings based off of omega value, then update route parameters dictionary and input filenames
-        '''
+        """
         self.omega = round(self.omega, self.conver)
         try:
             self.route_params.pop(self.iop_route_param)
@@ -204,9 +214,15 @@ class WtuingJob:
         self.a_input_fn = 'a_omega_{}_{}.com'.format(self.omega_iopstr, self.cycle)
 
     def omega_gauss_do(self):
+<<<<<<< HEAD
         '''
         Run Gaussian in subprocess and wait for termination. Extract data from output when done
         '''
+=======
+        """
+        Run Gaussian in subprocess and wait for termination. Extract data from output when done
+        """
+>>>>>>> v0.2
         self.n_in_fn = gauss_in_gen(mol=self.mol, charge=self.n_charge, spin=self.n_spin,
                                     type='tune_n' + str(self.cycle), basis=self.basis, route_params=self.route_params,
                                     link0_params=self.link0_params, name=self.name, func=self.func)
@@ -246,7 +262,11 @@ class WtuingJob:
         self.cycle += 1
 
     def omega_FindC(self):
+<<<<<<< HEAD
         '''
+=======
+        """
+>>>>>>> v0.2
         Calculate scheme value from extracted data
         Set the optimization criterion (the value to minimize),
         available options are:
@@ -256,7 +276,11 @@ class WtuingJob:
         Jn2---((HOMO-IP)^2+(LUMO+EA)^2)
         O2---((A_HOMO-LUMO)^2+(C_LUMO-HOMO)^2)
         :return: Jn, Jl, Jh value (depending on scheme)
+<<<<<<< HEAD
         '''
+=======
+        """
+>>>>>>> v0.2
         if self.scheme == 'Jh':
             IP = self.n_e - self.c_e
             Jh = abs(self.n_homo - IP)
@@ -279,19 +303,35 @@ class WtuingJob:
         return C
 
     def omega_wtune(self, omega_in):
+<<<<<<< HEAD
         '''
         :param omega_in: Value for 'fminbound' function to pass scalars into
         :return: Scheme value from FindC
         '''
+=======
+        """
+        :param omega_in: Value for 'fminbound' function to pass scalars into
+        :return: Scheme value from FindC
+        """
+>>>>>>> v0.2
         self.omega = omega_in
         self.omega_format()
         self.omega_gauss_do()
         return self.omega_FindC()
 
+<<<<<<< HEAD
     def extract_energy(self, fn):
         return GaussianOutput(fn).final_energy
 
     def extract_abs(self, fn):
+=======
+    @staticmethod
+    def extract_energy(fn):
+        return GaussianOutput(fn).final_energy
+
+    @staticmethod
+    def extract_abs(fn):
+>>>>>>> v0.2
         return GaussianOutput(fn).read_excitation_energies()
 
     # I/O

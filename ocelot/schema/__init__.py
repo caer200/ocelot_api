@@ -1,12 +1,28 @@
 """
-this contains the schema for dealing with conjugate organics, both molecules and beyond
+this contains the schema for dealing with conjugate organics, molecules and beyond
 
-hierarchy as:
-element -- > msite --> msitelist --> bond --> ring/sidechain/backbone --> omol --> dimer/config
+Graph:
+    atom index: nodename
 
-one should try not to init anything lower than omol individually as they rely heavily on the omol (site_id)
+Molecule:
+    RdMol
+    format: smiles, smarts, inchi
+    atom index: atomidx
 
-functions need to be added (to msitelist mostly): shape similarity, chemical graph --> conformation gen
+Conformation:
+    Dimer --> OrganicMolecule, Backbone, SideGroup, Ring --> BasicConformer
+    format: xyz
+    atom index: siteid
 
-better: granular sim?
+Configuration:
+    SuperCell --> UnitCell --> AsymmUnit --> Configuration
+    format: cif, poscar
+    atom index: siteid
+
+graph <--> molecule <--> conformation <--> configuration
+
+
+
+
+#TODO Granular Schema
 """

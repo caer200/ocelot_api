@@ -10,7 +10,7 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-import os
+# import os
 import sys
 sys.path.insert(0, '../')
 
@@ -18,14 +18,14 @@ sys.path.insert(0, '../')
 # -- Project information -----------------------------------------------------
 
 project = 'ocelot'
-copyright = '2019, Ai, Qianxiang'
+copyright = '2020, Ai, Qianxiang'
 author = 'Ai, Qianxiang'
 
 # The short X.Y version
-version = '0.01'
+version = '0.2'
 
 # The full version, including alpha/beta/rc tags
-release = '0.01'
+release = '0.2'
 
 
 # -- General configuration ---------------------------------------------------

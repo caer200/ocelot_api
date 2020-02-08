@@ -1,7 +1,7 @@
-# from collections import deque
-# from copy import deepcopy
-import numpy as np
-from scipy.linalg import lu
+"""
+as we are using networkx this can be deprecated...
+"""
+
 
 class Loopsearcher:
 
@@ -77,7 +77,7 @@ class Loopsearcher:
 
     def sssr_alex(self, size_min, size_max):
         loops = []
-        for size in range(size_min, size_max+1):
+        for size in range(size_min, size_max + 1):
             loops += self.alex_method(size)
         basis_loops = []
         basis_loops_set = []
@@ -88,8 +88,8 @@ class Loopsearcher:
                     loop1fused = True
                     break
             if not loop1fused and set(loop1) not in basis_loops_set:
-                    basis_loops.append(loop1)
-                    basis_loops_set.append(set(loop1))
+                basis_loops.append(loop1)
+                basis_loops_set.append(set(loop1))
 
         # # there should be an easier way for this...
         # # https://stackoverflow.com/questions/32071425/
@@ -103,7 +103,6 @@ class Loopsearcher:
         # pl, u = lu(edgematrix, permute_l=True)
         # basis_loops = [loops[i] for i in np.where(u.any(axis=1))[0]]
         return basis_loops
-
 
     @staticmethod
     def loop2edges(loop):

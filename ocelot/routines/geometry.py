@@ -1,10 +1,11 @@
 import math
 import sys
 import warnings
+
 import numpy as np
-from shapely.ops import cascaded_union, polygonize
-from scipy.spatial import Delaunay
 import shapely.geometry as geometry
+from scipy.spatial import Delaunay
+from shapely.ops import cascaded_union, polygonize
 
 
 def norm(v):
