@@ -5,13 +5,14 @@ default keywords for gaussian
 'scf=(xqc,fermi,noincfock,ndamp=35,conver=6,vshift=500,novaracc)'
 dev-ing
 """
-from pymatgen.core.structure import Molecule
+import os
 import random
 import re
 from subprocess import Popen
-from scipy import optimize
+
+from pymatgen.core.structure import Molecule
 from pymatgen.io.gaussian import GaussianInput, GaussianOutput
-import os
+from scipy import optimize
 
 SUGGESTED_route_parameters = {
     'scf': {

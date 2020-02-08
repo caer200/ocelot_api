@@ -1,10 +1,12 @@
-import warnings
 import os
-from ocelot.routines.fileop import movefile
-import subprocess
-from pymatgen.core.structure import Element, Molecule, Site
-import numpy as np
 import re
+import subprocess
+import warnings
+
+import numpy as np
+from pymatgen.core.structure import Element, Molecule, Site
+
+from ocelot.routines.fileop import movefile
 
 # http://www.esi.umontreal.ca/accelrys/life/insight2000.1/zindo/3_Implementation.html
 Zindo_elements = [

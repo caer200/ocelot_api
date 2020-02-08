@@ -1,10 +1,12 @@
 import copy
-import numpy as np
+
 import matplotlib.pyplot as plt
+import numpy as np
 from pymatgen.core.structure import Structure
+from scipy import interpolate
+
 from ocelot.routines import fileop, mathop
 from ocelot.routines.geometry import frac2cart
-from scipy import interpolate
 
 plt.switch_backend('agg')
 

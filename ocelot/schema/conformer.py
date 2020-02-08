@@ -523,7 +523,7 @@ class BasicConformer(SiteidOperation):
         for i in self.siteids:
             nbs = []
             for j in self.siteids:
-                if bmat[i][j] and j!=i:
+                if bmat[i][j] and j != i:
                     nbs.append(j)
             ma[i] = nbs
         return ma

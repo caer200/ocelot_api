@@ -69,8 +69,6 @@ def valence_electron(element):
     return valence_electrons
 
 
-
-
 def pmgmol_to_rdmol(pmg_mol):
     m = pmg_mol
     charge = m.charge

@@ -657,7 +657,6 @@ class DisParser:  # chaos parser sounds cooler?
         return sorted(confs, key=lambda x: x[1], reverse=True)
 
 
-
 def get_symmop(data):
     symops = []
     for symmetry_label in ["_symmetry_equiv_pos_as_xyz",

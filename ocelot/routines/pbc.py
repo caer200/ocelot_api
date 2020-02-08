@@ -1,8 +1,10 @@
 import math
 from copy import deepcopy
-from ocelot.schema.conformer import MolConformer, Element
-from pymatgen.util.coord import pbc_shortest_vectors
+
 from pymatgen.core.structure import Site, PeriodicSite, Molecule, Structure
+from pymatgen.util.coord import pbc_shortest_vectors
+
+from ocelot.schema.conformer import MolConformer, Element
 
 """
 PBCparser: get unwrapped structure and mols
@@ -62,13 +64,15 @@ class PBCparser:
                                                                      psites[block[pointer]]._frac_coords,
                                                                      psites[i]._frac_coords, )
 
-                    cutoff = Element(psites[block[pointer]].species_string).atomic_radius + Element(psites[i].species_string).atomic_radius
+                    cutoff = Element(psites[block[pointer]].species_string).atomic_radius + Element(
+                        psites[i].species_string).atomic_radius
                     cutoff *= 1.3
                     if distance < cutoff:
                         block.append(i)
                         psites[i] = PeriodicSite(psites[i].species_string, psites[i]._frac_coords + fctrans,
                                                  pstructure.lattice, properties=deepcopy(psites[i].properties))
-                        unwrap_block.append(Site(psites[i].species_string, psites[i].coords, properties=deepcopy(psites[i].properties)))
+                        unwrap_block.append(
+                            Site(psites[i].species_string, psites[i].coords, properties=deepcopy(psites[i].properties)))
                         # unwrap.append(psites[i])
                         unwrap_pblock.append(psites[i])
                 visited.append(block[pointer])
