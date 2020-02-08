@@ -2,7 +2,7 @@ from pymatgen.io.vasp.sets import DictSet, loadfn
 from pymatgen.io.vasp.inputs import Kpoints
 from pymatgen.core.structure import Structure, Molecule
 from ocelot.routines.pbc import CIFparser
-from ocelot.schema.config import Config
+from ocelot.schema.configuration import Config
 from ocelot.task.idchg import IdChg
 from ocelot.routines.fileop import createdir, movefile, copyfile, removefile
 import numpy as np

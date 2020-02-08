@@ -1,37 +1,40 @@
-from ocelot.schema.ocelotsite import MSite
 import numpy as np
+
+from ocelot.schema.conformer import Site
 
 
 class MopacInput:
 
-    def __init__(self, msites, mopheader='CHARGES', comment_line=''):
+    def __init__(self, sites, mopheader='CHARGES', comment_line=''):
         """
         does not support selective dynamics
 
-        :param msites:
+        :param sites:
         :param mopheader:
         :param comment_line:
         """
-        self.msites = msites
+        self.sites = sites
         self.mopheader = mopheader
         self.comment_line = comment_line
 
     @staticmethod
-    def sites2mopinput(msites, header, comment):
+    def sites2mopinput(sites: [Site], header, comment):
         """
         return the string of mopac input
 
-        :param sites:
+        :param sites: 
+        :param header: 
+        :param comment: 
         :return:
         """
         s = ""
         s += '{}\n{}\n \n'.format(header, comment)
-        for msite in msites:
-            s += '{}\t{:f} +1 {:f} +1 {:f} +1\n'.format(msite.element.name, msite.x, msite.y, msite.z)
+        for site in sites:
+            s += '{}\t{:f} +1 {:f} +1 {:f} +1\n'.format(site.species_string, site.x, site.y, site.z)
         return s
 
     def write_mopinput(self, mopfn):
-        s = self.sites2mopinput(self.msites, self.mopheader, self.comment_line)
+        s = self.sites2mopinput(self.sites, self.mopheader, self.comment_line)
         with open(mopfn, 'w') as f:
             f.write(s)
 
@@ -50,7 +53,7 @@ class MopacInput:
                 x = float(x)
                 y = float(y)
                 z = float(z)
-                sites.append(MSite(e, [x, y, z]))
+                sites.append(Site(e, [x, y, z]))
         return cls(sites, mopheader=mopheader, comment_line=comment_line)
 
 
@@ -63,7 +66,7 @@ class MopacOutput:
     def parse_thermo(self):
         ls = self.fstring.split('\n')
         fin = False
-        msites = []
+        sites = []
         hof = gnorm = entropy = None
         ithermal = 0
         icoords = 0
@@ -85,7 +88,7 @@ class MopacOutput:
                 x = float(x)
                 y = float(y)
                 z = float(z)
-                msites.append(MSite(e, [x, y, z]))
+                sites.append(Site(e, [x, y, z]))
             else:
                 break
         if ithermal != 0:
@@ -99,7 +102,7 @@ class MopacOutput:
             d['gnorm'] = gnorm
             d['heat_of_formation_298'] = hof
             d['entropy'] = entropy
-            d['msites'] = [s.as_dict() for s in msites]
+            d['sites'] = [s.as_dict() for s in sites]
             d['fstring'] = self.fstring
             return d
         return None
@@ -107,7 +110,7 @@ class MopacOutput:
     def parse_rlx_or_sp(self):
         ls = self.fstring.split('\n')
         fin = False
-        msites = []
+        sites = []
         igeo = 0
         tot = hof = gnorm = None
         for i in range(len(ls)):
@@ -130,7 +133,7 @@ class MopacOutput:
                     x = float(x)
                     y = float(y)
                     z = float(z)
-                    msites.append(MSite(e, [x, y, z]))
+                    sites.append(Site(e, [x, y, z]))
                 else:
                     break
         if fin:
@@ -139,7 +142,7 @@ class MopacOutput:
             d['gnorm'] = gnorm
             d['heat_of_formation'] = hof
             d['total_energy'] = tot
-            d['msites'] = [s.as_dict() for s in msites]
+            d['sites'] = [s.as_dict() for s in sites]
             d['fstring'] = self.fstring
             return d
         return None
@@ -147,7 +150,7 @@ class MopacOutput:
     def parse_charges(self):
         ls = self.fstring.split('\n')
         fin = False
-        msites = []
+        sites = []
         icharge = 0
         igeo = 0
         total_charge = 0
@@ -170,10 +173,10 @@ class MopacOutput:
                     x = float(x)
                     y = float(y)
                     z = float(z)
-                    msites.append(MSite(e, [x, y, z]))
+                    sites.append(Site(e, [x, y, z]))
                 else:
                     break
-            charges = np.zeros(len(msites))
+            charges = np.zeros(len(sites))
             for l in ls[icharge + 2:]:
                 items = l.strip().split()
                 if len(items) == 4:
@@ -203,5 +206,5 @@ def mop2siteobjs(mopfn):
             x = float(x)
             y = float(y)
             z = float(z)
-            sites.append(MSite(e, [x, y, z]))
+            sites.append(Site(e, [x, y, z]))
     return sites

@@ -1,0 +1,501 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ocelot.task.wtuning &mdash; ocelot 0.2 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> ocelot
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#schema">schema</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#disorder">Disorder</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#bone-config">Bone Config</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#backbone-and-sidechain">Backbone and Sidechain</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ocelot.html">ocelot package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">ocelot</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>ocelot.task.wtuning</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ocelot.task.wtuning</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">originally written by Sean M. Ryno, Cheng Zhong, Haitao Sun, see /legacy/aw_tuning.py</span>
+<span class="sd">for a certain mol, get tuned w</span>
+<span class="sd">default keywords for gaussian</span>
+<span class="sd">&#39;scf=(xqc,fermi,noincfock,ndamp=35,conver=6,vshift=500,novaracc)&#39;</span>
+<span class="sd">dev-ing</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">pymatgen.core.structure</span> <span class="k">import</span> <span class="n">Molecule</span>
+<span class="kn">import</span> <span class="nn">random</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">from</span> <span class="nn">subprocess</span> <span class="k">import</span> <span class="n">Popen</span>
+<span class="kn">from</span> <span class="nn">scipy</span> <span class="k">import</span> <span class="n">optimize</span>
+<span class="kn">from</span> <span class="nn">pymatgen.io.gaussian</span> <span class="k">import</span> <span class="n">GaussianInput</span><span class="p">,</span> <span class="n">GaussianOutput</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="n">SUGGESTED_route_parameters</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;scf&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;xqc&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;fermi&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;noincfock&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;novaracc&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;ndamp&#39;</span><span class="p">:</span> <span class="s1">&#39;35&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;conver&#39;</span><span class="p">:</span> <span class="s1">&#39;6&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;vshift&#39;</span><span class="p">:</span> <span class="s1">&#39;500&#39;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+
+<div class="viewcode-block" id="gauss_in_gen"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.wtuning.gauss_in_gen">[docs]</a><span class="k">def</span> <span class="nf">gauss_in_gen</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">mol</span><span class="p">,</span> <span class="nb">type</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">basis</span><span class="p">,</span> <span class="n">charge</span><span class="p">,</span> <span class="n">spin</span><span class="p">,</span> <span class="n">route_params</span><span class="p">,</span> <span class="n">link0_params</span><span class="p">):</span>
+    <span class="n">mol_in</span> <span class="o">=</span> <span class="n">GaussianInput</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="n">charge</span><span class="p">,</span> <span class="n">spin_multiplicity</span><span class="o">=</span><span class="n">spin</span><span class="p">,</span> <span class="n">functional</span><span class="o">=</span><span class="n">func</span><span class="p">,</span> <span class="n">basis_set</span><span class="o">=</span><span class="n">basis</span><span class="p">,</span>
+                           <span class="n">route_parameters</span><span class="o">=</span><span class="n">route_params</span><span class="p">,</span> <span class="n">link0_parameters</span><span class="o">=</span><span class="n">link0_params</span><span class="p">,</span> <span class="p">)</span>
+    <span class="n">fn</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">_</span><span class="si">{}</span><span class="s1">.gjf&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="nb">type</span><span class="p">)</span>
+    <span class="n">mol_in</span><span class="o">.</span><span class="n">write_file</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="n">fn</span><span class="p">,</span> <span class="n">cart_coords</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">fn</span></div>
+
+
+<div class="viewcode-block" id="WtuingJob"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.wtuning.WtuingJob">[docs]</a><span class="k">class</span> <span class="nc">WtuingJob</span><span class="p">:</span>
+
+<div class="viewcode-block" id="WtuingJob.__init__"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.wtuning.WtuingJob.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="o">=</span><span class="s1">&#39;uLC-wHPBE&#39;</span><span class="p">,</span> <span class="n">basis</span><span class="o">=</span><span class="s1">&#39;def2tzvp&#39;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">nproc</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">mem</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">conver</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+                 <span class="n">n_charge</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">n_spin</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">wdir</span><span class="o">=</span><span class="s1">&#39;./&#39;</span><span class="p">,</span> <span class="n">rps</span><span class="o">=</span><span class="n">SUGGESTED_route_parameters</span><span class="p">,</span> <span class="n">scheme</span><span class="o">=</span><span class="s1">&#39;Jh&#39;</span><span class="p">,</span> <span class="n">bmin</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">bmax</span><span class="o">=</span><span class="mf">0.5</span><span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">func</span> <span class="o">=</span> <span class="n">func</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">basis</span> <span class="o">=</span> <span class="n">basis</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nproc</span> <span class="o">=</span> <span class="n">nproc</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mem</span> <span class="o">=</span> <span class="n">mem</span>
+        <span class="c1"># self.route_params = route_params</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">link0_params</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;%nproc&#39;</span><span class="p">:</span> <span class="n">nproc</span><span class="p">,</span> <span class="s1">&#39;%mem&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">mem</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;GB&#39;</span><span class="p">}</span>
+
+        <span class="c1"># tunging params</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span> <span class="o">=</span> <span class="p">(</span><span class="n">bmin</span><span class="p">,</span> <span class="n">bmax</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conver</span> <span class="o">=</span> <span class="n">conver</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scheme</span> <span class="o">=</span> <span class="n">scheme</span>  <span class="c1"># Jl Jh Jn O2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">route_params</span> <span class="o">=</span> <span class="n">rps</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wdir</span> <span class="o">=</span> <span class="n">wdir</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_charge</span> <span class="o">=</span> <span class="n">n_charge</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_spin</span> <span class="o">=</span> <span class="n">n_spin</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">c_charge</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_charge</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">a_charge</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_charge</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_spin</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">c_spin</span> <span class="o">=</span> <span class="mi">2</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">a_spin</span> <span class="o">=</span> <span class="mi">2</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">c_spin</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_spin</span> <span class="o">-</span> <span class="mi">1</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">a_spin</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_spin</span> <span class="o">-</span> <span class="mi">1</span>
+
+        <span class="c1"># tuning var</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">omega</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">bounds</span><span class="p">)</span>
+        <span class="c1"># self.super_omega = self.omega</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cycle</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ocycle</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mol</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="WtuingJob.gauss_run"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.wtuning.WtuingJob.gauss_run">[docs]</a>    <span class="k">def</span> <span class="nf">gauss_run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="p">):</span>
+        <span class="n">job</span> <span class="o">=</span> <span class="n">Popen</span><span class="p">([</span><span class="s1">&#39;g16&#39;</span><span class="p">,</span> <span class="n">fn</span><span class="p">])</span>
+        <span class="n">job</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">fn</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;.log&#39;</span></div>
+
+<div class="viewcode-block" id="WtuingJob.omega_tune"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.wtuning.WtuingJob.omega_tune">[docs]</a>    <span class="k">def</span> <span class="nf">omega_tune</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dis</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1e-04</span><span class="p">,</span> <span class="n">deltaomega</span><span class="o">=</span><span class="mf">0.2</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ocycle</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">bounds</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">omega</span> <span class="o">-</span> <span class="n">deltaomega</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">omega</span> <span class="o">+</span> <span class="n">deltaomega</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">bounds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">cycle</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">whereami</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">wdir</span><span class="p">)</span>
+        <span class="n">new_dir</span> <span class="o">=</span> <span class="s1">&#39;tuning_&#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;_ocycle&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ocycle</span><span class="p">)</span>
+        <span class="n">new_dir</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">/</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">wdir</span><span class="p">,</span> <span class="n">new_dir</span><span class="p">)</span>
+        <span class="c1"># os.mkdir(new_dir)</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s1">&#39;mkdir -p </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">new_dir</span><span class="p">))</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">new_dir</span><span class="p">)</span>
+        <span class="n">omega_opt</span><span class="p">,</span> <span class="n">C_opt</span><span class="p">,</span> <span class="n">err</span><span class="p">,</span> <span class="n">num</span> <span class="o">=</span> <span class="n">optimize</span><span class="o">.</span><span class="n">fminbound</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">omega_wtune</span><span class="p">,</span> <span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                                                        <span class="n">bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">disp</span><span class="o">=</span><span class="n">dis</span><span class="p">,</span> <span class="n">xtol</span><span class="o">=</span><span class="n">tol</span><span class="p">,</span>
+                                                        <span class="n">full_output</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">whereami</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">omega_opt</span><span class="p">,</span> <span class="n">C_opt</span><span class="p">,</span> <span class="n">num</span></div>
+
+<div class="viewcode-block" id="WtuingJob.geo_opt"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.wtuning.WtuingJob.geo_opt">[docs]</a>    <span class="k">def</span> <span class="nf">geo_opt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rps</span><span class="o">=</span><span class="p">{}):</span>
+        <span class="n">iop_route_param</span> <span class="o">=</span> <span class="s1">&#39;iop(3/107=</span><span class="si">{}</span><span class="s1">, 3/108=</span><span class="si">{}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">omega_iopstr</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">omega_iopstr</span><span class="p">)</span>
+        <span class="n">rps</span><span class="p">[</span><span class="n">iop_route_param</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">rps</span><span class="p">[</span><span class="s1">&#39;opt&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">fnin</span> <span class="o">=</span> <span class="n">gauss_in_gen</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+            <span class="n">mol</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mol</span><span class="p">,</span>
+            <span class="n">route_params</span><span class="o">=</span><span class="n">rps</span><span class="p">,</span>
+            <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;opt_</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ocycle</span><span class="p">),</span>
+            <span class="n">func</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">func</span><span class="p">,</span>
+            <span class="n">basis</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">basis</span><span class="p">,</span>
+            <span class="n">charge</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n_charge</span><span class="p">,</span>
+            <span class="n">spin</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n_spin</span><span class="p">,</span>
+            <span class="n">link0_params</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">link0_params</span>
+        <span class="p">)</span>
+        <span class="n">fnout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gauss_run</span><span class="p">(</span><span class="n">fnin</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Molecule</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">fnout</span><span class="p">)</span>  <span class="c1"># Return mol</span></div>
+
+<div class="viewcode-block" id="WtuingJob.tuning_cycle"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.wtuning.WtuingJob.tuning_cycle">[docs]</a>    <span class="k">def</span> <span class="nf">tuning_cycle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>
+                     <span class="n">dis</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span> <span class="n">max_cycles</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">oldomega</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">omega</span>
+            <span class="n">omega</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">omega_tune</span><span class="p">(</span><span class="n">dis</span><span class="o">=</span><span class="n">dis</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="n">tol</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;new--&gt;old&#39;</span><span class="p">,</span> <span class="n">omega</span><span class="p">,</span> <span class="n">oldomega</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">omega</span> <span class="o">-</span> <span class="n">oldomega</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">eps</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">ocycle</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">omega</span> <span class="o">=</span> <span class="n">omega</span>
+                <span class="k">break</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">ocycle</span> <span class="o">&gt;=</span> <span class="n">max_cycles</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;tuning cycle went over max cycles&#39;</span><span class="p">)</span>
+                <span class="k">break</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">omega</span> <span class="o">=</span> <span class="n">omega</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">geo_opt</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ocycle</span> <span class="o">+=</span> <span class="mi">1</span></div>
+
+    <span class="c1"># Various helper functions</span>
+<div class="viewcode-block" id="WtuingJob.omega_extract"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.wtuning.WtuingJob.omega_extract">[docs]</a>    <span class="k">def</span> <span class="nf">omega_extract</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Pull important data from Log Files after run</span>
+<span class="sd">        :param fn: Filename of Log File to be read</span>
+<span class="sd">        :return: Energies of Molecule, HOMO and LUMO in eV</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">LogFile</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+        <span class="n">normal</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">LogFile</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s1">&#39;Normal termination&#39;</span><span class="p">,</span> <span class="n">line</span><span class="p">):</span>
+                <span class="n">normal</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s1">&#39;SCF Done&#39;</span><span class="p">,</span> <span class="n">line</span><span class="p">):</span>
+                <span class="n">Energy</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">4</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s1">&#39;Alpha  occ. eigenvalue&#39;</span><span class="p">,</span> <span class="n">line</span><span class="p">):</span>
+                <span class="n">AlphaHOMO</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">occFlag</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s1">&#39;Beta  occ. eigenvalues&#39;</span><span class="p">,</span> <span class="n">line</span><span class="p">):</span>
+                <span class="n">BetaHOMO</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">occFlag</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s1">&#39;Alpha virt. eigenvalues&#39;</span><span class="p">,</span> <span class="n">line</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">occFlag</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="n">AlphaLUMO</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">4</span><span class="p">]</span>
+                <span class="n">occFlag</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s1">&#39;Beta virt. eigenvalues&#39;</span><span class="p">,</span> <span class="n">line</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">occFlag</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="n">BetaLUMO</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">4</span><span class="p">]</span>
+                <span class="n">occFlag</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">if</span> <span class="n">normal</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">BetaHOMO</span>
+        <span class="k">except</span> <span class="ne">NameError</span><span class="p">:</span>
+            <span class="n">BetaHOMO</span> <span class="o">=</span> <span class="n">AlphaHOMO</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">BetaLUMO</span>
+        <span class="k">except</span> <span class="ne">NameError</span><span class="p">:</span>
+            <span class="n">BetaLUMO</span> <span class="o">=</span> <span class="n">AlphaLUMO</span>
+
+        <span class="k">if</span> <span class="nb">float</span><span class="p">(</span><span class="n">BetaHOMO</span><span class="p">)</span> <span class="o">&gt;</span> <span class="nb">float</span><span class="p">(</span><span class="n">AlphaHOMO</span><span class="p">):</span>
+            <span class="n">HOMO</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">BetaHOMO</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">HOMO</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">AlphaHOMO</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">float</span><span class="p">(</span><span class="n">BetaLUMO</span><span class="p">)</span> <span class="o">&lt;</span> <span class="nb">float</span><span class="p">(</span><span class="n">AlphaLUMO</span><span class="p">):</span>
+            <span class="n">LUMO</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">BetaLUMO</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">LUMO</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">AlphaLUMO</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">Energy</span><span class="p">)</span> <span class="o">*</span> <span class="mf">27.211396132</span><span class="p">,</span> <span class="n">HOMO</span> <span class="o">*</span> <span class="mf">27.211396132</span><span class="p">,</span> <span class="n">LUMO</span> <span class="o">*</span> <span class="mf">27.211396132</span><span class="p">]</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">omega_iopstr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">omega</span><span class="p">)</span> <span class="o">*</span> <span class="mi">10000</span><span class="p">))</span><span class="o">.</span><span class="n">zfill</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;00000&#39;</span>
+
+<div class="viewcode-block" id="WtuingJob.omega_format"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.wtuning.WtuingJob.omega_format">[docs]</a>    <span class="k">def</span> <span class="nf">omega_format</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Format IOp strings based off of omega value, then update route parameters dictionary and input filenames</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">omega</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">omega</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">conver</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">route_params</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">iop_route_param</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">iop_route_param</span> <span class="o">=</span> <span class="s1">&#39;iop(3/107=</span><span class="si">{}</span><span class="s1">, 3/108=</span><span class="si">{}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">omega_iopstr</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">omega_iopstr</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">route_params</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">iop_route_param</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_input_fn</span> <span class="o">=</span> <span class="s1">&#39;n_omega_</span><span class="si">{}</span><span class="s1">_</span><span class="si">{}</span><span class="s1">.com&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">omega_iopstr</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cycle</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">c_input_fn</span> <span class="o">=</span> <span class="s1">&#39;c_omega_</span><span class="si">{}</span><span class="s1">_</span><span class="si">{}</span><span class="s1">.com&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">omega_iopstr</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cycle</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">a_input_fn</span> <span class="o">=</span> <span class="s1">&#39;a_omega_</span><span class="si">{}</span><span class="s1">_</span><span class="si">{}</span><span class="s1">.com&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">omega_iopstr</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cycle</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="WtuingJob.omega_gauss_do"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.wtuning.WtuingJob.omega_gauss_do">[docs]</a>    <span class="k">def</span> <span class="nf">omega_gauss_do</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Run Gaussian in subprocess and wait for termination. Extract data from output when done</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_in_fn</span> <span class="o">=</span> <span class="n">gauss_in_gen</span><span class="p">(</span><span class="n">mol</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mol</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n_charge</span><span class="p">,</span> <span class="n">spin</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n_spin</span><span class="p">,</span>
+                                    <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;tune_n&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cycle</span><span class="p">),</span> <span class="n">basis</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">basis</span><span class="p">,</span> <span class="n">route_params</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">route_params</span><span class="p">,</span>
+                                    <span class="n">link0_params</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">link0_params</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">func</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">func</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_out_fn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gauss_run</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_in_fn</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_e</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_homo</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_lumo</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">omega_extract</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_out_fn</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">scheme</span> <span class="o">==</span> <span class="s1">&#39;Jh&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">c_in_fn</span> <span class="o">=</span> <span class="n">gauss_in_gen</span><span class="p">(</span><span class="n">mol</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mol</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">c_charge</span><span class="p">,</span> <span class="n">spin</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">c_spin</span><span class="p">,</span>
+                                        <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;tune_c&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cycle</span><span class="p">),</span> <span class="n">basis</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">basis</span><span class="p">,</span>
+                                        <span class="n">route_params</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">route_params</span><span class="p">,</span> <span class="n">link0_params</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">link0_params</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                                        <span class="n">func</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">func</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">c_out_fn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gauss_run</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">c_in_fn</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">c_e</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">c_homo</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">c_lumo</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">omega_extract</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">c_out_fn</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">scheme</span> <span class="o">==</span> <span class="s1">&#39;Jl&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">a_in_fn</span> <span class="o">=</span> <span class="n">gauss_in_gen</span><span class="p">(</span><span class="n">mol</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mol</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">a_charge</span><span class="p">,</span> <span class="n">spin</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">a_spin</span><span class="p">,</span>
+                                        <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;tune_a&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cycle</span><span class="p">),</span> <span class="n">basis</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">basis</span><span class="p">,</span>
+                                        <span class="n">route_params</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">route_params</span><span class="p">,</span> <span class="n">link0_params</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">link0_params</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                                        <span class="n">func</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">func</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">a_out_fn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gauss_run</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">a_in_fn</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">a_e</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">a_homo</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">a_lumo</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">omega_extract</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">a_out_fn</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">c_in_fn</span> <span class="o">=</span> <span class="n">gauss_in_gen</span><span class="p">(</span><span class="n">mol</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mol</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">c_charge</span><span class="p">,</span> <span class="n">spin</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">c_spin</span><span class="p">,</span>
+                                        <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;tune_c&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cycle</span><span class="p">),</span> <span class="n">basis</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">basis</span><span class="p">,</span>
+                                        <span class="n">route_params</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">route_params</span><span class="p">,</span> <span class="n">link0_params</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">link0_params</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                                        <span class="n">func</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">func</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">a_in_fn</span> <span class="o">=</span> <span class="n">gauss_in_gen</span><span class="p">(</span><span class="n">mol</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mol</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">a_charge</span><span class="p">,</span> <span class="n">spin</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">a_spin</span><span class="p">,</span>
+                                        <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;tune_a&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cycle</span><span class="p">),</span> <span class="n">basis</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">basis</span><span class="p">,</span>
+                                        <span class="n">route_params</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">route_params</span><span class="p">,</span> <span class="n">link0_params</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">link0_params</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                                        <span class="n">func</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">func</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">c_out_fn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gauss_run</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">c_in_fn</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">a_out_fn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gauss_run</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">a_in_fn</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">c_e</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">c_homo</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">c_lumo</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">omega_extract</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">c_out_fn</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">a_e</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">a_homo</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">a_lumo</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">omega_extract</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">a_out_fn</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">cycle</span> <span class="o">+=</span> <span class="mi">1</span></div>
+
+<div class="viewcode-block" id="WtuingJob.omega_FindC"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.wtuning.WtuingJob.omega_FindC">[docs]</a>    <span class="k">def</span> <span class="nf">omega_FindC</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Calculate scheme value from extracted data</span>
+<span class="sd">        Set the optimization criterion (the value to minimize),</span>
+<span class="sd">        available options are:</span>
+<span class="sd">        J2---((HOMO-IP)^2+(A_HOMO+EA)^2)</span>
+<span class="sd">        Jh---(HOMO-IP)</span>
+<span class="sd">        Jl---(LUMO+EA)</span>
+<span class="sd">        Jn2---((HOMO-IP)^2+(LUMO+EA)^2)</span>
+<span class="sd">        O2---((A_HOMO-LUMO)^2+(C_LUMO-HOMO)^2)</span>
+<span class="sd">        :return: Jn, Jl, Jh value (depending on scheme)</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">scheme</span> <span class="o">==</span> <span class="s1">&#39;Jh&#39;</span><span class="p">:</span>
+            <span class="n">IP</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_e</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">c_e</span>
+            <span class="n">Jh</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_homo</span> <span class="o">-</span> <span class="n">IP</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">scheme</span> <span class="o">==</span> <span class="s1">&#39;Jl&#39;</span><span class="p">:</span>
+            <span class="n">EA</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_e</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">a_e</span>
+            <span class="n">Jl</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_lumo</span> <span class="o">+</span> <span class="n">EA</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">scheme</span> <span class="o">==</span> <span class="s1">&#39;J2&#39;</span><span class="p">:</span>
+            <span class="n">IP</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_e</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">c_e</span>
+            <span class="n">EA</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_e</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">a_e</span>
+            <span class="n">J2</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_homo</span> <span class="o">-</span> <span class="n">IP</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">a_homo</span> <span class="o">+</span> <span class="n">EA</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">scheme</span> <span class="o">==</span> <span class="s1">&#39;Jn2&#39;</span><span class="p">:</span>
+            <span class="n">IP</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_e</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">c_e</span>
+            <span class="n">Jh</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_homo</span> <span class="o">-</span> <span class="n">IP</span><span class="p">)</span>
+            <span class="n">EA</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_e</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">a_e</span>
+            <span class="n">Jl</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_lumo</span> <span class="o">+</span> <span class="n">EA</span><span class="p">)</span>
+            <span class="n">Jn2</span> <span class="o">=</span> <span class="n">Jh</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">Jl</span> <span class="o">**</span> <span class="mi">2</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">scheme</span> <span class="o">==</span> <span class="s1">&#39;O2&#39;</span><span class="p">:</span>
+            <span class="n">O2</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_homo</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">c_lumo</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_lumo</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">a_homo</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
+        <span class="n">C</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scheme</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">C</span></div>
+
+<div class="viewcode-block" id="WtuingJob.omega_wtune"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.wtuning.WtuingJob.omega_wtune">[docs]</a>    <span class="k">def</span> <span class="nf">omega_wtune</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">omega_in</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        :param omega_in: Value for &#39;fminbound&#39; function to pass scalars into</span>
+<span class="sd">        :return: Scheme value from FindC</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">omega</span> <span class="o">=</span> <span class="n">omega_in</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">omega_format</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">omega_gauss_do</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">omega_FindC</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="WtuingJob.extract_energy"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.wtuning.WtuingJob.extract_energy">[docs]</a>    <span class="k">def</span> <span class="nf">extract_energy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">GaussianOutput</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span><span class="o">.</span><span class="n">final_energy</span></div>
+
+<div class="viewcode-block" id="WtuingJob.extract_abs"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.wtuning.WtuingJob.extract_abs">[docs]</a>    <span class="k">def</span> <span class="nf">extract_abs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">GaussianOutput</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span><span class="o">.</span><span class="n">read_excitation_energies</span><span class="p">()</span></div>
+
+    <span class="c1"># I/O</span>
+<div class="viewcode-block" id="WtuingJob.to_dict"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.wtuning.WtuingJob.to_dict">[docs]</a>    <span class="k">def</span> <span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="WtuingJob.to_file"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.wtuning.WtuingJob.to_file">[docs]</a>    <span class="k">def</span> <span class="nf">to_file</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;.out&#39;</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fn</span><span class="p">:</span>
+            <span class="n">fn</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">fn</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">func</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">basis</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">fn</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;omega: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">omega</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Ai, Qianxiang
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -25,6 +25,33 @@ from ocelot.routines.geometry import rotation_matrix
 from ocelot.routines.geometry import unify
 from ocelot.schema.graph import BasicGraph, MolGraph
 
+_coordination_rule = {
+    'H': 1,
+    'Li': 1,
+    'Na': 1,
+    'K': 1,
+    'Be': 2,
+    'Mg': 2,
+    'Ca': 2,
+    'B': 3,
+    'Al': 3,
+    'Ga': 3,
+    'C': 4,
+    'Si': 4,
+    'Ge': 4,
+    'Sn': 4,
+    'N': 3,
+    'P': 3,
+    'As': 3,
+    'O': 2,
+    'S': 2,
+    'Se': 2,
+    'F': 1,
+    'Cl': 1,
+    'Br': 1,
+    'I': 1,
+}
+
 
 class ConformerOperationError(Exception):
     pass
@@ -490,6 +517,17 @@ class BasicConformer(SiteidOperation):
             newsites.append(ns)
         return self.from_sites(newsites)
 
+    def get_nbrmap_based_on_siteid(self, co=1.3):
+        bmat = self.get_bondmat_based_on_siteid(co)
+        ma = {}
+        for i in self.siteids:
+            nbs = []
+            for j in self.siteids:
+                if bmat[i][j] and j!=i:
+                    nbs.append(j)
+            ma[i] = nbs
+        return ma
+
     def get_bondmat_based_on_siteid(self, co=1.3):
         self.checkstatus('all assigned', 'unique ids')
         distmat = self.distmat
@@ -799,32 +837,6 @@ def conformer_addh(c: BasicConformer, joints=None, original: BasicConformer = No
     :param original:
     :return: d[siteid_of_the_joint] = a list of hydrogen sites
     """
-    _coordination_rule = {
-        'H': 1,
-        'Li': 1,
-        'Na': 1,
-        'K': 1,
-        'Be': 2,
-        'Mg': 2,
-        'Ca': 2,
-        'B': 3,
-        'Al': 3,
-        'Ga': 3,
-        'C': 4,
-        'Si': 4,
-        'Ge': 4,
-        'Sn': 4,
-        'N': 3,
-        'P': 3,
-        'As': 3,
-        'O': 2,
-        'S': 2,
-        'Se': 2,
-        'F': 1,
-        'Cl': 1,
-        'Br': 1,
-        'I': 1,
-    }
     if joints is None:
         warnings.warn('adding h based on undercoordination')
         nbrmap = c.nbrmap
@@ -1254,7 +1266,7 @@ class MolConformer(BasicConformer):
     def calculate_conformer_properties(self):
         pass
 
-    def partition(self, coplane_cutoff=40.0):
+    def partition(self, coplane_cutoff=40.0, scheme=None):
         molgraph = self.to_graph('siteid', 'molgraph')
         lgfr = get_rings_from_conformer(self, 'lgfr')
         avgn1, avgn2 = RingConformer.get_avg_norms(lgfr)
@@ -1264,7 +1276,12 @@ class MolConformer(BasicConformer):
             coplane = ringconformer.iscoplane_with_norm(avgn1, tol, 'degree')
             return coplane
 
-        bg, scgs = molgraph.partition_to_bone_frags('lgcr', additional_criteria=coplane_check)
+        if scheme is None and isinstance(coplane_cutoff, float):
+
+            bg, scgs = molgraph.partition_to_bone_frags('lgcr', additional_criteria=coplane_check)
+        else:
+            bg, scgs = molgraph.partition_to_bone_frags(scheme)
+
         bone_conformer = BoneConformer.from_siteids(
             bg.graph.nodes, self.sites, copy=False, joints=bg.graph.graph['joints'], rings=None
         )
@@ -1283,7 +1300,6 @@ class MolConformer(BasicConformer):
                                                   conformer_properties={'sc_position_angle': sc_position_angle,
                                                                         'bc_joint_siteid': bc_joint_site_id})
             sccs.append(scc)
-
         return bone_conformer, sccs, bg, scgs  # sccs <--> scgs bijection
 
     def to_addhmol(self):
@@ -1573,7 +1589,7 @@ class DimerCollection:
         """
         self.dimers = dimers
 
-    def get_xyz_string(self):
+    def get_xyz_string(self, lalabel=False):
         """
         :return: xyz string to be written
         """
@@ -1581,18 +1597,17 @@ class DimerCollection:
 
         for d in self.dimers:
             sites += d.sites
-        sites += [Site('La', ss.coords) for ss in self.dimers[0].conformer_ref.sites]
+        if lalabel:
+            sites += [Site('La', ss.coords, properties=ss.properties) for ss in self.dimers[0].conformer_ref.sites]
 
         mol = Molecule.from_sites(sites)
         xyz = XYZ(mol)
         return str(xyz)
 
-    def to_xyz(self, fn):
+    def to_xyz(self, fn, lalabel=False):
         """
+        :param lalabel:
         :param fn: xyz file name, with extension
         """
-        sites = []
-        for d in self.dimers:
-            sites += d.sites
-        sites += [Site('La', ss.coords) for ss in self.dimers[0].conformer_ref.sites]
-        Molecule.from_sites(sites).to('xyz', fn)
+        with open(fn, 'w') as f:
+            f.write(self.get_xyz_string(lalabel))

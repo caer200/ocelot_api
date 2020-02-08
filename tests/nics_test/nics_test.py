@@ -1,4 +1,4 @@
-from ocelot.schema.omol import OMol
+from ocelot.schema.conformer import MolConformer
 from pymatgen.core.structure import Molecule
 from ocelot.task.nics import NICSjob
 """
@@ -16,11 +16,11 @@ def rf(fn):
         return s
 
 
-omol = OMol.from_pymatgen_mol(Molecule.from_file('CNBr_s0_optgeo.gjf'))
+omol = MolConformer.from_file('CNBr_s0_optgeo.gjf')
 
 nicsjob = NICSjob(omol, nmrscheme='GIAO')
 
-nrings = int(len(omol.largest_fused_ring))
+nrings = len(omol.backbone.rings)
 
 functional = 'LC-wpbe'
 basis_set='6-311++G(d,p)'
@@ -64,5 +64,5 @@ total_tensor_zzs = nicsjob.get_zzmstensor(total_logs)
 print(sigma_tensor_zzs)
 print(total_tensor_zzs)
 
-
-
+#
+#

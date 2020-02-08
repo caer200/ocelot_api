@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ocelot.task.pkid &mdash; ocelot 0.01 documentation</title>
+  <title>ocelot.task.pkid &mdash; ocelot 0.2 documentation</title>
   
 
   
@@ -58,7 +58,7 @@
             
             
               <div class="version">
-                0.01
+                0.2
               </div>
             
           
@@ -85,7 +85,10 @@
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#quick-start">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#schema">schema</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#disorder">Disorder</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#bone-config">Bone Config</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#backbone-and-sidechain">Backbone and Sidechain</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../ocelot.html">ocelot package</a></li>
 </ul>
 
@@ -161,7 +164,9 @@
 
 <span class="sd">        the input should be a pbc config of terminated backbones</span>
 
-<span class="sd">        1. heuristic rules 10.1039/c7tc02553j, that worked only for small acenes, we want more</span>
+<span class="sd">        1. heuristic rules</span>
+<span class="sd">            10.1039/c7tc02553j, that worked only for small acenes, we want more</span>
+<span class="sd">            J. AM. CHEM. SOC. 2004, 126, 4318-4328, this seems quite primitive</span>
 
 <span class="sd">        2. finger print Hirshfield 10.1039/c1ce05763d</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -171,11 +176,39 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        return a dictionary, keys are</span>
 
+<span class="sd">        n_close_azm_and_parallel,</span>
+<span class="sd">        n_close_azm_and_notparallel,</span>
+<span class="sd">        n_close_vertical_and_parallel,</span>
+<span class="sd">        n_close_vertical_and_notparallel,</span>
+<span class="sd">        n_parallel_and_overlap,</span>
+<span class="sd">        n_notparallel_and_overlap, packing</span>
 
-<span class="sd">        n_close_azm_and_parallel, n_close_azm_and_notparallel, n_close_vertical_and_parallel, n_close_vertical_and_notparallel, n_parallel_and_overlap, n_notparallel_and_overlap, packing</span>
+<span class="sd">        these keys are defined based on:</span>
+<span class="sd">        close_vertical: d.oslip within [1.5, 4]</span>
+<span class="sd">        parallel: d.oangle &lt; 15 deg</span>
+<span class="sd">        close_azm: d.oslip &lt;= 1.5</span>
+<span class="sd">        overlap: overlap &gt; 1e-5</span>
+
+<span class="sd">        variables used:</span>
+<span class="sd">        1. is_not_identical: slip vector norm &gt;= 1e-5</span>
+<span class="sd">        2. is_close: minbonedist &lt; 5.5</span>
+<span class="sd">        3. overlap: project sites onto the plane defined by ovector of ref_mol and ref_mol.geoc,</span>
+<span class="sd">            then get overlap of concave/convex hulls</span>
+<span class="sd">        4. mindist2d: min distance between two hulls</span>
+<span class="sd">        5. d.oslip: vertical slip</span>
+<span class="sd">        6. d.oangle: angle between o_vector</span>
+
+
+<span class="sd">        workflow:</span>
+<span class="sd">        1. from bone config get all bone dimers, maxfold=2</span>
+<span class="sd">        2. for each molecule (a) in the unit cell</span>
+<span class="sd">            1. get first 27*z dimers, sorted by vslipnorm, whose ref_mol is (a)</span>
+<span class="sd">            2. if identical or not_close, do nothing</span>
+<span class="sd">            3. get values for the keys</span>
+<span class="sd">            4. apply classification based on the keys</span>
 <span class="sd">        :return:</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">bc_dimers</span><span class="p">,</span> <span class="n">bc_dimers_transv_fcs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">boneconfig</span><span class="o">.</span><span class="n">dimers_array</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">boneconfig</span><span class="o">.</span><span class="n">transv_fcs</span>
+        <span class="n">bc_dimers</span><span class="p">,</span> <span class="n">bc_dimers_transv_fcs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">boneconfig</span><span class="o">.</span><span class="n">get_dimers_array</span><span class="p">(</span><span class="n">maxfold</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
         <span class="n">report</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">boneconfig</span><span class="o">.</span><span class="n">z</span><span class="p">):</span>
             <span class="n">n_close_azm_and_parallel</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># min distance between backbone proj&lt;2, 1.5&gt;oslip</span>
@@ -193,7 +226,7 @@
             <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">dimers_ref_i</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">is_not_identical</span> <span class="ow">and</span> <span class="n">d</span><span class="o">.</span><span class="n">is_close</span><span class="p">:</span>
                     <span class="c1"># if d.is_not_identical and d.is_close:</span>
-                    <span class="n">overlap</span><span class="p">,</span> <span class="n">refboneproj</span><span class="p">,</span> <span class="n">varboneproj</span><span class="p">,</span> <span class="n">mindist2d</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">bone_overlap</span><span class="p">()</span>
+                    <span class="n">overlap</span><span class="p">,</span> <span class="n">refboneproj</span><span class="p">,</span> <span class="n">varboneproj</span><span class="p">,</span> <span class="n">mindist2d</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">bone_overlap</span><span class="p">(</span><span class="n">algo</span><span class="o">=</span><span class="s1">&#39;convex&#39;</span><span class="p">)</span>
                     <span class="c1"># print(d.minbonedist)</span>
                     <span class="c1"># print(mindist2d)</span>
                     <span class="c1"># debug += 1</span>
@@ -201,17 +234,17 @@
                     <span class="c1"># overlap, refboneproj, varboneproj = d.mol_overlap()</span>
                     <span class="k">if</span> <span class="mf">1e-5</span> <span class="o">&lt;</span> <span class="n">mindist2d</span> <span class="o">&lt;</span> <span class="mf">2.5</span><span class="p">:</span>  <span class="c1"># exclude overlap as dist=0.0 that case</span>
                         <span class="k">if</span> <span class="mi">4</span> <span class="o">&gt;</span> <span class="n">d</span><span class="o">.</span><span class="n">oslip</span> <span class="o">&gt;</span> <span class="mf">1.5</span><span class="p">:</span>
-                            <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">oangle</span> <span class="o">&lt;</span> <span class="mf">10.0</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">oangle</span> <span class="o">&lt;</span> <span class="mf">15.0</span><span class="p">:</span>
                                 <span class="n">n_close_vertical_and_parallel</span> <span class="o">+=</span> <span class="mi">1</span>
                             <span class="k">else</span><span class="p">:</span>
                                 <span class="n">n_close_vertical_and_notparallel</span> <span class="o">+=</span> <span class="mi">1</span>
                         <span class="k">elif</span> <span class="n">d</span><span class="o">.</span><span class="n">oslip</span> <span class="o">&lt;=</span> <span class="mf">1.5</span><span class="p">:</span>
-                            <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">oangle</span> <span class="o">&lt;</span> <span class="mf">10.0</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">oangle</span> <span class="o">&lt;</span> <span class="mf">15.0</span><span class="p">:</span>
                                 <span class="n">n_close_azm_and_parallel</span> <span class="o">+=</span> <span class="mi">1</span>
                             <span class="k">else</span><span class="p">:</span>
                                 <span class="n">n_close_azm_and_notparallel</span> <span class="o">+=</span> <span class="mi">1</span>
                     <span class="k">if</span> <span class="n">overlap</span> <span class="o">&gt;</span> <span class="mf">1e-5</span><span class="p">:</span>
-                        <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">oangle</span> <span class="o">&lt;</span> <span class="mf">10.0</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">oangle</span> <span class="o">&lt;</span> <span class="mf">15.0</span><span class="p">:</span>
                             <span class="n">n_parallel_and_overlap</span> <span class="o">+=</span> <span class="mi">1</span>
                         <span class="k">else</span><span class="p">:</span>
                             <span class="n">n_notparallel_and_overlap</span> <span class="o">+=</span> <span class="mi">1</span>

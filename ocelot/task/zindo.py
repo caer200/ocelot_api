@@ -285,6 +285,8 @@ class ZindoJob:
     def get_hh_coupling(coupling_data, nmo_a, nmo_d):
         """
 
+        :param nmo_a:
+        :param nmo_d:
         :param coupling_data: the return value of self.dimer_run()
         :return: the HOMO-HOMO electronic coupling in meV
         """
@@ -296,6 +298,8 @@ class ZindoJob:
     def get_ll_coupling(coupling_data, nmo_a, nmo_d):
         """
 
+        :param nmo_a:
+        :param nmo_d:
         :param coupling_data: the return value of self.dimer_run()
         :return: the HOMO-HOMO electronic coupling in meV
         """

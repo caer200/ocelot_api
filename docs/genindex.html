@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Index &mdash; ocelot 0.01 documentation</title>
+  <title>Index &mdash; ocelot 0.2 documentation</title>
   
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                0.01
+                0.2
               </div>
             
           
@@ -86,7 +86,10 @@
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="quick_start.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="quick_start.html#quick-start">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html#schema">schema</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html#disorder">Disorder</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html#bone-config">Bone Config</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html#backbone-and-sidechain">Backbone and Sidechain</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ocelot.html">ocelot package</a></li>
 </ul>
 
@@ -162,6 +165,7 @@
  | <a href="#E"><strong>E</strong></a>
  | <a href="#F"><strong>F</strong></a>
  | <a href="#G"><strong>G</strong></a>
+ | <a href="#H"><strong>H</strong></a>
  | <a href="#I"><strong>I</strong></a>
  | <a href="#L"><strong>L</strong></a>
  | <a href="#M"><strong>M</strong></a>
@@ -174,48 +178,70 @@
  | <a href="#U"><strong>U</strong></a>
  | <a href="#V"><strong>V</strong></a>
  | <a href="#W"><strong>W</strong></a>
- | <a href="#X"><strong>X</strong></a>
- | <a href="#Y"><strong>Y</strong></a>
  | <a href="#Z"><strong>Z</strong></a>
  
 </div>
 <h2 id="_">_</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="ocelot.routines.html#ocelot.routines.loop.Loopsearcher.__init__">__init__() (ocelot.routines.loop.Loopsearcher method)</a>
+      <li><a href="ocelot.routines.html#ocelot.routines.conformerparser.ACParser.__init__">__init__() (ocelot.routines.conformerparser.ACParser method)</a>
 
       <ul>
+        <li><a href="ocelot.routines.html#ocelot.routines.disparser.AtomLabel.__init__">(ocelot.routines.disparser.AtomLabel method)</a>
+</li>
+        <li><a href="ocelot.routines.html#ocelot.routines.disparser.ConfigConstructor.__init__">(ocelot.routines.disparser.ConfigConstructor method)</a>
+</li>
+        <li><a href="ocelot.routines.html#ocelot.routines.disparser.DisParser.__init__">(ocelot.routines.disparser.DisParser method)</a>
+</li>
+        <li><a href="ocelot.routines.html#ocelot.routines.disparser.DisUnit.__init__">(ocelot.routines.disparser.DisUnit method)</a>
+</li>
+        <li><a href="ocelot.routines.html#ocelot.routines.loop.Loopsearcher.__init__">(ocelot.routines.loop.Loopsearcher method)</a>
+</li>
         <li><a href="ocelot.routines.html#ocelot.routines.mopac.MopacInput.__init__">(ocelot.routines.mopac.MopacInput method)</a>
 </li>
         <li><a href="ocelot.routines.html#ocelot.routines.mopac.MopacOutput.__init__">(ocelot.routines.mopac.MopacOutput method)</a>
 </li>
         <li><a href="ocelot.routines.html#ocelot.routines.pbc.CIFparser.__init__">(ocelot.routines.pbc.CIFparser method)</a>
 </li>
-        <li><a href="ocelot.schema.html#ocelot.schema.backbone.Backbone.__init__">(ocelot.schema.backbone.Backbone method)</a>
+        <li><a href="ocelot.schema.html#ocelot.schema.configuration.Config.__init__">(ocelot.schema.configuration.Config method)</a>
 </li>
-        <li><a href="ocelot.schema.html#ocelot.schema.bond.Bond.__init__">(ocelot.schema.bond.Bond method)</a>
+        <li><a href="ocelot.schema.html#ocelot.schema.conformer.BasicConformer.__init__">(ocelot.schema.conformer.BasicConformer method)</a>
 </li>
-        <li><a href="ocelot.schema.html#ocelot.schema.config.Config.__init__">(ocelot.schema.config.Config method)</a>
+        <li><a href="ocelot.schema.html#ocelot.schema.conformer.BondConformer.__init__">(ocelot.schema.conformer.BondConformer method)</a>
 </li>
-        <li><a href="ocelot.schema.html#ocelot.schema.dimer.Dimer.__init__">(ocelot.schema.dimer.Dimer method)</a>
+        <li><a href="ocelot.schema.html#ocelot.schema.conformer.BoneConformer.__init__">(ocelot.schema.conformer.BoneConformer method)</a>
 </li>
-        <li><a href="ocelot.schema.html#ocelot.schema.dimercollection.DimerCollection.__init__">(ocelot.schema.dimercollection.DimerCollection method)</a>
+        <li><a href="ocelot.schema.html#ocelot.schema.conformer.ConformerDimer.__init__">(ocelot.schema.conformer.ConformerDimer method)</a>
 </li>
-        <li><a href="ocelot.schema.html#ocelot.schema.element.Element.__init__">(ocelot.schema.element.Element method)</a>
+        <li><a href="ocelot.schema.html#ocelot.schema.conformer.DimerCollection.__init__">(ocelot.schema.conformer.DimerCollection method)</a>
 </li>
-        <li><a href="ocelot.schema.html#ocelot.schema.msite.MSite.__init__">(ocelot.schema.msite.MSite method)</a>
+        <li><a href="ocelot.schema.html#ocelot.schema.conformer.FragConformer.__init__">(ocelot.schema.conformer.FragConformer method)</a>
 </li>
-        <li><a href="ocelot.schema.html#ocelot.schema.msitelist.MSitelist.__init__">(ocelot.schema.msitelist.MSitelist method)</a>
+        <li><a href="ocelot.schema.html#ocelot.schema.conformer.MolConformer.__init__">(ocelot.schema.conformer.MolConformer method)</a>
 </li>
-        <li><a href="ocelot.schema.html#ocelot.schema.omol.OMol.__init__">(ocelot.schema.omol.OMol method)</a>
+        <li><a href="ocelot.schema.html#ocelot.schema.conformer.RingConformer.__init__">(ocelot.schema.conformer.RingConformer method)</a>
 </li>
-        <li><a href="ocelot.schema.html#ocelot.schema.ring.Ring.__init__">(ocelot.schema.ring.Ring method)</a>
+        <li><a href="ocelot.schema.html#ocelot.schema.conformer.SidechainConformer.__init__">(ocelot.schema.conformer.SidechainConformer method)</a>
 </li>
-        <li><a href="ocelot.schema.html#ocelot.schema.sidechain.Sidechain.__init__">(ocelot.schema.sidechain.Sidechain method)</a>
+        <li><a href="ocelot.schema.html#ocelot.schema.conformer.SiteidOperation.__init__">(ocelot.schema.conformer.SiteidOperation method)</a>
+</li>
+        <li><a href="ocelot.schema.html#ocelot.schema.graph.BackboneGraph.__init__">(ocelot.schema.graph.BackboneGraph method)</a>
+</li>
+        <li><a href="ocelot.schema.html#ocelot.schema.graph.BasicGraph.__init__">(ocelot.schema.graph.BasicGraph method)</a>
+</li>
+        <li><a href="ocelot.schema.html#ocelot.schema.graph.FragmentGraph.__init__">(ocelot.schema.graph.FragmentGraph method)</a>
+</li>
+        <li><a href="ocelot.schema.html#ocelot.schema.graph.MolGraph.__init__">(ocelot.schema.graph.MolGraph method)</a>
+</li>
+        <li><a href="ocelot.schema.html#ocelot.schema.graph.SidechainGraph.__init__">(ocelot.schema.graph.SidechainGraph method)</a>
 </li>
         <li><a href="ocelot.task.html#ocelot.task.calec.ElectronicCoupling.__init__">(ocelot.task.calec.ElectronicCoupling method)</a>
 </li>
         <li><a href="ocelot.task.html#ocelot.task.dftd3.DFTD3.__init__">(ocelot.task.dftd3.DFTD3 method)</a>
+</li>
+        <li><a href="ocelot.task.html#ocelot.task.hop.Hop.__init__">(ocelot.task.hop.Hop method)</a>
+</li>
+        <li><a href="ocelot.task.html#ocelot.task.hop.IJK.__init__">(ocelot.task.hop.IJK method)</a>
 </li>
         <li><a href="ocelot.task.html#ocelot.task.idchg.IdChg.__init__">(ocelot.task.idchg.IdChg method)</a>
 </li>
@@ -224,6 +250,10 @@
         <li><a href="ocelot.task.html#ocelot.task.pkid.PackingIdentifier.__init__">(ocelot.task.pkid.PackingIdentifier method)</a>
 </li>
         <li><a href="ocelot.task.html#ocelot.task.reciprocal.BZsampler.__init__">(ocelot.task.reciprocal.BZsampler method)</a>
+</li>
+        <li><a href="ocelot.task.html#ocelot.task.wtuning.WtuingJob.__init__">(ocelot.task.wtuning.WtuingJob method)</a>
+</li>
+        <li><a href="ocelot.task.html#ocelot.task.zindo.ZindoJob.__init__">(ocelot.task.zindo.ZindoJob method)</a>
 </li>
       </ul></li>
   </ul></td>
@@ -234,47 +264,57 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="ocelot.routines.html#ocelot.routines.geometry.abcabg2pbc">abcabg2pbc() (in module ocelot.routines.geometry)</a>
 </li>
-      <li><a href="ocelot.routines.html#ocelot.routines.xyz2mol.AC2BO">AC2BO() (in module ocelot.routines.xyz2mol)</a>
-</li>
-      <li><a href="ocelot.routines.html#ocelot.routines.xyz2mol.AC2mol">AC2mol() (in module ocelot.routines.xyz2mol)</a>
+      <li><a href="ocelot.routines.html#ocelot.routines.conformerparser.ACParser">ACParser (class in ocelot.routines.conformerparser)</a>
 </li>
       <li><a href="ocelot.task.html#ocelot.task.nics.NICSjob.add_bqlines">add_bqlines() (ocelot.task.nics.NICSjob static method)</a>
 </li>
+      <li><a href="ocelot.routines.html#ocelot.routines.conformerparser.ACParser.addBO2mol">addBO2mol() (ocelot.routines.conformerparser.ACParser method)</a>
+</li>
       <li><a href="ocelot.routines.html#ocelot.routines.loop.Loopsearcher.alex_method">alex_method() (ocelot.routines.loop.Loopsearcher method)</a>
+</li>
+      <li><a href="ocelot.routines.html#ocelot.routines.disparser.DisParser.alijdict_to_disgs_and_update_data">alijdict_to_disgs_and_update_data() (ocelot.routines.disparser.DisParser method)</a>
 </li>
       <li><a href="ocelot.routines.html#ocelot.routines.geometry.alpha_shape">alpha_shape() (in module ocelot.routines.geometry)</a>
 </li>
       <li><a href="ocelot.routines.html#ocelot.routines.geometry.angle_btw">angle_btw() (in module ocelot.routines.geometry)</a>
 </li>
+      <li><a href="ocelot.routines.html#ocelot.routines.disparser.apply_symmop">apply_symmop() (in module ocelot.routines.disparser)</a>
+</li>
+      <li><a href="ocelot.task.html#ocelot.task.hop.Hop.applysym_to_coupling_data">applysym_to_coupling_data() (ocelot.task.hop.Hop static method)</a>
+</li>
       <li><a href="ocelot.routines.html#ocelot.routines.geometry.arbitrary_noraml">arbitrary_noraml() (in module ocelot.routines.geometry)</a>
 </li>
       <li><a href="ocelot.routines.html#ocelot.routines.geometry.are_collinear">are_collinear() (in module ocelot.routines.geometry)</a>
 </li>
-      <li><a href="ocelot.schema.html#ocelot.schema.backbone.Backbone.as_dict">as_dict() (ocelot.schema.backbone.Backbone method)</a>
-
-      <ul>
-        <li><a href="ocelot.schema.html#ocelot.schema.bond.Bond.as_dict">(ocelot.schema.bond.Bond method)</a>
-</li>
-        <li><a href="ocelot.schema.html#ocelot.schema.config.Config.as_dict">(ocelot.schema.config.Config method)</a>
-</li>
-        <li><a href="ocelot.schema.html#ocelot.schema.dimer.Dimer.as_dict">(ocelot.schema.dimer.Dimer method)</a>
-</li>
-        <li><a href="ocelot.schema.html#ocelot.schema.msite.MSite.as_dict">(ocelot.schema.msite.MSite method)</a>
-</li>
-        <li><a href="ocelot.schema.html#ocelot.schema.msitelist.MSitelist.as_dict">(ocelot.schema.msitelist.MSitelist method)</a>
-</li>
-        <li><a href="ocelot.schema.html#ocelot.schema.omol.OMol.as_dict">(ocelot.schema.omol.OMol method)</a>
-</li>
-        <li><a href="ocelot.schema.html#ocelot.schema.ring.Ring.as_dict">(ocelot.schema.ring.Ring method)</a>
-</li>
-        <li><a href="ocelot.schema.html#ocelot.schema.sidechain.Sidechain.as_dict">(ocelot.schema.sidechain.Sidechain method)</a>
-</li>
-      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="ocelot.schema.html#ocelot.schema.element.Element.atomic_number">atomic_number() (ocelot.schema.element.Element property)</a>
+      <li><a href="ocelot.schema.html#ocelot.schema.configuration.Config.as_dict">as_dict() (ocelot.schema.configuration.Config method)</a>
+
+      <ul>
+        <li><a href="ocelot.schema.html#ocelot.schema.conformer.BasicConformer.as_dict">(ocelot.schema.conformer.BasicConformer method)</a>
 </li>
-      <li><a href="ocelot.schema.html#ocelot.schema.element.Element.atomic_numbers">atomic_numbers (ocelot.schema.element.Element attribute)</a>
+        <li><a href="ocelot.schema.html#ocelot.schema.conformer.BoneConformer.as_dict">(ocelot.schema.conformer.BoneConformer method)</a>
+</li>
+        <li><a href="ocelot.schema.html#ocelot.schema.conformer.ConformerDimer.as_dict">(ocelot.schema.conformer.ConformerDimer method)</a>
+</li>
+        <li><a href="ocelot.schema.html#ocelot.schema.conformer.RingConformer.as_dict">(ocelot.schema.conformer.RingConformer method)</a>
+</li>
+        <li><a href="ocelot.schema.html#ocelot.schema.graph.BackboneGraph.as_dict">(ocelot.schema.graph.BackboneGraph method)</a>
+</li>
+        <li><a href="ocelot.schema.html#ocelot.schema.graph.BasicGraph.as_dict">(ocelot.schema.graph.BasicGraph method)</a>
+</li>
+        <li><a href="ocelot.schema.html#ocelot.schema.graph.FragmentGraph.as_dict">(ocelot.schema.graph.FragmentGraph method)</a>
+</li>
+        <li><a href="ocelot.schema.html#ocelot.schema.graph.SidechainGraph.as_dict">(ocelot.schema.graph.SidechainGraph method)</a>
+</li>
+      </ul></li>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.SiteidOperation.assign_siteid">assign_siteid() (ocelot.schema.conformer.SiteidOperation method)</a>
+</li>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.BasicConformer.atomic_numbers">atomic_numbers() (ocelot.schema.conformer.BasicConformer property)</a>
+</li>
+      <li><a href="ocelot.routines.html#ocelot.routines.disparser.AtomLabel">AtomLabel (class in ocelot.routines.disparser)</a>
+</li>
+      <li><a href="ocelot.routines.html#ocelot.routines.disparser.AtomLabelError">AtomLabelError</a>
 </li>
   </ul></td>
 </tr></table>
@@ -282,25 +322,35 @@
 <h2 id="B">B</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="ocelot.schema.html#ocelot.schema.backbone.Backbone">Backbone (class in ocelot.schema.backbone)</a>
+      <li><a href="ocelot.schema.html#ocelot.schema.graph.BackboneGraph">BackboneGraph (class in ocelot.schema.graph)</a>
 </li>
       <li><a href="ocelot.task.html#ocelot.task.reciprocal.BZsampler.bands_plt">bands_plt() (ocelot.task.reciprocal.BZsampler static method)</a>
 </li>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.BasicConformer">BasicConformer (class in ocelot.schema.conformer)</a>
+</li>
+      <li><a href="ocelot.schema.html#ocelot.schema.graph.BasicGraph">BasicGraph (class in ocelot.schema.graph)</a>
+</li>
       <li><a href="ocelot.task.html#ocelot.task.calec.ElectronicCoupling.block_fill">block_fill (ocelot.task.calec.ElectronicCoupling attribute)</a>
 </li>
-      <li><a href="ocelot.routines.html#ocelot.routines.xyz2mol.BO2mol">BO2mol() (in module ocelot.routines.xyz2mol)</a>
+      <li><a href="ocelot.routines.html#ocelot.routines.conformerparser.ACParser.BO_is_OK">BO_is_OK() (ocelot.routines.conformerparser.ACParser method)</a>
 </li>
-      <li><a href="ocelot.routines.html#ocelot.routines.xyz2mol.BO_is_OK">BO_is_OK() (in module ocelot.routines.xyz2mol)</a>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.BondConformer">BondConformer (class in ocelot.schema.conformer)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="ocelot.schema.html#ocelot.schema.bond.Bond">Bond (class in ocelot.schema.bond)</a>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.BondInitError">BondInitError</a>
 </li>
-      <li><a href="ocelot.schema.html#ocelot.schema.ring.Ring.bonds">bonds() (ocelot.schema.ring.Ring property)</a>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.BasicConformer.bondmat">bondmat() (ocelot.schema.conformer.BasicConformer property)</a>
 </li>
-      <li><a href="ocelot.schema.html#ocelot.schema.ring.Ring.bonds_in_ring">bonds_in_ring() (ocelot.schema.ring.Ring property)</a>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.RingConformer.bonds_in_ring">bonds_in_ring() (ocelot.schema.conformer.RingConformer property)</a>
 </li>
-      <li><a href="ocelot.schema.html#ocelot.schema.dimer.Dimer.bone_overlap">bone_overlap() (ocelot.schema.dimer.Dimer method)</a>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.ConformerDimer.bone_overlap">bone_overlap() (ocelot.schema.conformer.ConformerDimer method)</a>
+</li>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.BoneConformer">BoneConformer (class in ocelot.schema.conformer)</a>
+</li>
+      <li><a href="ocelot.routines.html#ocelot.routines.disparser.braket2float">braket2float() (in module ocelot.routines.disparser)</a>
+</li>
+      <li><a href="ocelot.routines.html#ocelot.routines.disparser.ConfigConstructor.build_supercell_full_disorder">build_supercell_full_disorder() (ocelot.routines.disparser.ConfigConstructor static method)</a>
 </li>
       <li><a href="ocelot.task.html#ocelot.task.reciprocal.BZsampler">BZsampler (class in ocelot.task.reciprocal)</a>
 </li>
@@ -310,15 +360,21 @@
 <h2 id="C">C</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="ocelot.task.html#ocelot.task.calec.ElectronicCoupling.calculate_coupling_gauss">calculate_coupling_gauss() (ocelot.task.calec.ElectronicCoupling static method)</a>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.BoneConformer.calculate_conformer_properties">calculate_conformer_properties() (ocelot.schema.conformer.BoneConformer method)</a>
+
+      <ul>
+        <li><a href="ocelot.schema.html#ocelot.schema.conformer.FragConformer.calculate_conformer_properties">(ocelot.schema.conformer.FragConformer method)</a>
 </li>
-      <li><a href="ocelot.schema.html#ocelot.schema.msitelist.MSitelist.canonical_smiles">canonical_smiles() (ocelot.schema.msitelist.MSitelist property)</a>
+        <li><a href="ocelot.schema.html#ocelot.schema.conformer.MolConformer.calculate_conformer_properties">(ocelot.schema.conformer.MolConformer method)</a>
+</li>
+      </ul></li>
+      <li><a href="ocelot.task.html#ocelot.task.calec.ElectronicCoupling.calculate_coupling_gauss">calculate_coupling_gauss() (ocelot.task.calec.ElectronicCoupling static method)</a>
 </li>
       <li><a href="ocelot.routines.html#ocelot.routines.geometry.cart2frac">cart2frac() (in module ocelot.routines.geometry)</a>
 </li>
       <li><a href="ocelot.routines.html#ocelot.routines.geometry.cart2polar">cart2polar() (in module ocelot.routines.geometry)</a>
 </li>
-      <li><a href="ocelot.schema.html#ocelot.schema.bond.Bond.center">center() (ocelot.schema.bond.Bond property)</a>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.BasicConformer.cart_coords">cart_coords() (ocelot.schema.conformer.BasicConformer property)</a>
 </li>
       <li><a href="ocelot.routines.html#ocelot.routines.fileop.check_allgausslog">check_allgausslog() (in module ocelot.routines.fileop)</a>
 </li>
@@ -328,31 +384,43 @@
 </li>
       <li><a href="ocelot.routines.html#ocelot.routines.fileop.check_path">check_path() (in module ocelot.routines.fileop)</a>
 </li>
-      <li><a href="ocelot.routines.html#ocelot.routines.xyz2mol.chiral_stereo_check">chiral_stereo_check() (in module ocelot.routines.xyz2mol)</a>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.SiteidOperation.checkstatus">checkstatus() (ocelot.schema.conformer.SiteidOperation method)</a>
+</li>
+      <li><a href="ocelot.routines.html#ocelot.routines.conformerparser.chiral_stereo_check">chiral_stereo_check() (in module ocelot.routines.conformerparser)</a>
+</li>
+      <li><a href="ocelot.routines.html#ocelot.routines.disparser.CifFileError">CifFileError</a>
 </li>
       <li><a href="ocelot.routines.html#ocelot.routines.pbc.CIFparser">CIFparser (class in ocelot.routines.pbc)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="ocelot.routines.html#ocelot.routines.xyz2mol.clean_charges">clean_charges() (in module ocelot.routines.xyz2mol)</a>
+      <li><a href="ocelot.routines.html#ocelot.routines.disparser.DisParser.classify">classify() (ocelot.routines.disparser.DisParser method)</a>
+</li>
+      <li><a href="ocelot.routines.html#ocelot.routines.conformerparser.clean_charges">clean_charges() (in module ocelot.routines.conformerparser)</a>
 </li>
       <li><a href="ocelot.task.html#ocelot.task.dftd3.DFTD3.cmd_option_string">cmd_option_string() (ocelot.task.dftd3.DFTD3 property)</a>
 </li>
-      <li><a href="ocelot.schema.html#ocelot.schema.config.Config">Config (class in ocelot.schema.config)</a>
+      <li><a href="ocelot.schema.html#ocelot.schema.configuration.Config">Config (class in ocelot.schema.configuration)</a>
+</li>
+      <li><a href="ocelot.routines.html#ocelot.routines.disparser.ConfigConstructor">ConfigConstructor (class in ocelot.routines.disparser)</a>
+</li>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.conformer_addh">conformer_addh() (in module ocelot.schema.conformer)</a>
+</li>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.conformer_addhmol">conformer_addhmol() (in module ocelot.schema.conformer)</a>
+</li>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.ConformerDimer">ConformerDimer (class in ocelot.schema.conformer)</a>
+</li>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.ConformerInitError">ConformerInitError</a>
+</li>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.ConformerOperationError">ConformerOperationError</a>
+</li>
+      <li><a href="ocelot.task.html#ocelot.task.zindo.conver2zindo">conver2zindo() (in module ocelot.task.zindo)</a>
 </li>
       <li><a href="ocelot.routines.html#ocelot.routines.geometry.coord_reverse">coord_reverse() (in module ocelot.routines.geometry)</a>
 </li>
       <li><a href="ocelot.routines.html#ocelot.routines.geometry.coord_transform">coord_transform() (in module ocelot.routines.geometry)</a>
 </li>
-      <li><a href="ocelot.schema.html#ocelot.schema.msitelist.MSitelist.coordmat">coordmat() (ocelot.schema.msitelist.MSitelist property)</a>
-</li>
-      <li><a href="ocelot.schema.html#ocelot.schema.msite.MSite.coords">coords() (ocelot.schema.msite.MSite property)</a>
-</li>
       <li><a href="ocelot.routines.html#ocelot.routines.fileop.copyfile">copyfile() (in module ocelot.routines.fileop)</a>
-</li>
-      <li><a href="ocelot.schema.html#ocelot.schema.element.Element.covalent_radii">covalent_radii (ocelot.schema.element.Element attribute)</a>
-</li>
-      <li><a href="ocelot.schema.html#ocelot.schema.element.Element.covrad">covrad() (ocelot.schema.element.Element property)</a>
 </li>
       <li><a href="ocelot.task.html#ocelot.task.calec.ElectronicCoupling.create_matrix">create_matrix() (ocelot.task.calec.ElectronicCoupling static method)</a>
 </li>
@@ -364,17 +432,43 @@
 <h2 id="D">D</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="ocelot.routines.html#ocelot.routines.disparser.DisParser.data2cifdata">data2cifdata() (ocelot.routines.disparser.DisParser static method)</a>
+</li>
       <li><a href="ocelot.task.html#ocelot.task.dftd3.DFTD3">DFTD3 (class in ocelot.task.dftd3)</a>
 </li>
-      <li><a href="ocelot.schema.html#ocelot.schema.dimer.Dimer">Dimer (class in ocelot.schema.dimer)</a>
+      <li><a href="ocelot.task.html#ocelot.task.zindo.ZindoJob.dimer_run">dimer_run() (ocelot.task.zindo.ZindoJob static method)</a>
+</li>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.DimerCollection">DimerCollection (class in ocelot.schema.conformer)</a>
+</li>
+      <li><a href="ocelot.task.html#ocelot.task.zindo.ZindoJob.dimerjob_from_two_molecules">dimerjob_from_two_molecules() (ocelot.task.zindo.ZindoJob class method)</a>
+</li>
+      <li><a href="ocelot.routines.html#ocelot.routines.disparser.DisParser.dis0data_to_disunit_pairs">dis0data_to_disunit_pairs() (ocelot.routines.disparser.DisParser method)</a>
+</li>
+      <li><a href="ocelot.routines.html#ocelot.routines.disparser.DisParser.dis1_to_dis0">dis1_to_dis0() (ocelot.routines.disparser.DisParser method)</a>
+</li>
+      <li><a href="ocelot.routines.html#ocelot.routines.disparser.DisParser.dis2_to_dis0">dis2_to_dis0() (ocelot.routines.disparser.DisParser method)</a>
+</li>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.DisorderError">DisorderError</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="ocelot.schema.html#ocelot.schema.dimercollection.DimerCollection">DimerCollection (class in ocelot.schema.dimercollection)</a>
+      <li><a href="ocelot.routines.html#ocelot.routines.disparser.DisorderParserError">DisorderParserError</a>
+</li>
+      <li><a href="ocelot.routines.html#ocelot.routines.disparser.DisParser">DisParser (class in ocelot.routines.disparser)</a>
+</li>
+      <li><a href="ocelot.routines.html#ocelot.routines.disparser.ConfigConstructor.dissc_to_config">dissc_to_config() (ocelot.routines.disparser.ConfigConstructor static method)</a>
 </li>
       <li><a href="ocelot.routines.html#ocelot.routines.geometry.dist_pt2line">dist_pt2line() (in module ocelot.routines.geometry)</a>
 </li>
-      <li><a href="ocelot.schema.html#ocelot.schema.msite.MSite.distance">distance() (ocelot.schema.msite.MSite method)</a>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.BasicConformer.distmat">distmat() (ocelot.schema.conformer.BasicConformer property)</a>
+</li>
+      <li><a href="ocelot.routines.html#ocelot.routines.disparser.DisUnit">DisUnit (class in ocelot.routines.disparser)</a>
+</li>
+      <li><a href="ocelot.routines.html#ocelot.routines.disparser.DisUnitError">DisUnitError</a>
+</li>
+      <li><a href="ocelot.schema.html#ocelot.schema.graph.BasicGraph.draw">draw() (ocelot.schema.graph.BasicGraph method)</a>
+</li>
+      <li><a href="ocelot.schema.html#ocelot.schema.graph.draw_chemgraph">draw_chemgraph() (in module ocelot.schema.graph)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -384,17 +478,15 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="ocelot.task.html#ocelot.task.calec.ElectronicCoupling">ElectronicCoupling (class in ocelot.task.calec)</a>
 </li>
-      <li><a href="ocelot.schema.html#ocelot.schema.element.Element">Element (class in ocelot.schema.element)</a>
-</li>
-      <li><a href="ocelot.schema.html#ocelot.schema.msitelist.MSitelist.elementarray">elementarray() (ocelot.schema.msitelist.MSitelist property)</a>
+      <li><a href="ocelot.routines.html#ocelot.routines.mathop.ev_to_ha">ev_to_ha() (in module ocelot.routines.mathop)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="ocelot.schema.html#ocelot.schema.bond.Bond.elements">elements() (ocelot.schema.bond.Bond property)</a>
-</li>
-      <li><a href="ocelot.routines.html#ocelot.routines.mathop.ev_to_ha">ev_to_ha() (in module ocelot.routines.mathop)</a>
-</li>
       <li><a href="ocelot.routines.html#ocelot.routines.loop.Loopsearcher.expand">expand() (ocelot.routines.loop.Loopsearcher method)</a>
+</li>
+      <li><a href="ocelot.task.html#ocelot.task.wtuning.WtuingJob.extract_abs">extract_abs() (ocelot.task.wtuning.WtuingJob method)</a>
+</li>
+      <li><a href="ocelot.task.html#ocelot.task.wtuning.WtuingJob.extract_energy">extract_energy() (ocelot.task.wtuning.WtuingJob method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -404,61 +496,79 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="ocelot.routines.html#ocelot.routines.mathop.fd_reci_2ndder">fd_reci_2ndder() (in module ocelot.routines.mathop)</a>
 </li>
+      <li><a href="ocelot.schema.html#ocelot.schema.rdfunc.RdFunc.fingerprint">fingerprint() (ocelot.schema.rdfunc.RdFunc static method)</a>
+</li>
       <li><a href="ocelot.routines.html#ocelot.routines.geometry.Fitter">Fitter (class in ocelot.routines.geometry)</a>
 </li>
-      <li><a href="ocelot.schema.html#ocelot.schema.msitelist.MSitelist.fp_similarity">fp_similarity() (ocelot.schema.msitelist.MSitelist method)</a>
+      <li><a href="ocelot.schema.html#ocelot.schema.rdfunc.RdFunc.fp_similarity">fp_similarity() (ocelot.schema.rdfunc.RdFunc static method)</a>
 </li>
       <li><a href="ocelot.routines.html#ocelot.routines.geometry.frac2cart">frac2cart() (in module ocelot.routines.geometry)</a>
+</li>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.FragConformer">FragConformer (class in ocelot.schema.conformer)</a>
+</li>
+      <li><a href="ocelot.schema.html#ocelot.schema.graph.FragmentGraph">FragmentGraph (class in ocelot.schema.graph)</a>
+</li>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.FragConformer.from_basic">from_basic() (ocelot.schema.conformer.FragConformer class method)</a>
+</li>
+      <li><a href="ocelot.schema.html#ocelot.schema.graph.MolGraph.from_basicgraph">from_basicgraph() (ocelot.schema.graph.MolGraph class method)</a>
+</li>
+      <li><a href="ocelot.routines.html#ocelot.routines.disparser.DisParser.from_ciffile">from_ciffile() (ocelot.routines.disparser.DisParser class method)</a>
 </li>
       <li><a href="ocelot.routines.html#ocelot.routines.pbc.CIFparser.from_cifstring">from_cifstring() (ocelot.routines.pbc.CIFparser class method)</a>
 
       <ul>
-        <li><a href="ocelot.schema.html#ocelot.schema.config.Config.from_cifstring">(ocelot.schema.config.Config class method)</a>
+        <li><a href="ocelot.schema.html#ocelot.schema.configuration.Config.from_cifstring">(ocelot.schema.configuration.Config class method)</a>
 </li>
       </ul></li>
-      <li><a href="ocelot.schema.html#ocelot.schema.msitelist.MSitelist.from_coordmat">from_coordmat() (ocelot.schema.msitelist.MSitelist class method)</a>
-</li>
-      <li><a href="ocelot.schema.html#ocelot.schema.msitelist.MSitelist.from_coordmat_and_elementlst_and_siteidlst">from_coordmat_and_elementlst_and_siteidlst() (ocelot.schema.msitelist.MSitelist class method)</a>
-</li>
-      <li><a href="ocelot.schema.html#ocelot.schema.backbone.Backbone.from_dict">from_dict() (ocelot.schema.backbone.Backbone class method)</a>
+      <li><a href="ocelot.schema.html#ocelot.schema.configuration.Config.from_dict">from_dict() (ocelot.schema.configuration.Config class method)</a>
 
       <ul>
-        <li><a href="ocelot.schema.html#ocelot.schema.bond.Bond.from_dict">(ocelot.schema.bond.Bond class method)</a>
+        <li><a href="ocelot.schema.html#ocelot.schema.conformer.BasicConformer.from_dict">(ocelot.schema.conformer.BasicConformer class method)</a>
 </li>
-        <li><a href="ocelot.schema.html#ocelot.schema.config.Config.from_dict">(ocelot.schema.config.Config class method)</a>
+        <li><a href="ocelot.schema.html#ocelot.schema.conformer.ConformerDimer.from_dict">(ocelot.schema.conformer.ConformerDimer class method)</a>
 </li>
-        <li><a href="ocelot.schema.html#ocelot.schema.dimer.Dimer.from_dict">(ocelot.schema.dimer.Dimer class method)</a>
+        <li><a href="ocelot.schema.html#ocelot.schema.conformer.FragConformer.from_dict">(ocelot.schema.conformer.FragConformer class method)</a>
 </li>
-        <li><a href="ocelot.schema.html#ocelot.schema.msite.MSite.from_dict">(ocelot.schema.msite.MSite class method)</a>
+        <li><a href="ocelot.schema.html#ocelot.schema.graph.BasicGraph.from_dict">(ocelot.schema.graph.BasicGraph class method)</a>
 </li>
-        <li><a href="ocelot.schema.html#ocelot.schema.msitelist.MSitelist.from_dict">(ocelot.schema.msitelist.MSitelist class method)</a>
-</li>
-        <li><a href="ocelot.schema.html#ocelot.schema.omol.OMol.from_dict">(ocelot.schema.omol.OMol class method)</a>
-</li>
-        <li><a href="ocelot.schema.html#ocelot.schema.sidechain.Sidechain.from_dict">(ocelot.schema.sidechain.Sidechain class method)</a>
+        <li><a href="ocelot.schema.html#ocelot.schema.graph.FragmentGraph.from_dict">(ocelot.schema.graph.FragmentGraph class method)</a>
 </li>
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="ocelot.schema.html#ocelot.schema.config.Config.from_file">from_file() (ocelot.schema.config.Config class method)</a>
+      <li><a href="ocelot.schema.html#ocelot.schema.configuration.Config.from_file">from_file() (ocelot.schema.configuration.Config class method)</a>
 
       <ul>
-        <li><a href="ocelot.schema.html#ocelot.schema.msitelist.MSitelist.from_file">(ocelot.schema.msitelist.MSitelist class method)</a>
+        <li><a href="ocelot.schema.html#ocelot.schema.conformer.BasicConformer.from_file">(ocelot.schema.conformer.BasicConformer class method)</a>
 </li>
       </ul></li>
-      <li><a href="ocelot.schema.html#ocelot.schema.ring.Ring.from_idxlst">from_idxlst() (ocelot.schema.ring.Ring class method)</a>
-</li>
       <li><a href="ocelot.routines.html#ocelot.routines.mopac.MopacInput.from_mopinput">from_mopinput() (ocelot.routines.mopac.MopacInput class method)</a>
 </li>
-      <li><a href="ocelot.schema.html#ocelot.schema.backbone.Backbone.from_omol">from_omol() (ocelot.schema.backbone.Backbone class method)</a>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.BasicConformer.from_pmgmol">from_pmgmol() (ocelot.schema.conformer.BasicConformer class method)</a>
 
       <ul>
-        <li><a href="ocelot.schema.html#ocelot.schema.sidechain.Sidechain.from_omol">(ocelot.schema.sidechain.Sidechain class method)</a>
+        <li><a href="ocelot.schema.html#ocelot.schema.conformer.FragConformer.from_pmgmol">(ocelot.schema.conformer.FragConformer class method)</a>
 </li>
       </ul></li>
-      <li><a href="ocelot.schema.html#ocelot.schema.omol.OMol.from_pymatgen_mol">from_pymatgen_mol() (ocelot.schema.omol.OMol class method)</a>
+      <li><a href="ocelot.schema.html#ocelot.schema.graph.BasicGraph.from_rdmol">from_rdmol() (ocelot.schema.graph.BasicGraph class method)</a>
 </li>
-      <li><a href="ocelot.schema.html#ocelot.schema.msite.MSite.from_pymatgen_site">from_pymatgen_site() (ocelot.schema.msite.MSite class method)</a>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.FragConformer.from_rings">from_rings() (ocelot.schema.conformer.FragConformer class method)</a>
+</li>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.BasicConformer.from_siteids">from_siteids() (ocelot.schema.conformer.BasicConformer class method)</a>
+
+      <ul>
+        <li><a href="ocelot.schema.html#ocelot.schema.conformer.FragConformer.from_siteids">(ocelot.schema.conformer.FragConformer class method)</a>
+</li>
+      </ul></li>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.BasicConformer.from_sites">from_sites() (ocelot.schema.conformer.BasicConformer class method)</a>
+
+      <ul>
+        <li><a href="ocelot.schema.html#ocelot.schema.conformer.FragConformer.from_sites">(ocelot.schema.conformer.FragConformer class method)</a>
+</li>
+      </ul></li>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.BasicConformer.from_str">from_str() (ocelot.schema.conformer.BasicConformer class method)</a>
+</li>
+      <li><a href="ocelot.schema.html#ocelot.schema.rdfunc.RdFunc.from_string">from_string() (ocelot.schema.rdfunc.RdFunc static method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -480,67 +590,139 @@
 </li>
       <li><a href="ocelot.task.html#ocelot.task.calec.ElectronicCoupling.g09_get_mo_coefficients">g09_get_mo_coefficients() (ocelot.task.calec.ElectronicCoupling static method)</a>
 </li>
+      <li><a href="ocelot.task.html#ocelot.task.wtuning.gauss_in_gen">gauss_in_gen() (in module ocelot.task.wtuning)</a>
+</li>
+      <li><a href="ocelot.task.html#ocelot.task.wtuning.WtuingJob.gauss_run">gauss_run() (ocelot.task.wtuning.WtuingJob method)</a>
+</li>
       <li><a href="ocelot.task.html#ocelot.task.nics.NICSjob.gen_input">gen_input() (ocelot.task.nics.NICSjob method)</a>
+</li>
+      <li><a href="ocelot.routines.html#ocelot.routines.disparser.ConfigConstructor.gen_instructions">gen_instructions() (ocelot.routines.disparser.ConfigConstructor static method)</a>
+</li>
+      <li><a href="ocelot.routines.html#ocelot.routines.loop.Loopsearcher.generate_edges">generate_edges() (ocelot.routines.loop.Loopsearcher method)</a>
 </li>
       <li><a href="ocelot.routines.html#ocelot.routines.geometry.genlinepts">genlinepts() (in module ocelot.routines.geometry)</a>
 </li>
-      <li><a href="ocelot.schema.html#ocelot.schema.msitelist.MSitelist.geoc">geoc() (ocelot.schema.msitelist.MSitelist property)</a>
+      <li><a href="ocelot.task.html#ocelot.task.wtuning.WtuingJob.geo_opt">geo_opt() (ocelot.task.wtuning.WtuingJob method)</a>
 </li>
-      <li><a href="ocelot.routines.html#ocelot.routines.xyz2mol.get_atom">get_atom() (in module ocelot.routines.xyz2mol)</a>
+      <li><a href="ocelot.routines.html#ocelot.routines.disparser.DisUnit.geoc">geoc() (ocelot.routines.disparser.DisUnit property)</a>
+
+      <ul>
+        <li><a href="ocelot.schema.html#ocelot.schema.conformer.BasicConformer.geoc">(ocelot.schema.conformer.BasicConformer property)</a>
 </li>
-      <li><a href="ocelot.routines.html#ocelot.routines.xyz2mol.get_atomic_charge">get_atomic_charge() (in module ocelot.routines.xyz2mol)</a>
+      </ul></li>
+      <li><a href="ocelot.schema.html#ocelot.schema.rdfunc.RdFunc.get_3ddescriptors">get_3ddescriptors() (ocelot.schema.rdfunc.RdFunc static method)</a>
 </li>
-      <li><a href="ocelot.routines.html#ocelot.routines.xyz2mol.get_atomicNumList">get_atomicNumList() (in module ocelot.routines.xyz2mol)</a>
+      <li><a href="ocelot.routines.html#ocelot.routines.conformerparser.ACParser.get_atomic_charge">get_atomic_charge() (ocelot.routines.conformerparser.ACParser static method)</a>
 </li>
-      <li><a href="ocelot.routines.html#ocelot.routines.xyz2mol.get_BO">get_BO() (in module ocelot.routines.xyz2mol)</a>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.RingConformer.get_avg_norms">get_avg_norms() (ocelot.schema.conformer.RingConformer static method)</a>
 </li>
-      <li><a href="ocelot.schema.html#ocelot.schema.msitelist.MSitelist.get_bondmat">get_bondmat() (ocelot.schema.msitelist.MSitelist static method)</a>
+      <li><a href="ocelot.routines.html#ocelot.routines.conformerparser.ACParser.get_BO">get_BO() (ocelot.routines.conformerparser.ACParser static method)</a>
 </li>
-      <li><a href="ocelot.routines.html#ocelot.routines.xyz2mol.get_bonds">get_bonds() (in module ocelot.routines.xyz2mol)</a>
+      <li><a href="ocelot.schema.html#ocelot.schema.rdfunc.RdFunc.get_bond_order">get_bond_order() (ocelot.schema.rdfunc.RdFunc static method)</a>
 </li>
-      <li><a href="ocelot.schema.html#ocelot.schema.config.Config.get_bone_config">get_bone_config() (ocelot.schema.config.Config method)</a>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.BasicConformer.get_bondmat">get_bondmat() (ocelot.schema.conformer.BasicConformer static method)</a>
+</li>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.BasicConformer.get_bondmat_based_on_siteid">get_bondmat_based_on_siteid() (ocelot.schema.conformer.BasicConformer method)</a>
+</li>
+      <li><a href="ocelot.routines.html#ocelot.routines.conformerparser.ACParser.get_bonds">get_bonds() (ocelot.routines.conformerparser.ACParser static method)</a>
+</li>
+      <li><a href="ocelot.schema.html#ocelot.schema.configuration.Config.get_bone_config">get_bone_config() (ocelot.schema.configuration.Config method)</a>
 </li>
       <li><a href="ocelot.routines.html#ocelot.routines.pbc.CIFparser.get_clean_cifs_stringlist">get_clean_cifs_stringlist() (ocelot.routines.pbc.CIFparser method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="ocelot.schema.html#ocelot.schema.msitelist.MSitelist.get_closest_sites">get_closest_sites() (ocelot.schema.msitelist.MSitelist method)</a>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.BasicConformer.get_closest_sites">get_closest_sites() (ocelot.schema.conformer.BasicConformer method)</a>
 </li>
       <li><a href="ocelot.routines.html#ocelot.routines.pbc.CIFparser.get_config_dict_string">get_config_dict_string() (ocelot.routines.pbc.CIFparser static method)</a>
 </li>
-      <li><a href="ocelot.schema.html#ocelot.schema.config.Config.get_dimers_array">get_dimers_array() (ocelot.schema.config.Config method)</a>
+      <li><a href="ocelot.routines.html#ocelot.routines.disparser.DisUnit.get_connected_pblock">get_connected_pblock() (ocelot.routines.disparser.DisUnit static method)</a>
+</li>
+      <li><a href="ocelot.schema.html#ocelot.schema.configuration.Config.get_dimers_array">get_dimers_array() (ocelot.schema.configuration.Config method)</a>
 </li>
       <li><a href="ocelot.routines.html#ocelot.routines.pbc.PBCparser.get_dist_and_trans">get_dist_and_trans() (ocelot.routines.pbc.PBCparser static method)</a>
 </li>
-      <li><a href="ocelot.schema.html#ocelot.schema.msitelist.MSitelist.get_distmat">get_distmat() (ocelot.schema.msitelist.MSitelist static method)</a>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.BasicConformer.get_distmat">get_distmat() (ocelot.schema.conformer.BasicConformer static method)</a>
 </li>
-      <li><a href="ocelot.schema.html#ocelot.schema.omol.OMol.get_fused_rings_list">get_fused_rings_list() (ocelot.schema.omol.OMol method)</a>
+      <li><a href="ocelot.routines.html#ocelot.routines.disparser.DisUnit.get_disunit_pairs_from_asym">get_disunit_pairs_from_asym() (ocelot.routines.disparser.DisUnit static method)</a>
 </li>
-      <li><a href="ocelot.schema.html#ocelot.schema.msitelist.MSitelist.get_nbrmap">get_nbrmap() (ocelot.schema.msitelist.MSitelist static method)</a>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="ocelot.task.html#ocelot.task.zindo.ZindoJob.get_hh_coupling">get_hh_coupling() (ocelot.task.zindo.ZindoJob static method)</a>
+</li>
+      <li><a href="ocelot.task.html#ocelot.task.hop.Hop.get_hopping_network_s1">get_hopping_network_s1() (ocelot.task.hop.Hop method)</a>
+</li>
+      <li><a href="ocelot.task.html#ocelot.task.hop.Hop.get_hopping_network_s2">get_hopping_network_s2() (ocelot.task.hop.Hop method)</a>
+</li>
+      <li><a href="ocelot.task.html#ocelot.task.hop.Hop.get_intger_mesh">get_intger_mesh() (ocelot.task.hop.Hop static method)</a>
+</li>
+      <li><a href="ocelot.routines.html#ocelot.routines.disparser.AtomLabel.get_labels_with_same_ei">get_labels_with_same_ei() (ocelot.routines.disparser.AtomLabel method)</a>
+</li>
+      <li><a href="ocelot.task.html#ocelot.task.zindo.ZindoJob.get_ll_coupling">get_ll_coupling() (ocelot.task.zindo.ZindoJob static method)</a>
+</li>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.BasicConformer.get_nbrmap">get_nbrmap() (ocelot.schema.conformer.BasicConformer static method)</a>
+</li>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.BasicConformer.get_nbrmap_based_on_siteid">get_nbrmap_based_on_siteid() (ocelot.schema.conformer.BasicConformer method)</a>
+</li>
+      <li><a href="ocelot.routines.html#ocelot.routines.disparser.get_nearest_label">get_nearest_label() (in module ocelot.routines.disparser)</a>
 </li>
       <li><a href="ocelot.task.html#ocelot.task.calec.ElectronicCoupling.get_overlap">get_overlap() (ocelot.task.calec.ElectronicCoupling static method)</a>
 </li>
       <li><a href="ocelot.routines.html#ocelot.routines.geometry.get_plane_param">get_plane_param() (in module ocelot.routines.geometry)</a>
 </li>
+      <li><a href="ocelot.routines.html#ocelot.routines.disparser.get_pmg_dict">get_pmg_dict() (in module ocelot.routines.disparser)</a>
+</li>
       <li><a href="ocelot.routines.html#ocelot.routines.geometry.get_proj_point2plane">get_proj_point2plane() (in module ocelot.routines.geometry)</a>
 </li>
-      <li><a href="ocelot.routines.html#ocelot.routines.xyz2mol.get_proto_mol">get_proto_mol() (in module ocelot.routines.xyz2mol)</a>
+      <li><a href="ocelot.routines.html#ocelot.routines.disparser.get_psite_by_atomlable">get_psite_by_atomlable() (in module ocelot.routines.disparser)</a>
 </li>
-      <li><a href="ocelot.schema.html#ocelot.schema.omol.OMol.get_shortest_path">get_shortest_path() (ocelot.schema.omol.OMol static method)</a>
+      <li><a href="ocelot.routines.html#ocelot.routines.disparser.get_psite_label">get_psite_label() (in module ocelot.routines.disparser)</a>
 </li>
-      <li><a href="ocelot.schema.html#ocelot.schema.omol.OMol.get_sidechains">get_sidechains() (ocelot.schema.omol.OMol method)</a>
+      <li><a href="ocelot.routines.html#ocelot.routines.disparser.DisParser.get_psites_from_data">get_psites_from_data() (ocelot.routines.disparser.DisParser method)</a>
 </li>
-      <li><a href="ocelot.schema.html#ocelot.schema.msitelist.MSitelist.get_site_by_coords">get_site_by_coords() (ocelot.schema.msitelist.MSitelist method)</a>
+      <li><a href="ocelot.schema.html#ocelot.schema.graph.MolGraph.get_rings">get_rings() (ocelot.schema.graph.MolGraph method)</a>
 </li>
-      <li><a href="ocelot.schema.html#ocelot.schema.msitelist.MSitelist.get_site_byid">get_site_byid() (ocelot.schema.msitelist.MSitelist method)</a>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.get_rings_from_conformer">get_rings_from_conformer() (in module ocelot.schema.conformer)</a>
 </li>
-      <li><a href="ocelot.routines.html#ocelot.routines.xyz2mol.get_UA_pairs">get_UA_pairs() (in module ocelot.routines.xyz2mol)</a>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.BasicConformer.get_site_by_coords">get_site_by_coords() (ocelot.schema.conformer.BasicConformer method)</a>
 </li>
-      <li><a href="ocelot.schema.html#ocelot.schema.dimercollection.DimerCollection.get_xyz_string">get_xyz_string() (ocelot.schema.dimercollection.DimerCollection method)</a>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.SiteidOperation.get_site_byid">get_site_byid() (ocelot.schema.conformer.SiteidOperation method)</a>
+</li>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.SiteidOperation.get_sites_byids">get_sites_byids() (ocelot.schema.conformer.SiteidOperation method)</a>
+</li>
+      <li><a href="ocelot.routines.html#ocelot.routines.disparser.get_symmop">get_symmop() (in module ocelot.routines.disparser)</a>
+</li>
+      <li><a href="ocelot.routines.html#ocelot.routines.conformerparser.ACParser.get_UA_pairs">get_UA_pairs() (ocelot.routines.conformerparser.ACParser static method)</a>
+</li>
+      <li><a href="ocelot.task.html#ocelot.task.zindo.ZindoJob.get_valence_electrons">get_valence_electrons() (ocelot.task.zindo.ZindoJob static method)</a>
+</li>
+      <li><a href="ocelot.routines.html#ocelot.routines.conformerparser.ACParser.get_valence_info">get_valence_info() (ocelot.routines.conformerparser.ACParser method)</a>
+</li>
+      <li><a href="ocelot.schema.html#ocelot.schema.rdfunc.RdFunc.get_volume">get_volume() (ocelot.schema.rdfunc.RdFunc static method)</a>
+</li>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.DimerCollection.get_xyz_string">get_xyz_string() (ocelot.schema.conformer.DimerCollection method)</a>
 </li>
       <li><a href="ocelot.task.html#ocelot.task.nics.NICSjob.get_zzmstensor">get_zzmstensor() (ocelot.task.nics.NICSjob static method)</a>
 </li>
-      <li><a href="ocelot.routines.html#ocelot.routines.xyz2mol.getUA">getUA() (in module ocelot.routines.xyz2mol)</a>
+      <li><a href="ocelot.schema.html#ocelot.schema.rdfunc.RdFunc.getmolweight">getmolweight() (ocelot.schema.rdfunc.RdFunc static method)</a>
+</li>
+      <li><a href="ocelot.routines.html#ocelot.routines.conformerparser.ACParser.getUADU">getUADU() (ocelot.routines.conformerparser.ACParser static method)</a>
+</li>
+      <li><a href="ocelot.schema.html#ocelot.schema.graph.BasicGraph.graph_similarity">graph_similarity() (ocelot.schema.graph.BasicGraph method)</a>
+</li>
+      <li><a href="ocelot.schema.html#ocelot.schema.graph.GraphNotConnectedError">GraphNotConnectedError</a>
+</li>
+      <li><a href="ocelot.task.html#ocelot.task.hop.Hop.group_dimers">group_dimers() (ocelot.task.hop.Hop static method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="H">H</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="ocelot.task.html#ocelot.task.hop.Hop">Hop (class in ocelot.task.hop)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="ocelot.task.html#ocelot.task.hop.Hop.hopping">hopping() (ocelot.task.hop.Hop static method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -554,33 +736,41 @@
 </li>
       <li><a href="ocelot.task.html#ocelot.task.pkid.PackingIdentifier.identify_hirshfield">identify_hirshfield() (ocelot.task.pkid.PackingIdentifier method)</a>
 </li>
+      <li><a href="ocelot.task.html#ocelot.task.hop.IJK">IJK (class in ocelot.task.hop)</a>
+</li>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.BasicConformer.index2siteid">index2siteid() (ocelot.schema.conformer.BasicConformer property)</a>
+</li>
+      <li><a href="ocelot.routines.html#ocelot.routines.conformerparser.ACParser.init_rdmol">init_rdmol() (ocelot.routines.conformerparser.ACParser method)</a>
+</li>
+      <li><a href="ocelot.task.html#ocelot.task.zindo.ZindoJob.inpstring">inpstring() (ocelot.task.zindo.ZindoJob static method)</a>
+</li>
       <li><a href="ocelot.task.html#ocelot.task.calec.ElectronicCoupling.input_gen_gauss">input_gen_gauss() (ocelot.task.calec.ElectronicCoupling method)</a>
 </li>
-      <li><a href="ocelot.schema.html#ocelot.schema.ring.Ring.interscet">interscet() (ocelot.schema.ring.Ring method)</a>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.BasicConformer.intersection">intersection() (ocelot.schema.conformer.BasicConformer method)</a>
 </li>
-      <li><a href="ocelot.schema.html#ocelot.schema.msitelist.MSitelist.intersection">intersection() (ocelot.schema.msitelist.MSitelist method)</a>
-</li>
-      <li><a href="ocelot.schema.html#ocelot.schema.dimer.Dimer.is_close">is_close() (ocelot.schema.dimer.Dimer property)</a>
-</li>
-      <li><a href="ocelot.schema.html#ocelot.schema.dimer.Dimer.is_identical">is_identical() (ocelot.schema.dimer.Dimer property)</a>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.ConformerDimer.is_bone_close">is_bone_close() (ocelot.schema.conformer.ConformerDimer property)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="ocelot.schema.html#ocelot.schema.dimer.Dimer.is_not_identical">is_not_identical() (ocelot.schema.dimer.Dimer property)</a>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.ConformerDimer.is_close">is_close() (ocelot.schema.conformer.ConformerDimer property)</a>
+</li>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.ConformerDimer.is_identical">is_identical() (ocelot.schema.conformer.ConformerDimer property)</a>
+</li>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.ConformerDimer.is_not_identical">is_not_identical() (ocelot.schema.conformer.ConformerDimer property)</a>
+</li>
+      <li><a href="ocelot.schema.html#ocelot.schema.graph.BasicGraph.is_subgraph">is_subgraph() (ocelot.schema.graph.BasicGraph method)</a>
+</li>
+      <li><a href="ocelot.routines.html#ocelot.routines.disparser.AtomLabel.is_tag_nonword">is_tag_nonword() (ocelot.routines.disparser.AtomLabel property)</a>
 </li>
       <li><a href="ocelot.routines.html#ocelot.routines.geometry.Fitter.iscollinear">iscollinear() (ocelot.routines.geometry.Fitter static method)</a>
 </li>
-      <li><a href="ocelot.schema.html#ocelot.schema.ring.Ring.isconnected_with">isconnected_with() (ocelot.schema.ring.Ring method)</a>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.RingConformer.iscoplane_with">iscoplane_with() (ocelot.schema.conformer.RingConformer method)</a>
 </li>
-      <li><a href="ocelot.schema.html#ocelot.schema.ring.Ring.iscoplane_with">iscoplane_with() (ocelot.schema.ring.Ring method)</a>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.RingConformer.iscoplane_with_norm">iscoplane_with_norm() (ocelot.schema.conformer.RingConformer method)</a>
 </li>
       <li><a href="ocelot.routines.html#ocelot.routines.pbc.CIFparser.isdisorder">isdisorder() (ocelot.routines.pbc.CIFparser static method)</a>
 </li>
-      <li><a href="ocelot.schema.html#ocelot.schema.ring.Ring.isfused_with">isfused_with() (ocelot.schema.ring.Ring method)</a>
-</li>
-      <li><a href="ocelot.schema.html#ocelot.schema.sidechain.Sidechain.ishydrogen">ishydrogen() (ocelot.schema.sidechain.Sidechain property)</a>
-</li>
-      <li><a href="ocelot.schema.html#ocelot.schema.msitelist.MSitelist.issubset">issubset() (ocelot.schema.msitelist.MSitelist method)</a>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.BasicConformer.issubset">issubset() (ocelot.schema.conformer.BasicConformer method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -588,17 +778,25 @@
 <h2 id="L">L</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="ocelot.schema.html#ocelot.schema.bond.Bond.length">length() (ocelot.schema.bond.Bond property)</a>
+      <li><a href="ocelot.routines.html#ocelot.routines.disparser.DisParser.labels_with_nonword_suffix">labels_with_nonword_suffix() (ocelot.routines.disparser.DisParser property)</a>
+</li>
+      <li><a href="ocelot.routines.html#ocelot.routines.disparser.DisParser.labels_with_word_or_no_suffix">labels_with_word_or_no_suffix() (ocelot.routines.disparser.DisParser property)</a>
+</li>
+      <li><a href="ocelot.task.html#ocelot.task.zindo.ZindoJob.legit">legit() (ocelot.task.zindo.ZindoJob property)</a>
+</li>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.BondConformer.length">length() (ocelot.schema.conformer.BondConformer property)</a>
 </li>
       <li><a href="ocelot.routines.html#ocelot.routines.geometry.Fitter.linear_fit">linear_fit() (ocelot.routines.geometry.Fitter static method)</a>
 </li>
-      <li><a href="ocelot.routines.html#ocelot.routines.loop.Loopsearcher">Loopsearcher (class in ocelot.routines.loop)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="ocelot.schema.html#ocelot.schema.backbone.Backbone.lp">lp() (ocelot.schema.backbone.Backbone property)</a>
+      <li><a href="ocelot.routines.html#ocelot.routines.loop.Loopsearcher.loop2edges">loop2edges() (ocelot.routines.loop.Loopsearcher static method)</a>
 </li>
-      <li><a href="ocelot.schema.html#ocelot.schema.backbone.Backbone.lq">lq() (ocelot.schema.backbone.Backbone property)</a>
+      <li><a href="ocelot.routines.html#ocelot.routines.loop.Loopsearcher">Loopsearcher (class in ocelot.routines.loop)</a>
+</li>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.BoneConformer.lp">lp() (ocelot.schema.conformer.BoneConformer property)</a>
+</li>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.BoneConformer.lq">lq() (ocelot.schema.conformer.BoneConformer property)</a>
 </li>
       <li><a href="ocelot.routines.html#ocelot.routines.fileop.lsexternsion">lsexternsion() (in module ocelot.routines.fileop)</a>
 </li>
@@ -610,25 +808,25 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="ocelot.task.html#ocelot.task.calec.ElectronicCoupling.make_symmetric">make_symmetric (ocelot.task.calec.ElectronicCoupling attribute)</a>
 </li>
-      <li><a href="ocelot.schema.html#ocelot.schema.sidechain.Sidechain.maxrank">maxrank() (ocelot.schema.sidechain.Sidechain property)</a>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.ConformerDimer.minbonedist">minbonedist() (ocelot.schema.conformer.ConformerDimer property)</a>
 </li>
-      <li><a href="ocelot.schema.html#ocelot.schema.dimer.Dimer.minbonedist">minbonedist() (ocelot.schema.dimer.Dimer property)</a>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.ConformerDimer.mindist">mindist() (ocelot.schema.conformer.ConformerDimer property)</a>
 </li>
-      <li><a href="ocelot.schema.html#ocelot.schema.dimer.Dimer.mol_overlap">mol_overlap() (ocelot.schema.dimer.Dimer method)</a>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.ConformerDimer.mol_overlap">mol_overlap() (ocelot.schema.conformer.ConformerDimer method)</a>
 </li>
-      <li><a href="ocelot.routines.html#ocelot.routines.mopac.mop2siteobjs">mop2siteobjs() (in module ocelot.routines.mopac)</a>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.MolConformer">MolConformer (class in ocelot.schema.conformer)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="ocelot.schema.html#ocelot.schema.graph.MolGraph">MolGraph (class in ocelot.schema.graph)</a>
+</li>
+      <li><a href="ocelot.routines.html#ocelot.routines.mopac.mop2siteobjs">mop2siteobjs() (in module ocelot.routines.mopac)</a>
+</li>
       <li><a href="ocelot.routines.html#ocelot.routines.mopac.MopacInput">MopacInput (class in ocelot.routines.mopac)</a>
 </li>
       <li><a href="ocelot.routines.html#ocelot.routines.mopac.MopacOutput">MopacOutput (class in ocelot.routines.mopac)</a>
 </li>
       <li><a href="ocelot.routines.html#ocelot.routines.fileop.movefile">movefile() (in module ocelot.routines.fileop)</a>
-</li>
-      <li><a href="ocelot.schema.html#ocelot.schema.msite.MSite">MSite (class in ocelot.schema.msite)</a>
-</li>
-      <li><a href="ocelot.schema.html#ocelot.schema.msitelist.MSitelist">MSitelist (class in ocelot.schema.msitelist)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -636,19 +834,27 @@
 <h2 id="N">N</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="ocelot.schema.html#ocelot.schema.rdfunc.RdFunc.n_nonsignlebond_electrons">n_nonsignlebond_electrons() (ocelot.schema.rdfunc.RdFunc static method)</a>
+</li>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.BasicConformer.nbrmap">nbrmap() (ocelot.schema.conformer.BasicConformer property)</a>
+</li>
       <li><a href="ocelot.task.html#ocelot.task.nics.NICSjob.nics_line_scan_path">nics_line_scan_path() (ocelot.task.nics.NICSjob method)</a>
 </li>
       <li><a href="ocelot.task.html#ocelot.task.nics.NICSjob.nics_sigma_structure">nics_sigma_structure() (ocelot.task.nics.NICSjob method)</a>
 </li>
-      <li><a href="ocelot.task.html#ocelot.task.nics.NICSjob">NICSjob (class in ocelot.task.nics)</a>
+      <li><a href="ocelot.task.html#ocelot.task.nics.NicsError">NicsError</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="ocelot.task.html#ocelot.task.nics.NICSjob">NICSjob (class in ocelot.task.nics)</a>
+</li>
+      <li><a href="ocelot.routines.html#ocelot.routines.disparser.DisParser.nodis_to_dis0">nodis_to_dis0() (ocelot.routines.disparser.DisParser method)</a>
+</li>
       <li><a href="ocelot.routines.html#ocelot.routines.fileop.nonblank_lines">nonblank_lines() (in module ocelot.routines.fileop)</a>
 </li>
       <li><a href="ocelot.routines.html#ocelot.routines.geometry.norm">norm() (in module ocelot.routines.geometry)</a>
 </li>
-      <li><a href="ocelot.schema.html#ocelot.schema.ring.Ring.normal_along">normal_along() (ocelot.schema.ring.Ring method)</a>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.RingConformer.normal_along">normal_along() (ocelot.schema.conformer.RingConformer method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -659,6 +865,10 @@
       <li><a href="ocelot.html#module-ocelot">ocelot (module)</a>
 </li>
       <li><a href="ocelot.routines.html#module-ocelot.routines">ocelot.routines (module)</a>
+</li>
+      <li><a href="ocelot.routines.html#module-ocelot.routines.conformerparser">ocelot.routines.conformerparser (module)</a>
+</li>
+      <li><a href="ocelot.routines.html#module-ocelot.routines.disparser">ocelot.routines.disparser (module)</a>
 </li>
       <li><a href="ocelot.routines.html#module-ocelot.routines.fileop">ocelot.routines.fileop (module)</a>
 </li>
@@ -672,41 +882,25 @@
 </li>
       <li><a href="ocelot.routines.html#module-ocelot.routines.pbc">ocelot.routines.pbc (module)</a>
 </li>
-      <li><a href="ocelot.routines.html#module-ocelot.routines.xyz2mol">ocelot.routines.xyz2mol (module)</a>
-</li>
       <li><a href="ocelot.schema.html#module-ocelot.schema">ocelot.schema (module)</a>
 </li>
-      <li><a href="ocelot.schema.html#module-ocelot.schema.backbone">ocelot.schema.backbone (module)</a>
+      <li><a href="ocelot.schema.html#module-ocelot.schema.configuration">ocelot.schema.configuration (module)</a>
 </li>
-      <li><a href="ocelot.schema.html#module-ocelot.schema.bond">ocelot.schema.bond (module)</a>
+      <li><a href="ocelot.schema.html#module-ocelot.schema.conformer">ocelot.schema.conformer (module)</a>
 </li>
-      <li><a href="ocelot.schema.html#module-ocelot.schema.config">ocelot.schema.config (module)</a>
+      <li><a href="ocelot.schema.html#module-ocelot.schema.graph">ocelot.schema.graph (module)</a>
 </li>
-      <li><a href="ocelot.schema.html#module-ocelot.schema.dimer">ocelot.schema.dimer (module)</a>
-</li>
-      <li><a href="ocelot.schema.html#module-ocelot.schema.dimercollection">ocelot.schema.dimercollection (module)</a>
-</li>
-      <li><a href="ocelot.schema.html#module-ocelot.schema.element">ocelot.schema.element (module)</a>
-</li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="ocelot.schema.html#module-ocelot.schema.msite">ocelot.schema.msite (module)</a>
-</li>
-      <li><a href="ocelot.schema.html#module-ocelot.schema.msitelist">ocelot.schema.msitelist (module)</a>
-</li>
-      <li><a href="ocelot.schema.html#module-ocelot.schema.omol">ocelot.schema.omol (module)</a>
-</li>
-      <li><a href="ocelot.schema.html#module-ocelot.schema.ring">ocelot.schema.ring (module)</a>
-</li>
-      <li><a href="ocelot.schema.html#module-ocelot.schema.sidechain">ocelot.schema.sidechain (module)</a>
+      <li><a href="ocelot.schema.html#module-ocelot.schema.rdfunc">ocelot.schema.rdfunc (module)</a>
 </li>
       <li><a href="ocelot.task.html#module-ocelot.task">ocelot.task (module)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="ocelot.task.html#module-ocelot.task.calec">ocelot.task.calec (module)</a>
 </li>
       <li><a href="ocelot.task.html#module-ocelot.task.dftd3">ocelot.task.dftd3 (module)</a>
 </li>
-      <li><a href="ocelot.task.html#module-ocelot.task.fitbox">ocelot.task.fitbox (module)</a>
+      <li><a href="ocelot.task.html#module-ocelot.task.hop">ocelot.task.hop (module)</a>
 </li>
       <li><a href="ocelot.task.html#module-ocelot.task.idchg">ocelot.task.idchg (module)</a>
 </li>
@@ -718,11 +912,23 @@
 </li>
       <li><a href="ocelot.task.html#module-ocelot.task.wtuning">ocelot.task.wtuning (module)</a>
 </li>
-      <li><a href="ocelot.schema.html#ocelot.schema.omol.OMol">OMol (class in ocelot.schema.omol)</a>
+      <li><a href="ocelot.task.html#module-ocelot.task.zindo">ocelot.task.zindo (module)</a>
 </li>
-      <li><a href="ocelot.schema.html#ocelot.schema.bond.Bond.order">order() (ocelot.schema.bond.Bond property)</a>
+      <li><a href="ocelot.task.html#ocelot.task.wtuning.WtuingJob.omega_extract">omega_extract() (ocelot.task.wtuning.WtuingJob method)</a>
 </li>
-      <li><a href="ocelot.schema.html#ocelot.schema.msitelist.MSitelist.orient">orient() (ocelot.schema.msitelist.MSitelist class method)</a>
+      <li><a href="ocelot.task.html#ocelot.task.wtuning.WtuingJob.omega_FindC">omega_FindC() (ocelot.task.wtuning.WtuingJob method)</a>
+</li>
+      <li><a href="ocelot.task.html#ocelot.task.wtuning.WtuingJob.omega_format">omega_format() (ocelot.task.wtuning.WtuingJob method)</a>
+</li>
+      <li><a href="ocelot.task.html#ocelot.task.wtuning.WtuingJob.omega_gauss_do">omega_gauss_do() (ocelot.task.wtuning.WtuingJob method)</a>
+</li>
+      <li><a href="ocelot.task.html#ocelot.task.wtuning.WtuingJob.omega_iopstr">omega_iopstr() (ocelot.task.wtuning.WtuingJob property)</a>
+</li>
+      <li><a href="ocelot.task.html#ocelot.task.wtuning.WtuingJob.omega_tune">omega_tune() (ocelot.task.wtuning.WtuingJob method)</a>
+</li>
+      <li><a href="ocelot.task.html#ocelot.task.wtuning.WtuingJob.omega_wtune">omega_wtune() (ocelot.task.wtuning.WtuingJob method)</a>
+</li>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.BasicConformer.orient">orient() (ocelot.schema.conformer.BasicConformer method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -731,6 +937,14 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="ocelot.task.html#ocelot.task.pkid.PackingIdentifier">PackingIdentifier (class in ocelot.task.pkid)</a>
+</li>
+      <li><a href="ocelot.routines.html#ocelot.routines.conformerparser.ACParser.parse">parse() (ocelot.routines.conformerparser.ACParser method)</a>
+
+      <ul>
+        <li><a href="ocelot.routines.html#ocelot.routines.disparser.DisParser.parse">(ocelot.routines.disparser.DisParser method)</a>
+</li>
+      </ul></li>
+      <li><a href="ocelot.routines.html#ocelot.routines.conformerparser.ACParser.parse_bonds">parse_bonds() (ocelot.routines.conformerparser.ACParser method)</a>
 </li>
       <li><a href="ocelot.routines.html#ocelot.routines.mopac.MopacOutput.parse_charges">parse_charges() (ocelot.routines.mopac.MopacOutput method)</a>
 </li>
@@ -742,10 +956,22 @@
 </li>
       <li><a href="ocelot.routines.html#ocelot.routines.mopac.MopacOutput.parse_thermo">parse_thermo() (ocelot.routines.mopac.MopacOutput method)</a>
 </li>
-      <li><a href="ocelot.task.html#ocelot.task.reciprocal.BZsampler.path_bandsfit">path_bandsfit() (ocelot.task.reciprocal.BZsampler static method)</a>
+      <li><a href="ocelot.task.html#ocelot.task.zindo.ZindoJob.parse_tmo">parse_tmo() (ocelot.task.zindo.ZindoJob method)</a>
 </li>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.MolConformer.partition">partition() (ocelot.schema.conformer.MolConformer method)</a>
+
+      <ul>
+        <li><a href="ocelot.schema.html#ocelot.schema.graph.MolGraph.partition">(ocelot.schema.graph.MolGraph method)</a>
+</li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="ocelot.routines.html#ocelot.routines.disparser.DisUnit.partition_asymmetric_unit">partition_asymmetric_unit() (ocelot.routines.disparser.DisUnit static method)</a>
+</li>
+      <li><a href="ocelot.schema.html#ocelot.schema.graph.MolGraph.partition_to_bone_frags">partition_to_bone_frags() (ocelot.schema.graph.MolGraph method)</a>
+</li>
+      <li><a href="ocelot.task.html#ocelot.task.reciprocal.BZsampler.path_bandsfit">path_bandsfit() (ocelot.task.reciprocal.BZsampler static method)</a>
+</li>
       <li><a href="ocelot.task.html#ocelot.task.reciprocal.BZsampler.path_ems">path_ems() (ocelot.task.reciprocal.BZsampler static method)</a>
 </li>
       <li><a href="ocelot.routines.html#ocelot.routines.pbc.PBCparser">PBCparser (class in ocelot.routines.pbc)</a>
@@ -754,11 +980,13 @@
 </li>
       <li><a href="ocelot.task.html#ocelot.task.nics.NICSjob.plot_path">plot_path() (ocelot.task.nics.NICSjob method)</a>
 </li>
-      <li><a href="ocelot.schema.html#ocelot.schema.dimer.Dimer.plt_bone_overlap">plt_bone_overlap() (ocelot.schema.dimer.Dimer method)</a>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.ConformerDimer.plt_bone_overlap">plt_bone_overlap() (ocelot.schema.conformer.ConformerDimer method)</a>
 </li>
       <li><a href="ocelot.task.html#ocelot.task.nics.NICSjob.plt_pizz_xypath">plt_pizz_xypath() (ocelot.task.nics.NICSjob static method)</a>
 </li>
-      <li><a href="ocelot.schema.html#ocelot.schema.msitelist.MSitelist.pmgmol">pmgmol() (ocelot.schema.msitelist.MSitelist property)</a>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.BasicConformer.pmgmol">pmgmol() (ocelot.schema.conformer.BasicConformer property)</a>
+</li>
+      <li><a href="ocelot.routines.html#ocelot.routines.conformerparser.pmgmol_to_rdmol">pmgmol_to_rdmol() (in module ocelot.routines.conformerparser)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -768,29 +996,25 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="ocelot.routines.html#ocelot.routines.mathop.ra_to_rb">ra_to_rb() (in module ocelot.routines.mathop)</a>
 </li>
-      <li><a href="ocelot.schema.html#ocelot.schema.msitelist.MSitelist.rdkit_mol">rdkit_mol() (ocelot.schema.msitelist.MSitelist property)</a>
+      <li><a href="ocelot.schema.html#ocelot.schema.rdfunc.RdFunc">RdFunc (class in ocelot.schema.rdfunc)</a>
 </li>
       <li><a href="ocelot.routines.html#ocelot.routines.fileop.read_obj">read_obj() (in module ocelot.routines.fileop)</a>
-</li>
-      <li><a href="ocelot.routines.html#ocelot.routines.xyz2mol.read_xyz_file">read_xyz_file() (in module ocelot.routines.xyz2mol)</a>
 </li>
       <li><a href="ocelot.routines.html#ocelot.routines.fileop.removefile">removefile() (in module ocelot.routines.fileop)</a>
 </li>
       <li><a href="ocelot.routines.html#ocelot.routines.fileop.retrieve_name">retrieve_name() (in module ocelot.routines.fileop)</a>
 </li>
-      <li><a href="ocelot.schema.html#ocelot.schema.ring.Ring">Ring (class in ocelot.schema.ring)</a>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.RingConformer">RingConformer (class in ocelot.schema.conformer)</a>
+</li>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.BasicConformer.rotate_along">rotate_along() (ocelot.schema.conformer.BasicConformer method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="ocelot.schema.html#ocelot.schema.ring.Ring.ring_insaturation">ring_insaturation() (ocelot.schema.ring.Ring property)</a>
-</li>
-      <li><a href="ocelot.schema.html#ocelot.schema.msitelist.MSitelist.rotate_along">rotate_along() (ocelot.schema.msitelist.MSitelist method)</a>
-</li>
       <li><a href="ocelot.routines.html#ocelot.routines.geometry.rotate_along_axis">rotate_along_axis() (in module ocelot.routines.geometry)</a>
 </li>
-      <li><a href="ocelot.schema.html#ocelot.schema.msitelist.MSitelist.rotate_along_de_matrix">rotate_along_de_matrix() (ocelot.schema.msitelist.MSitelist method)</a>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.BasicConformer.rotate_along_de_matrix">rotate_along_de_matrix() (ocelot.schema.conformer.BasicConformer static method)</a>
 </li>
-      <li><a href="ocelot.schema.html#ocelot.schema.msitelist.MSitelist.rotate_along_with_matrix">rotate_along_with_matrix() (ocelot.schema.msitelist.MSitelist method)</a>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.BasicConformer.rotate_along_with_matrix">rotate_along_with_matrix() (ocelot.schema.conformer.BasicConformer method)</a>
 </li>
       <li><a href="ocelot.routines.html#ocelot.routines.geometry.rotation_matrix">rotation_matrix() (in module ocelot.routines.geometry)</a>
 </li>
@@ -800,53 +1024,105 @@
         <li><a href="ocelot.task.html#ocelot.task.idchg.IdChg.run">(ocelot.task.idchg.IdChg method)</a>
 </li>
       </ul></li>
+      <li><a href="ocelot.task.html#ocelot.task.hop.Hop.run_zindo">run_zindo() (ocelot.task.hop.Hop method)</a>
+</li>
   </ul></td>
 </tr></table>
 
 <h2 id="S">S</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="ocelot.routines.html#ocelot.routines.xyz2mol.set_atomic_charges">set_atomic_charges() (in module ocelot.routines.xyz2mol)</a>
+      <li><a href="ocelot.task.html#ocelot.task.hop.Hop.screen_dimers">screen_dimers() (ocelot.task.hop.Hop static method)</a>
 </li>
-      <li><a href="ocelot.routines.html#ocelot.routines.xyz2mol.set_atomic_radicals">set_atomic_radicals() (in module ocelot.routines.xyz2mol)</a>
+      <li><a href="ocelot.routines.html#ocelot.routines.conformerparser.ACParser.set_atomic_charges">set_atomic_charges() (ocelot.routines.conformerparser.ACParser method)</a>
 </li>
-      <li><a href="ocelot.schema.html#ocelot.schema.msitelist.MSitelist.shape_descriptors">shape_descriptors() (ocelot.schema.msitelist.MSitelist property)</a>
+      <li><a href="ocelot.routines.html#ocelot.routines.conformerparser.ACParser.set_atomic_radicals">set_atomic_radicals() (ocelot.routines.conformerparser.ACParser method)</a>
 </li>
-      <li><a href="ocelot.schema.html#ocelot.schema.sidechain.Sidechain">Sidechain (class in ocelot.schema.sidechain)</a>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.SidechainConformer">SidechainConformer (class in ocelot.schema.conformer)</a>
+</li>
+      <li><a href="ocelot.schema.html#ocelot.schema.graph.SidechainGraph">SidechainGraph (class in ocelot.schema.graph)</a>
+</li>
+      <li><a href="ocelot.schema.html#ocelot.schema.graph.SideJointError">SideJointError</a>
+</li>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.BasicConformer.siteid2index">siteid2index() (ocelot.schema.conformer.BasicConformer property)</a>
+</li>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.SiteidError">SiteidError</a>
+</li>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.SiteidOperation">SiteidOperation (class in ocelot.schema.conformer)</a>
+</li>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.SiteidOperation.siteids">siteids() (ocelot.schema.conformer.SiteidOperation property)</a>
+</li>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.ConformerDimer.sites">sites() (ocelot.schema.conformer.ConformerDimer property)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="ocelot.schema.html#ocelot.schema.msite.MSite.siteid">siteid() (ocelot.schema.msite.MSite property)</a>
-</li>
       <li><a href="ocelot.routines.html#ocelot.routines.mopac.MopacInput.sites2mopinput">sites2mopinput() (ocelot.routines.mopac.MopacInput static method)</a>
+</li>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.BasicConformer.sort_by_siteid">sort_by_siteid() (ocelot.schema.conformer.BasicConformer method)</a>
 </li>
       <li><a href="ocelot.routines.html#ocelot.routines.pbc.CIFparser.split_pymatgen_dict">split_pymatgen_dict() (ocelot.routines.pbc.CIFparser static method)</a>
 </li>
       <li><a href="ocelot.routines.html#ocelot.routines.pbc.PBCparser.squeeze">squeeze() (ocelot.routines.pbc.PBCparser static method)</a>
 </li>
+      <li><a href="ocelot.routines.html#ocelot.routines.loop.Loopsearcher.sssr_alex">sssr_alex() (ocelot.routines.loop.Loopsearcher method)</a>
+</li>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.SiteidOperation.status">status() (ocelot.schema.conformer.SiteidOperation property)</a>
+</li>
+      <li><a href="ocelot.routines.html#ocelot.routines.disparser.sub_spgrp">sub_spgrp() (in module ocelot.routines.disparser)</a>
+</li>
+      <li><a href="ocelot.schema.html#ocelot.schema.rdfunc.RdFunc.substructurematch">substructurematch() (ocelot.schema.rdfunc.RdFunc static method)</a>
+</li>
+      <li><a href="ocelot.task.html#ocelot.task.hop.Hop.supercell_proj">supercell_proj() (ocelot.task.hop.Hop static method)</a>
+</li>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.BasicConformer.symbols">symbols() (ocelot.schema.conformer.BasicConformer property)</a>
+
+      <ul>
+        <li><a href="ocelot.schema.html#ocelot.schema.graph.BasicGraph.symbols">(ocelot.schema.graph.BasicGraph property)</a>
+</li>
+      </ul></li>
   </ul></td>
 </tr></table>
 
 <h2 id="T">T</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="ocelot.schema.html#ocelot.schema.backbone.Backbone.terminate">terminate() (ocelot.schema.backbone.Backbone method)</a>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.MolConformer.to_addhmol">to_addhmol() (ocelot.schema.conformer.MolConformer method)</a>
 </li>
-      <li><a href="ocelot.schema.html#ocelot.schema.msitelist.MSitelist.to">to() (ocelot.schema.msitelist.MSitelist method)</a>
+      <li><a href="ocelot.routines.html#ocelot.routines.disparser.DisParser.to_configs">to_configs() (ocelot.routines.disparser.DisParser method)</a>
 </li>
-      <li><a href="ocelot.schema.html#ocelot.schema.omol.OMol.to_pymatgen_mol">to_pymatgen_mol() (ocelot.schema.omol.OMol method)</a>
+      <li><a href="ocelot.task.html#ocelot.task.wtuning.WtuingJob.to_dict">to_dict() (ocelot.task.wtuning.WtuingJob method)</a>
+</li>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.BasicConformer.to_file">to_file() (ocelot.schema.conformer.BasicConformer method)</a>
+
+      <ul>
+        <li><a href="ocelot.task.html#ocelot.task.wtuning.WtuingJob.to_file">(ocelot.task.wtuning.WtuingJob method)</a>
+</li>
+      </ul></li>
+      <li><a href="ocelot.schema.html#ocelot.schema.graph.to_fracrgb">to_fracrgb() (in module ocelot.schema.graph)</a>
+</li>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.BasicConformer.to_graph">to_graph() (ocelot.schema.conformer.BasicConformer method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="ocelot.schema.html#ocelot.schema.msite.MSite.to_pymatgen_site">to_pymatgen_site() (ocelot.schema.msite.MSite method)</a>
-</li>
-      <li><a href="ocelot.schema.html#ocelot.schema.dimer.Dimer.to_xyz">to_xyz() (ocelot.schema.dimer.Dimer method)</a>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.BasicConformer.to_rdmol">to_rdmol() (ocelot.schema.conformer.BasicConformer method)</a>
 
       <ul>
-        <li><a href="ocelot.schema.html#ocelot.schema.dimercollection.DimerCollection.to_xyz">(ocelot.schema.dimercollection.DimerCollection method)</a>
+        <li><a href="ocelot.schema.html#ocelot.schema.graph.BasicGraph.to_rdmol">(ocelot.schema.graph.BasicGraph method)</a>
 </li>
       </ul></li>
+      <li><a href="ocelot.schema.html#ocelot.schema.rdfunc.RdFunc.to_smarts">to_smarts() (ocelot.schema.rdfunc.RdFunc static method)</a>
+</li>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.ConformerDimer.to_xyz">to_xyz() (ocelot.schema.conformer.ConformerDimer method)</a>
+
+      <ul>
+        <li><a href="ocelot.schema.html#ocelot.schema.conformer.DimerCollection.to_xyz">(ocelot.schema.conformer.DimerCollection method)</a>
+</li>
+      </ul></li>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.ConformerDimer.to_xyzstring">to_xyzstring() (ocelot.schema.conformer.ConformerDimer method)</a>
+</li>
       <li><a href="ocelot.task.html#ocelot.task.calec.ElectronicCoupling.triangle_fill">triangle_fill (ocelot.task.calec.ElectronicCoupling attribute)</a>
+</li>
+      <li><a href="ocelot.task.html#ocelot.task.wtuning.WtuingJob.tuning_cycle">tuning_cycle() (ocelot.task.wtuning.WtuingJob method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -856,8 +1132,12 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="ocelot.routines.html#ocelot.routines.geometry.unify">unify() (in module ocelot.routines.geometry)</a>
 </li>
+      <li><a href="ocelot.task.html#ocelot.task.hop.Hop.unique_ijk">unique_ijk() (ocelot.task.hop.Hop static method)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="ocelot.schema.html#ocelot.schema.rdfunc.RdFunc.unsaturation">unsaturation() (ocelot.schema.rdfunc.RdFunc static method)</a>
+</li>
       <li><a href="ocelot.routines.html#ocelot.routines.pbc.PBCparser.unwrap">unwrap() (ocelot.routines.pbc.PBCparser static method)</a>
 </li>
   </ul></td>
@@ -866,23 +1146,19 @@
 <h2 id="V">V</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="ocelot.schema.html#ocelot.schema.element.Element.valence">valence() (ocelot.schema.element.Element property)</a>
+      <li><a href="ocelot.routines.html#ocelot.routines.conformerparser.valence_electron">valence_electron() (in module ocelot.routines.conformerparser)</a>
+
+      <ul>
+        <li><a href="ocelot.task.html#ocelot.task.zindo.valence_electron">(in module ocelot.task.zindo)</a>
 </li>
-      <li><a href="ocelot.schema.html#ocelot.schema.element.Element.valence_dict">valence_dict (ocelot.schema.element.Element attribute)</a>
-</li>
-      <li><a href="ocelot.routines.html#ocelot.routines.xyz2mol.valences_not_too_large">valences_not_too_large() (in module ocelot.routines.xyz2mol)</a>
-</li>
-      <li><a href="ocelot.schema.html#ocelot.schema.element.Element.vanrad">vanrad() (ocelot.schema.element.Element property)</a>
-</li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="ocelot.routines.html#ocelot.routines.conformerparser.ACParser.valences_not_too_large">valences_not_too_large() (ocelot.routines.conformerparser.ACParser static method)</a>
+</li>
       <li><a href="ocelot.task.html#ocelot.task.reciprocal.BZsampler.vasp_path_data_ocelot">vasp_path_data_ocelot() (ocelot.task.reciprocal.BZsampler static method)</a>
 </li>
-      <li><a href="ocelot.schema.html#ocelot.schema.element.Element.vdw_radii">vdw_radii (ocelot.schema.element.Element attribute)</a>
-</li>
-      <li><a href="ocelot.schema.html#ocelot.schema.msitelist.MSitelist.volume">volume() (ocelot.schema.msitelist.MSitelist property)</a>
-</li>
-      <li><a href="ocelot.schema.html#ocelot.schema.msitelist.MSitelist.volume_slow">volume_slow() (ocelot.schema.msitelist.MSitelist property)</a>
+      <li><a href="ocelot.schema.html#ocelot.schema.conformer.BasicConformer.volume_slow">volume_slow() (ocelot.schema.conformer.BasicConformer property)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -894,35 +1170,19 @@
 </li>
       <li><a href="ocelot.routines.html#ocelot.routines.pbc.CIFparser.write_config_dict">write_config_dict() (ocelot.routines.pbc.CIFparser static method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="ocelot.task.html#ocelot.task.zindo.ZindoJob.write_dimer">write_dimer() (ocelot.task.zindo.ZindoJob method)</a>
+</li>
       <li><a href="ocelot.task.html#ocelot.task.idchg.IdChg.write_inp">write_inp() (ocelot.task.idchg.IdChg method)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="ocelot.routines.html#ocelot.routines.mopac.MopacInput.write_mopinput">write_mopinput() (ocelot.routines.mopac.MopacInput method)</a>
 </li>
       <li><a href="ocelot.routines.html#ocelot.routines.fileop.write_obj">write_obj() (in module ocelot.routines.fileop)</a>
 </li>
-  </ul></td>
-</tr></table>
-
-<h2 id="X">X</h2>
-<table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="ocelot.schema.html#ocelot.schema.msite.MSite.x">x() (ocelot.schema.msite.MSite property)</a>
+      <li><a href="ocelot.task.html#ocelot.task.zindo.ZindoJob.write_single">write_single() (ocelot.task.zindo.ZindoJob method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="ocelot.routines.html#ocelot.routines.xyz2mol.xyz2AC">xyz2AC() (in module ocelot.routines.xyz2mol)</a>
-</li>
-      <li><a href="ocelot.routines.html#ocelot.routines.xyz2mol.xyz2mol">xyz2mol() (in module ocelot.routines.xyz2mol)</a>
-</li>
-  </ul></td>
-</tr></table>
-
-<h2 id="Y">Y</h2>
-<table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="ocelot.schema.html#ocelot.schema.msite.MSite.y">y() (ocelot.schema.msite.MSite property)</a>
+      <li><a href="ocelot.task.html#ocelot.task.wtuning.WtuingJob">WtuingJob (class in ocelot.task.wtuning)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -930,7 +1190,7 @@
 <h2 id="Z">Z</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="ocelot.schema.html#ocelot.schema.msite.MSite.z">z() (ocelot.schema.msite.MSite property)</a>
+      <li><a href="ocelot.task.html#ocelot.task.zindo.ZindoJob">ZindoJob (class in ocelot.task.zindo)</a>
 </li>
   </ul></td>
 </tr></table>

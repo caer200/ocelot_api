@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ocelot.routines.loop &mdash; ocelot 0.01 documentation</title>
+  <title>ocelot.routines.loop &mdash; ocelot 0.2 documentation</title>
   
 
   
@@ -58,7 +58,7 @@
             
             
               <div class="version">
-                0.01
+                0.2
               </div>
             
           
@@ -85,7 +85,10 @@
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#quick-start">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#schema">schema</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#disorder">Disorder</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#bone-config">Bone Config</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#backbone-and-sidechain">Backbone and Sidechain</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../ocelot.html">ocelot package</a></li>
 </ul>
 
@@ -150,7 +153,11 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ocelot.routines.loop</h1><div class="highlight"><pre>
-<div class="viewcode-block" id="Loopsearcher"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.loop.Loopsearcher">[docs]</a><span></span><span class="k">class</span> <span class="nc">Loopsearcher</span><span class="p">:</span>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">as we are using networkx this can be deprecated...</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Loopsearcher"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.loop.Loopsearcher">[docs]</a><span class="k">class</span> <span class="nc">Loopsearcher</span><span class="p">:</span>
 
 <div class="viewcode-block" id="Loopsearcher.__init__"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.loop.Loopsearcher.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nbmap</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -164,7 +171,9 @@
 
 <span class="sd">        :param nbmap: connection table</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">nbmap</span> <span class="o">=</span> <span class="n">nbmap</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nbmap</span> <span class="o">=</span> <span class="n">nbmap</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">edges</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">generate_edges</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nbmap</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span></div>
 
 <div class="viewcode-block" id="Loopsearcher.expand"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.loop.Loopsearcher.expand">[docs]</a>    <span class="k">def</span> <span class="nf">expand</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path_set</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -218,7 +227,57 @@
         <span class="k">for</span> <span class="n">idxlst</span> <span class="ow">in</span> <span class="n">loop_found</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">idxlst</span><span class="p">)</span> <span class="o">==</span> <span class="n">loopsize</span><span class="p">:</span>
                 <span class="n">true_loop_found</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">idxlst</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">true_loop_found</span></div></div>
+        <span class="k">return</span> <span class="n">true_loop_found</span></div>
+
+<div class="viewcode-block" id="Loopsearcher.sssr_alex"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.loop.Loopsearcher.sssr_alex">[docs]</a>    <span class="k">def</span> <span class="nf">sssr_alex</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">size_min</span><span class="p">,</span> <span class="n">size_max</span><span class="p">):</span>
+        <span class="n">loops</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">size</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">size_min</span><span class="p">,</span> <span class="n">size_max</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+            <span class="n">loops</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">alex_method</span><span class="p">(</span><span class="n">size</span><span class="p">)</span>
+        <span class="n">basis_loops</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">basis_loops_set</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">loop1</span> <span class="ow">in</span> <span class="n">loops</span><span class="p">:</span>
+            <span class="n">loop1fused</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">for</span> <span class="n">loop2</span> <span class="ow">in</span> <span class="n">loops</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">set</span><span class="p">(</span><span class="n">loop1</span><span class="p">)</span><span class="o">.</span><span class="n">issuperset</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">loop2</span><span class="p">))</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">loop1</span><span class="p">)</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">loop2</span><span class="p">):</span>
+                    <span class="n">loop1fused</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="k">break</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">loop1fused</span> <span class="ow">and</span> <span class="nb">set</span><span class="p">(</span><span class="n">loop1</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">basis_loops_set</span><span class="p">:</span>
+                    <span class="n">basis_loops</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">loop1</span><span class="p">)</span>
+                    <span class="n">basis_loops_set</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">loop1</span><span class="p">))</span>
+
+        <span class="c1"># # there should be an easier way for this...</span>
+        <span class="c1"># # https://stackoverflow.com/questions/32071425/</span>
+        <span class="c1"># # I cannot find a gaussian elimination implementation based on xor</span>
+        <span class="c1"># edgematrix = np.zeros((len(loops), len(self.edges)))</span>
+        <span class="c1"># for i in range(len(loops)):</span>
+        <span class="c1">#     l_edges = self.loop2edges(loops[i])</span>
+        <span class="c1">#     for j in range(len(self.edges)):</span>
+        <span class="c1">#         if self.edges[j] in l_edges:</span>
+        <span class="c1">#             edgematrix[i, j] = 1</span>
+        <span class="c1"># pl, u = lu(edgematrix, permute_l=True)</span>
+        <span class="c1"># basis_loops = [loops[i] for i in np.where(u.any(axis=1))[0]]</span>
+        <span class="k">return</span> <span class="n">basis_loops</span></div>
+
+
+<div class="viewcode-block" id="Loopsearcher.loop2edges"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.loop.Loopsearcher.loop2edges">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">loop2edges</span><span class="p">(</span><span class="n">loop</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        notice here loop is sth like [1, 2, 3], where it is implied that 1 is connected to 3</span>
+
+<span class="sd">        :param loop:</span>
+<span class="sd">        :return: e.g. [{1, 2}, {2, 3}, {1, 3}]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">loop</span> <span class="o">+</span> <span class="p">[</span><span class="n">loop</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+        <span class="n">edges</span> <span class="o">=</span> <span class="p">[</span><span class="nb">set</span><span class="p">(</span><span class="n">pair</span><span class="p">)</span> <span class="k">for</span> <span class="n">pair</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">path</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">path</span><span class="p">[</span><span class="mi">1</span><span class="p">:])]</span>
+        <span class="k">return</span> <span class="n">edges</span></div>
+
+<div class="viewcode-block" id="Loopsearcher.generate_edges"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.loop.Loopsearcher.generate_edges">[docs]</a>    <span class="k">def</span> <span class="nf">generate_edges</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">graph</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nbmap</span>
+        <span class="n">edges</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">graph</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">neighbour</span> <span class="ow">in</span> <span class="n">graph</span><span class="p">[</span><span class="n">node</span><span class="p">]:</span>
+                <span class="n">edges</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="n">node</span><span class="p">,</span> <span class="n">neighbour</span><span class="p">})</span>
+        <span class="k">return</span> <span class="n">edges</span></div></div>
 </pre></div>
 
            </div>

@@ -270,7 +270,7 @@ class ElectronicCoupling:
                 matrix_elements.append(overlap_value)
         overlap = ElectronicCoupling.create_matrix(overlap_matrix, matrix_elements, nbf)
         overlap = ElectronicCoupling.make_symmetric(overlap)
-        overlap = np.matrix(overlap)
+        overlap = np.array(overlap)
 
         return overlap
 

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Welcome to ocelot’s documentation! &mdash; ocelot 0.01 documentation</title>
+  <title>Welcome to ocelot’s documentation! &mdash; ocelot 0.2 documentation</title>
   
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                0.01
+                0.2
               </div>
             
           
@@ -86,7 +86,10 @@
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="quick_start.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="quick_start.html#quick-start">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html#schema">schema</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html#disorder">Disorder</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html#bone-config">Bone Config</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html#backbone-and-sidechain">Backbone and Sidechain</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ocelot.html">ocelot package</a></li>
 </ul>
 
@@ -158,34 +161,31 @@
 <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="quick_start.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="quick_start.html#quick-start">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html#schema">schema</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html#disorder">Disorder</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html#bone-config">Bone Config</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html#backbone-and-sidechain">Backbone and Sidechain</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ocelot.html">ocelot package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="ocelot.html#subpackages">Subpackages</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="ocelot.routines.html">ocelot.routines package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="ocelot.routines.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ocelot.routines.html#module-ocelot.routines.conformerparser">ocelot.routines.conformerparser module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ocelot.routines.html#module-ocelot.routines.disparser">ocelot.routines.disparser module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="ocelot.routines.html#module-ocelot.routines.fileop">ocelot.routines.fileop module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="ocelot.routines.html#module-ocelot.routines.geometry">ocelot.routines.geometry module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="ocelot.routines.html#module-ocelot.routines.loop">ocelot.routines.loop module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="ocelot.routines.html#module-ocelot.routines.mathop">ocelot.routines.mathop module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="ocelot.routines.html#module-ocelot.routines.mopac">ocelot.routines.mopac module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="ocelot.routines.html#module-ocelot.routines.pbc">ocelot.routines.pbc module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="ocelot.routines.html#module-ocelot.routines.xyz2mol">ocelot.routines.xyz2mol module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="ocelot.routines.html#module-ocelot.routines">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="ocelot.schema.html">ocelot.schema package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="ocelot.schema.html#submodules">Submodules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="ocelot.schema.html#module-ocelot.schema.backbone">ocelot.schema.backbone module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="ocelot.schema.html#module-ocelot.schema.bond">ocelot.schema.bond module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="ocelot.schema.html#module-ocelot.schema.config">ocelot.schema.config module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="ocelot.schema.html#module-ocelot.schema.dimer">ocelot.schema.dimer module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="ocelot.schema.html#module-ocelot.schema.dimercollection">ocelot.schema.dimercollection module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="ocelot.schema.html#module-ocelot.schema.element">ocelot.schema.element module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="ocelot.schema.html#module-ocelot.schema.msite">ocelot.schema.msite module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="ocelot.schema.html#module-ocelot.schema.msitelist">ocelot.schema.msitelist module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="ocelot.schema.html#module-ocelot.schema.omol">ocelot.schema.omol module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="ocelot.schema.html#module-ocelot.schema.ring">ocelot.schema.ring module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="ocelot.schema.html#module-ocelot.schema.sidechain">ocelot.schema.sidechain module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ocelot.schema.html#module-ocelot.schema.configuration">ocelot.schema.configuration module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ocelot.schema.html#module-ocelot.schema.conformer">ocelot.schema.conformer module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ocelot.schema.html#module-ocelot.schema.graph">ocelot.schema.graph module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ocelot.schema.html#module-ocelot.schema.rdfunc">ocelot.schema.rdfunc module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="ocelot.schema.html#module-ocelot.schema">Module contents</a></li>
 </ul>
 </li>
@@ -193,12 +193,13 @@
 <li class="toctree-l4"><a class="reference internal" href="ocelot.task.html#submodules">Submodules</a></li>
 <li class="toctree-l4"><a class="reference internal" href="ocelot.task.html#module-ocelot.task.calec">ocelot.task.calec module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="ocelot.task.html#module-ocelot.task.dftd3">ocelot.task.dftd3 module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="ocelot.task.html#module-ocelot.task.fitbox">ocelot.task.fitbox module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ocelot.task.html#module-ocelot.task.hop">ocelot.task.hop module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="ocelot.task.html#module-ocelot.task.idchg">ocelot.task.idchg module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="ocelot.task.html#module-ocelot.task.nics">ocelot.task.nics module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="ocelot.task.html#module-ocelot.task.pkid">ocelot.task.pkid module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="ocelot.task.html#module-ocelot.task.reciprocal">ocelot.task.reciprocal module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="ocelot.task.html#module-ocelot.task.wtuning">ocelot.task.wtuning module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ocelot.task.html#module-ocelot.task.zindo">ocelot.task.zindo module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="ocelot.task.html#module-ocelot.task">Module contents</a></li>
 </ul>
 </li>

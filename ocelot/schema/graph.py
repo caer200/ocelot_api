@@ -20,8 +20,6 @@ only node-induced subgraph in substructure search
 
 If G’=(N’,E’) is a node-induced subgraph, then:
 N’ is a subset of N E’ is the subset of edges in E relating nodes in N’
-
-
 """
 
 
@@ -110,22 +108,6 @@ class BasicGraph:
         if not nx.is_connected(g):
             raise GraphNotConnectedError('the graph is not connected!')
         return cls(g)
-
-    # @classmethod
-    # def from_nodecollection(cls, nc, adjmat):
-    #     """
-    #     given nodecollection and adjacency matrix, return BasicGraph
-    #
-    #     adjmat[n1.index][n2.index] == 1 if bonded
-    #
-    #     """
-    #     G = nx.Graph()
-    #     for node in nc:
-    #         G.add_node(node.index, symbol=node.name)
-    #         for nj in nc:
-    #             if adjmat[node.index][nj.index] and nj != node:
-    #                 G.add_edge(node.index, nj.index)
-    #     return cls(G)
 
     @classmethod
     def from_dict(cls, d):

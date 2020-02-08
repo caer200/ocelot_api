@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ocelot.routines.geometry &mdash; ocelot 0.01 documentation</title>
+  <title>ocelot.routines.geometry &mdash; ocelot 0.2 documentation</title>
   
 
   
@@ -58,7 +58,7 @@
             
             
               <div class="version">
-                0.01
+                0.2
               </div>
             
           
@@ -85,7 +85,10 @@
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#quick-start">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#schema">schema</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#disorder">Disorder</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#bone-config">Bone Config</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#backbone-and-sidechain">Backbone and Sidechain</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../ocelot.html">ocelot package</a></li>
 </ul>
 
@@ -193,6 +196,8 @@
 
 
 <div class="viewcode-block" id="unify"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.geometry.unify">[docs]</a><span class="k">def</span> <span class="nf">unify</span><span class="p">(</span><span class="n">v</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">norm</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">v</span>
     <span class="k">return</span> <span class="n">v</span> <span class="o">/</span> <span class="n">norm</span><span class="p">(</span><span class="n">v</span><span class="p">)</span></div>
 
 
@@ -381,11 +386,13 @@
 
 <div class="viewcode-block" id="alpha_shape"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.geometry.alpha_shape">[docs]</a><span class="k">def</span> <span class="nf">alpha_shape</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.7</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    0.7 seems work for adt</span>
+<span class="sd">    0.7 seems work for adt, see tests</span>
+<span class="sd">    usually the problem seems to be there&#39;re just too few points to get enough triangles, if we can add more points</span>
+<span class="sd">    inside the rings we can get smaller concave hull</span>
 
 <span class="sd">    https://gist.github.com/dwyerk/10561690</span>
 
-<span class="sd">    Compute the alpha shape (concave hull) of a set of points.</span>
+<span class="sd">    Compute the alpha shape (concave hull) of a set of 2D points.</span>
 
 <span class="sd">    :param points: Iterable container of points.</span>
 <span class="sd">    :param alpha: alpha value to influence the gooeyness of the border. Smaller numbers don&#39;t fall inward as much as larger numbers. Too large, and you lose everything!</span>

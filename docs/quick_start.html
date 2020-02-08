@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Installation &mdash; ocelot 0.01 documentation</title>
+  <title>Installation &mdash; ocelot 0.2 documentation</title>
   
 
   
@@ -60,7 +60,7 @@
             
             
               <div class="version">
-                0.01
+                0.2
               </div>
             
           
@@ -87,7 +87,10 @@
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="#quick-start">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#schema">schema</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#disorder">Disorder</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#bone-config">Bone Config</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#backbone-and-sidechain">Backbone and Sidechain</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ocelot.html">ocelot package</a></li>
 </ul>
 
@@ -156,83 +159,137 @@
   <div class="section" id="installation">
 <h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
 <ol>
-<li><p>clone the release branch (e.g. <code class="docutils literal notranslate"><span class="pre">v0.01</span></code>) by</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git clone --single-branch --branch v0.01 git@github.com:caer200/ocelot_api.git
+<li><p>make sure <code class="docutils literal notranslate"><span class="pre">conda</span></code> works properly</p></li>
+<li><p>clone the latest version (e.g. <code class="docutils literal notranslate"><span class="pre">v0.2</span></code>) by</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git clone --single-branch --branch v0.2 git@github.com:caer200/ocelot_api.git
 </pre></div>
 </div>
 </li>
-<li><p>make sure <code class="docutils literal notranslate"><span class="pre">conda</span></code> is working, create a new venv with</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda env create -f env.yml
+<li><p>this yields a folder called <code class="docutils literal notranslate"><span class="pre">ocelot_api</span></code>, create a new venv with</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda env create -f venv/environment.yaml
+</pre></div>
+</div>
+<p>or</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda create --name ocelot venv/spec-file.txt
 </pre></div>
 </div>
 </li>
-<li><p>this yields a folder called <code class="docutils literal notranslate"><span class="pre">ocelot_api</span></code>, run <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">setup.py</span> <span class="pre">install</span></code> there</p></li>
+<li><p>run <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">setup.py</span> <span class="pre">install</span></code> there</p></li>
 </ol>
-<p>let’s say there’s a cif file here</p>
 </div>
-<div class="section" id="quick-start">
-<h1>Quick Start<a class="headerlink" href="#quick-start" title="Permalink to this headline">¶</a></h1>
-<p>Let’s say you have a CIF file as <code class="docutils literal notranslate"><span class="pre">tipgebw.cif</span></code>. It looks like this in <code class="docutils literal notranslate"><span class="pre">Jmol</span></code>.</p>
+<div class="section" id="schema">
+<h1>schema<a class="headerlink" href="#schema" title="Permalink to this headline">¶</a></h1>
+<p>A <code class="docutils literal notranslate"><span class="pre">MolGraph</span></code> is a graph consists of integer nodes (nodename) and edges connecting them.
+For each node, there is an string attribute denotes the element.</p>
+<p>A <code class="docutils literal notranslate"><span class="pre">MolGraph</span></code> can be partitioned into a set of <code class="docutils literal notranslate"><span class="pre">FragmentGraph</span></code>. A <code class="docutils literal notranslate"><span class="pre">FragmentGraph</span></code> contains
+the information of <code class="docutils literal notranslate"><span class="pre">joints</span></code> at which fragmentation happened. The <code class="docutils literal notranslate"><span class="pre">FragmentGraph</span></code> is
+used to represent different functional fragments commonly seen in functional organic
+molecules.</p>
+<p>One level above the <code class="docutils literal notranslate"><span class="pre">MolGrap</span></code> is the molecualr graph that contains
+details of bonds and basic information about the electronic system.
+This is the “molecule” drawn by chemists and
+can be nicely described by the molecule class in <code class="docutils literal notranslate"><span class="pre">rdkit</span></code>. It should be noticed that
+converting <code class="docutils literal notranslate"><span class="pre">MolGraph</span></code> to <code class="docutils literal notranslate"><span class="pre">rdkit.mol</span></code> is not trivial.
+We use the method from <a class="reference external" href="https://github.com/jensengroup/xyz2mol">xyz2mol</a> by
+<a class="reference external" href="https://github.com/jensengroup">Jensen Group</a>.</p>
+<p>With conformational information, a <code class="docutils literal notranslate"><span class="pre">MolGraph</span></code>/<code class="docutils literal notranslate"><span class="pre">FragmentGraph</span></code>
+becomes a <code class="docutils literal notranslate"><span class="pre">MolConformer</span></code>/<code class="docutils literal notranslate"><span class="pre">FragConformer</span></code> that can
+be uniquely defined by the Cartesian coordinates (xyz) of its atoms. Basically,
+they are <code class="docutils literal notranslate"><span class="pre">pymatgen.Molecule</span></code> except for each <code class="docutils literal notranslate"><span class="pre">site</span></code>, there is a property <code class="docutils literal notranslate"><span class="pre">siteid</span></code>
+that can be mapped to the nodes in <code class="docutils literal notranslate"><span class="pre">MoleGraph</span></code>.</p>
+<p>Adding periodicity to a <code class="docutils literal notranslate"><span class="pre">MolConformer</span></code> yields a <code class="docutils literal notranslate"><span class="pre">Config</span></code>, which is just a
+<code class="docutils literal notranslate"><span class="pre">pymatgen.strcuture</span></code> with no disordered sites. Disorder should be represented by
+a set of weighted <code class="docutils literal notranslate"><span class="pre">Config</span></code>, as this API is used primarily for
+handling organic molecular crystals in which the number of possible configurations is limited
+by molecular structure.</p>
+</div>
+<div class="section" id="disorder">
+<h1>Disorder<a class="headerlink" href="#disorder" title="Permalink to this headline">¶</a></h1>
+<p>Let’s say you have a CIF file as <code class="docutils literal notranslate"><span class="pre">x17059.cif</span></code>. It looks like this in <code class="docutils literal notranslate"><span class="pre">Jmol</span></code>.</p>
 <p><img alt="tipgebw" src="_images/tipgebw.png" /></p>
-<p>Such structure is not ready for any calculations as it contains disorder (at TIPS),
-if you look into the cif file you will find 2 disorder groups. So the first thing we want is to clean up disorder.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ocelot.routines.pbc</span> <span class="kn">import</span> <span class="n">CIFparser</span>
-
-<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;tipgebw.cif&#39;</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>  <span class="c1"># read cif file into string</span>
-    <span class="n">fs</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
-    
-<span class="n">cp</span> <span class="o">=</span> <span class="n">CIFparser</span><span class="o">.</span><span class="n">from_cifstring</span><span class="p">(</span><span class="n">fs</span><span class="p">)</span>  <span class="c1"># create a parser object from cif string</span>
-
-<span class="n">clean_cif_strings</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">get_clean_cifs_stringlist</span><span class="p">()</span>  <span class="c1"># a list of cif strings without disorder</span>
-
-<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;tipgebw_clean_0.cif&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>  <span class="c1"># write the first cleaned cif string into file</span>
-    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">clean_cif_strings</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+<p>The problem here is the disordered sites at TIPGe groups,
+if you look into the cif file you will find 2 disorder groups.
+To extract no-disorder <code class="docutils literal notranslate"><span class="pre">Config</span></code> from the cif file, using</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ocelot.routines.disparser</span> <span class="kn">import</span> <span class="n">DisParser</span>
+<span class="n">ciffile</span> <span class="o">=</span> <span class="s1">&#39;x17059.cif&#39;</span>
+<span class="n">dp</span> <span class="o">=</span> <span class="n">DisParser</span><span class="o">.</span><span class="n">from_ciffile</span><span class="p">(</span><span class="n">ciffile</span><span class="p">)</span>
+<span class="n">dp</span><span class="o">.</span><span class="n">to_configs</span><span class="p">(</span><span class="n">write_files</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>  <span class="c1"># writes conf_x.cif </span>
 </pre></div>
 </div>
-<p>Here we created a <code class="docutils literal notranslate"><span class="pre">CIFparser</span></code> object, then used its <code class="docutils literal notranslate"><span class="pre">get_clean_cifs_stringlist</span></code> method to
-split a cif file with 2 disorder groups into 2 cif file strings with no disorder.</p>
-<p>Once we have a ‘cleaned’ cif file, we can now initiate a <code class="docutils literal notranslate"><span class="pre">Config</span></code> object to represent
-the periodic structure. <code class="docutils literal notranslate"><span class="pre">Config</span></code> is a component of <code class="docutils literal notranslate"><span class="pre">ocelot</span></code> schema.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ocelot.schema.config</span> <span class="kn">import</span> <span class="n">Config</span>
+<p>Here the <code class="docutils literal notranslate"><span class="pre">to_config</span></code> method will write <em>all</em> possible configurations of a unit cell,
+the disorder is treated to “max-entropy”. That is, there will be no correlation
+between disordered sites sit at different asymmetric units
+(even the same asymmetric unit, if they are far away from each other).
+There are a lot of limitations come with this method, primarily from various
+notations used in cif file generation. For more info see <a class="reference external" href="../tests/disorder_test">disorder_test</a></p>
+</div>
+<div class="section" id="bone-config">
+<h1>Bone Config<a class="headerlink" href="#bone-config" title="Permalink to this headline">¶</a></h1>
+<p>A challenging task in analyzing molecular crystal structure is to classify
+the packing pattern of molecular “backbones”. This can be done if we have a
+“clean” (no disorder, no fractional occupancies e.g. from solvent) configuration.
+The idea is first to strip the side groups:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ocelot.schema.configuration</span> <span class="kn">import</span> <span class="n">Config</span>
 
-<span class="c1"># init Config object from cleaned cif string</span>
-<span class="n">tipge_config</span> <span class="o">=</span> <span class="n">Config</span><span class="o">.</span><span class="n">from_cifstring</span><span class="p">(</span><span class="n">clean_cif_strings</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>  
-
-<span class="c1"># we can remove pbc and focus on the organic molecule in this configuration</span>
-<span class="c1"># OMol -- organic molecule -- is a list of MSites</span>
-<span class="n">omol_0</span> <span class="o">=</span> <span class="n">tipge_config</span><span class="o">.</span><span class="n">omols</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  
-<span class="k">print</span><span class="p">(</span><span class="n">omol_0</span><span class="p">)</span> 
-<span class="c1"># OMol:</span>
-<span class="c1"># MSite: Ge (1.8797, 1.8744, 14.3509) siteid: 0</span>
-<span class="c1"># MSite: C (2.7783, 2.5445, 12.7950) siteid: 1</span>
-<span class="c1"># MSite: C (0.0097, 2.4446, 14.2340) siteid: 2</span>
-<span class="c1"># ...</span>
-
-<span class="c1"># most of the time we just care conjugate backbone, is also a list of MSites</span>
-<span class="n">bone</span> <span class="o">=</span> <span class="n">omol_0</span><span class="o">.</span><span class="n">backbone</span>  
-<span class="k">print</span><span class="p">(</span><span class="n">bone</span><span class="p">)</span>
-<span class="c1"># Backbone:</span>
-<span class="c1"># MSite: C (3.8686, 3.3564, 10.5508) siteid: 15</span>
-<span class="c1"># MSite: C (4.5668, 2.4190, 9.7409) siteid: 34</span>
-<span class="c1"># MSite: C (3.7152, 4.7050, 10.1166) siteid: 35</span>
-<span class="c1"># ...</span>
-
-<span class="c1"># we can also check sidechains, notice even a single H is considered as one sidechain</span>
-<span class="c1"># again, sidechain is a list of MSites</span>
-<span class="n">sidechains</span> <span class="o">=</span> <span class="n">omol_0</span><span class="o">.</span><span class="n">sidechains</span>  
-<span class="k">print</span><span class="p">(</span><span class="nb">len</span><span class="p">([</span><span class="n">sc</span> <span class="k">for</span> <span class="n">sc</span> <span class="ow">in</span> <span class="n">sidechains</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">sc</span><span class="o">.</span><span class="n">ishydrogen</span><span class="p">]))</span>  <span class="c1"># how many non-H side chains?</span>
-<span class="c1"># 2</span>
+<span class="n">config</span> <span class="o">=</span> <span class="n">Config</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="s1">&#39;conf_1.cif&#39;</span><span class="p">)</span>
+<span class="n">bc</span><span class="p">,</span> <span class="n">boneonly_pstructure</span><span class="p">,</span> <span class="n">terminated_backbone_hmols</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get_bone_config</span><span class="p">()</span>
+<span class="n">boneonly_pstructure</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s1">&#39;cif&#39;</span><span class="p">,</span> <span class="s1">&#39;boneonly.cif&#39;</span><span class="p">)</span>  <span class="c1"># a backbone only configuration</span>
 </pre></div>
 </div>
-<p>From above examples you may have noticed the structure of <code class="docutils literal notranslate"><span class="pre">ocelot</span></code> schema,
-it can be represented as something like this:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Config</span>
-    <span class="o">-</span> <span class="n">OMol</span>              <span class="o">|</span>  <span class="o">-</span> <span class="n">Ring</span>
-        <span class="o">-</span> <span class="n">Backbone</span>      <span class="o">|</span>       <span class="o">-</span> <span class="n">Bond</span>
-        <span class="o">-</span> <span class="n">Sidechain</span>     <span class="o">|</span>
-    <span class="o">|--</span>       <span class="n">a</span> <span class="nb">list</span> <span class="n">of</span> <span class="n">MSites</span>       <span class="o">--|</span>
+<p>which would gives you a backbone only configuration</p>
+<p><img alt="tipgebw" src="_images/boneonly.png" /></p>
+<p>…and the bone-only configuration <code class="docutils literal notranslate"><span class="pre">bc</span></code> can be used as input for an identifier</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span>
+<span class="kn">from</span> <span class="nn">ocelot.task.pkid</span> <span class="kn">import</span> <span class="n">PackingIdentifier</span>
+
+<span class="n">pid</span> <span class="o">=</span> <span class="n">PackingIdentifier</span><span class="p">(</span><span class="n">bc</span><span class="p">)</span>
+<span class="n">packingd</span> <span class="o">=</span> <span class="n">pid</span><span class="o">.</span><span class="n">identify_heuristic</span><span class="p">()</span>
+<span class="k">print</span><span class="p">(</span><span class="n">packingd</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;packing&#39;</span><span class="p">])</span>
+<span class="c1"># brickwork</span>
 </pre></div>
 </div>
+</div>
+<div class="section" id="backbone-and-sidechain">
+<h1>Backbone and Sidechain<a class="headerlink" href="#backbone-and-sidechain" title="Permalink to this headline">¶</a></h1>
+<p>Usually, we work with the organic molecular having a conjugate backbone and a set
+of side groups. This allows us to partition the molecule, either based on their
+chemical structure (<code class="docutils literal notranslate"><span class="pre">MolGraph</span></code>) or their conformation (<code class="docutils literal notranslate"><span class="pre">Conformer</span></code>).</p>
+<p>Take rubrene as an example, if you do not have conformational information you
+can start with <em>SMILES</em></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">rdkit.Chem</span> <span class="kn">import</span> <span class="n">MolFromSmiles</span>
+<span class="kn">from</span> <span class="nn">ocelot.schema.graph</span> <span class="kn">import</span> <span class="n">MolGraph</span>
+
+<span class="n">smiles</span> <span class="o">=</span> <span class="s1">&#39;c1ccc(cc1)c7c2ccccc2c(c3ccccc3)c8c(c4ccccc4)c5ccccc5c(c6ccccc6)c78&#39;</span>
+<span class="n">rdmol</span> <span class="o">=</span> <span class="n">MolFromSmiles</span><span class="p">(</span><span class="n">smiles</span><span class="p">)</span>
+<span class="n">mg</span> <span class="o">=</span> <span class="n">MolGraph</span><span class="o">.</span><span class="n">from_rdmol</span><span class="p">(</span><span class="n">rdmol</span><span class="p">)</span>
+<span class="n">backbone</span><span class="p">,</span> <span class="n">sidegroups</span> <span class="o">=</span> <span class="n">mg</span><span class="o">.</span><span class="n">partition_to_bone_frags</span><span class="p">(</span><span class="s1">&#39;lgfr&#39;</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">backbone</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">sg</span> <span class="ow">in</span> <span class="n">sidegroups</span><span class="p">:</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">sg</span><span class="p">)</span>
+
+<span class="c1"># BackboneGraph:; 6 C; 7 C; 8 C; 9 C; 10 C; 11 C; 12 C; 13 C; 20 C; 21 C; 28 C; 29 C; 30 C; 31 C; 32 C; 33 C; 34 C; 41 C</span>
+<span class="c1"># SidechainGraph:; 0 C; 1 C; 2 C; 3 C; 4 C; 5 C</span>
+<span class="c1"># SidechainGraph:; 14 C; 15 C; 16 C; 17 C; 18 C; 19 C</span>
+<span class="c1"># SidechainGraph:; 22 C; 23 C; 24 C; 25 C; 26 C; 27 C</span>
+<span class="c1"># SidechainGraph:; 35 C; 36 C; 37 C; 38 C; 39 C; 40 C</span>
+</pre></div>
+</div>
+<p>Here we first create an <code class="docutils literal notranslate"><span class="pre">rdmol</span></code> from smiles, then convert it to a <code class="docutils literal notranslate"><span class="pre">MolGraph</span></code> and
+partition it into a <code class="docutils literal notranslate"><span class="pre">BackboneGraph</span></code> and a list of <code class="docutils literal notranslate"><span class="pre">SidechainGraph</span></code>. The <code class="docutils literal notranslate"><span class="pre">lgfr</span></code> in
+partition method means “extract backbone based on the largest fused ring present
+in the molecule”. For other schemes of extracting backbone, see API doc for <code class="docutils literal notranslate"><span class="pre">MolGraph</span></code>.</p>
+<p>You can also start from a xyz file of rubrene:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ocelot.schema.conformer</span> <span class="kn">import</span> <span class="n">MolConformer</span>
+
+<span class="n">mc</span> <span class="o">=</span> <span class="n">MolConformer</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="s1">&#39;rub.xyz&#39;</span><span class="p">)</span>
+<span class="n">bone_conformer</span><span class="p">,</span> <span class="n">sccs</span><span class="p">,</span> <span class="n">bg</span><span class="p">,</span> <span class="n">scgs</span> <span class="o">=</span> <span class="n">mc</span><span class="o">.</span><span class="n">partition</span><span class="p">(</span><span class="n">coplane_cutoff</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">bone_conformer</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">sc</span> <span class="ow">in</span> <span class="n">sccs</span><span class="p">:</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">sc</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This would give the fragment conformers of this molecule, you can use <code class="docutils literal notranslate"><span class="pre">coplane_cutoff</span></code>
+to control whether you want to include the phenol rings into the backbone.</p>
 </div>
 
 

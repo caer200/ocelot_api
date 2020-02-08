@@ -91,12 +91,12 @@ for k in keys:
     # if csdid == 'ASIXEH':
     thirdlabels = get_thirdlabels(pdict)
     if any(tl is not None for tl in thirdlabels):
-        print(csdid)
-        print(set([tl for tl in thirdlabels if tl is not None]))
+        # print(csdid)
+        # print(set([tl for tl in thirdlabels if tl is not None]))
     # isdis = check_label_disorder(pdict)
     # if not isdis:
     #     if check_label_disorder(pdict):
     #         print(csdid)
-        if csdid == 'ALOVOO':
+        if csdid in ['AGUHUG', 'ASEZEE', 'AMOZOT','ALOVOO']:
             with open('{}.cif'.format(csdid), 'w') as f:
                 f.write(cifstring)

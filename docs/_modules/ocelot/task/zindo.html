@@ -1,0 +1,505 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ocelot.task.zindo &mdash; ocelot 0.2 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> ocelot
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#schema">schema</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#disorder">Disorder</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#bone-config">Bone Config</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#backbone-and-sidechain">Backbone and Sidechain</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ocelot.html">ocelot package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">ocelot</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>ocelot.task.zindo</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ocelot.task.zindo</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">ocelot.routines.fileop</span> <span class="k">import</span> <span class="n">movefile</span>
+<span class="kn">import</span> <span class="nn">subprocess</span>
+<span class="kn">from</span> <span class="nn">pymatgen.core.structure</span> <span class="k">import</span> <span class="n">Element</span><span class="p">,</span> <span class="n">Molecule</span><span class="p">,</span> <span class="n">Site</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">re</span>
+
+<span class="c1"># http://www.esi.umontreal.ca/accelrys/life/insight2000.1/zindo/3_Implementation.html</span>
+<span class="n">Zindo_elements</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;H&#39;</span><span class="p">,</span> <span class="s1">&#39;Li&#39;</span><span class="p">,</span> <span class="s1">&#39;Be&#39;</span><span class="p">,</span> <span class="s1">&#39;B&#39;</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="s1">&#39;N&#39;</span><span class="p">,</span> <span class="s1">&#39;O&#39;</span><span class="p">,</span> <span class="s1">&#39;F&#39;</span><span class="p">,</span> <span class="s1">&#39;Na&#39;</span><span class="p">,</span> <span class="s1">&#39;Mg&#39;</span><span class="p">,</span> <span class="s1">&#39;Al&#39;</span><span class="p">,</span> <span class="s1">&#39;Si&#39;</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">,</span> <span class="s1">&#39;S&#39;</span><span class="p">,</span> <span class="s1">&#39;Cl&#39;</span><span class="p">,</span> <span class="s1">&#39;K&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Ca&#39;</span><span class="p">,</span> <span class="s1">&#39;Sc&#39;</span><span class="p">,</span> <span class="s1">&#39;Ti&#39;</span><span class="p">,</span> <span class="s1">&#39;V&#39;</span><span class="p">,</span> <span class="s1">&#39;Cr&#39;</span><span class="p">,</span> <span class="s1">&#39;Mn&#39;</span><span class="p">,</span> <span class="s1">&#39;Fe&#39;</span><span class="p">,</span> <span class="s1">&#39;Co&#39;</span><span class="p">,</span> <span class="s1">&#39;Ni&#39;</span><span class="p">,</span> <span class="s1">&#39;Cu&#39;</span><span class="p">,</span> <span class="s1">&#39;Zn&#39;</span><span class="p">,</span> <span class="s1">&#39;Se&#39;</span><span class="p">,</span> <span class="s1">&#39;Br&#39;</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span><span class="p">,</span> <span class="s1">&#39;Zr&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Nb&#39;</span><span class="p">,</span> <span class="s1">&#39;Mo&#39;</span><span class="p">,</span> <span class="s1">&#39;Tc&#39;</span><span class="p">,</span> <span class="s1">&#39;Ru&#39;</span><span class="p">,</span> <span class="s1">&#39;Rh&#39;</span><span class="p">,</span> <span class="s1">&#39;Pd&#39;</span><span class="p">,</span> <span class="s1">&#39;Ag&#39;</span><span class="p">,</span> <span class="s1">&#39;Cd&#39;</span>
+<span class="p">]</span>
+
+
+<div class="viewcode-block" id="conver2zindo"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.zindo.conver2zindo">[docs]</a><span class="k">def</span> <span class="nf">conver2zindo</span><span class="p">(</span><span class="n">pmgmol</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    this will replace elements that are not in Zindo_elements with elements in the same group</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">pmgmol</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">sites</span> <span class="o">=</span> <span class="n">pmgmol</span><span class="o">.</span><span class="n">sites</span>
+    <span class="n">newsites</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">sites</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">s</span><span class="o">.</span><span class="n">species_string</span> <span class="ow">in</span> <span class="n">Zindo_elements</span><span class="p">:</span>
+            <span class="n">group</span> <span class="o">=</span> <span class="n">Element</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">species_string</span><span class="p">)</span><span class="o">.</span><span class="n">group</span>
+            <span class="n">samegroup_symbols</span> <span class="o">=</span> <span class="p">[</span><span class="n">symbol</span> <span class="k">for</span> <span class="n">symbol</span> <span class="ow">in</span> <span class="n">Zindo_elements</span> <span class="k">if</span> <span class="n">Element</span><span class="p">(</span><span class="n">symbol</span><span class="p">)</span><span class="o">.</span><span class="n">group</span> <span class="o">==</span> <span class="n">group</span><span class="p">]</span>
+            <span class="n">replacement</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">samegroup_symbols</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">Element</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">number</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">newsites</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Site</span><span class="p">(</span><span class="n">replacement</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">coords</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">newsites</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Site</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">species_string</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">coords</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">Molecule</span><span class="o">.</span><span class="n">from_sites</span><span class="p">(</span><span class="n">newsites</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="valence_electron"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.zindo.valence_electron">[docs]</a><span class="k">def</span> <span class="nf">valence_electron</span><span class="p">(</span><span class="n">element</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    count valence electrons based on electronic configuration</span>
+<span class="sd">    if a subshell has &gt; 10 electrons, this subshell is ignored</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">configuration</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;Electronic structure&quot;</span><span class="p">]</span>
+    <span class="n">list_split</span> <span class="o">=</span> <span class="n">configuration</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)</span>
+
+    <span class="n">valence_electrons</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">list_split</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="s1">&#39;sup&#39;</span> <span class="ow">in</span> <span class="n">list_split</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
+            <span class="n">electrons</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s1">&#39;&lt;sup&gt;(.*)&lt;/sup&gt;&#39;</span><span class="p">,</span> <span class="n">list_split</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">int</span><span class="p">(</span><span class="n">electrons</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span> <span class="o">&gt;=</span> <span class="mi">10</span><span class="p">:</span>
+                <span class="n">valence_electrons</span> <span class="o">+=</span> <span class="nb">int</span><span class="p">(</span><span class="n">electrons</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">valence_electrons</span></div>
+
+
+<span class="n">ZINDO_INP_TEMPLATE</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2"> $TITLEI</span>
+<span class="s2"> </span>
+<span class="s2"> </span><span class="si">{title}</span><span class="s2"></span>
+<span class="s2"> </span>
+<span class="s2"> $END</span>
+<span class="s2"> </span>
+<span class="s2"> $CONTRL</span>
+<span class="s2"> </span>
+<span class="s2"> SCFTYP    </span><span class="si">{scftyp}</span><span class="s2">      </span>
+<span class="s2"> RUNTYP    </span><span class="si">{runtyp}</span><span class="s2">        </span>
+<span class="s2"> ENTTYP    </span><span class="si">{enttyp}</span><span class="s2"></span>
+<span class="s2"> UNITS     </span><span class="si">{units}</span><span class="s2">     </span>
+<span class="s2"> IPRINT    </span><span class="si">{iprint}</span><span class="s2"></span>
+<span class="s2"> INTTYP    </span><span class="si">{inttyp}</span><span class="s2"></span>
+<span class="s2"> IAPX      </span><span class="si">{iapx}</span><span class="s2"></span>
+<span class="s2"> MULT      </span><span class="si">{mult}</span><span class="s2">   </span>
+<span class="s2"> ITMAX     </span><span class="si">{itmax}</span><span class="s2">   </span>
+<span class="s2"> SCFTOL    </span><span class="si">{scftol}</span><span class="s2"></span>
+<span class="s2"> INTFA(1) = 1.00000 1.26700 0.58500 1.00000 1.00000 1.00000</span>
+<span class="s2"> ONAME    = </span><span class="si">{oname}</span><span class="s2"></span>
+<span class="s2"> </span>
+<span class="s2"> $END</span>
+<span class="s2"> </span>
+<span class="s2"> $DATAIN</span>
+<span class="s2"> </span>
+<span class="s2"> </span><span class="si">{datain}</span><span class="s2"></span>
+<span class="s2"> </span>
+<span class="s2"> $END</span>
+<span class="s2">&quot;&quot;&quot;</span>
+
+<span class="n">optional</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2"> DYNAL(1) = </span><span class="si">{nzero}</span><span class="s2"> </span><span class="si">{ns}</span><span class="s2"> </span><span class="si">{nsp}</span><span class="s2"> </span><span class="si">{nspd}</span><span class="s2"> </span><span class="si">{nspdf}</span><span class="s2"> </span><span class="si">{cisize}</span><span class="s2"> </span><span class="si">{nactorb}</span><span class="s2"></span>
+<span class="s2"> NEL       </span><span class="si">{nel}</span><span class="s2"></span>
+
+<span class="s2">&quot;&quot;&quot;</span>
+
+
+<div class="viewcode-block" id="ZindoJob"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.zindo.ZindoJob">[docs]</a><span class="k">class</span> <span class="nc">ZindoJob</span><span class="p">:</span>
+
+<div class="viewcode-block" id="ZindoJob.__init__"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.zindo.ZindoJob.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jobname</span><span class="p">,</span> <span class="n">pmgmol</span><span class="p">,</span> <span class="n">isdimer</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">mol_A</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mol_D</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">upconvert</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">jobname</span> <span class="o">=</span> <span class="n">jobname</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pmgmol</span> <span class="o">=</span> <span class="n">pmgmol</span>  <span class="c1"># add deepcopy?</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">isdimer</span> <span class="o">=</span> <span class="n">isdimer</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mol_A</span> <span class="o">=</span> <span class="n">mol_A</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mol_D</span> <span class="o">=</span> <span class="n">mol_D</span>
+        <span class="k">if</span> <span class="n">upconvert</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pmgmol</span> <span class="o">=</span> <span class="n">conver2zindo</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pmgmol</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mol_A</span> <span class="o">=</span> <span class="n">conver2zindo</span><span class="p">(</span><span class="n">mol_A</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mol_D</span> <span class="o">=</span> <span class="n">conver2zindo</span><span class="p">(</span><span class="n">mol_D</span><span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">legit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">isdimer</span><span class="p">:</span>
+            <span class="n">sites</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mol_A</span><span class="o">.</span><span class="n">sites</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">mol_D</span><span class="o">.</span><span class="n">sites</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">sites</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pmgmol</span><span class="o">.</span><span class="n">sites</span>
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">sites</span><span class="p">:</span>
+            <span class="n">element</span> <span class="o">=</span> <span class="n">Element</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">species_string</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">element</span><span class="o">.</span><span class="n">symbol</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">Zindo_elements</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+<div class="viewcode-block" id="ZindoJob.get_valence_electrons"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.zindo.ZindoJob.get_valence_electrons">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">get_valence_electrons</span><span class="p">(</span><span class="n">pmgmol</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        pymatgen has a weird `valence` property for element, e.g. for carbon valence is 2</span>
+<span class="sd">        this is just for neutral mol</span>
+
+<span class="sd">        :param pmgmol:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">nvelect</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">site</span> <span class="ow">in</span> <span class="n">pmgmol</span><span class="o">.</span><span class="n">sites</span><span class="p">:</span>
+            <span class="n">element</span> <span class="o">=</span> <span class="n">Element</span><span class="p">(</span><span class="n">site</span><span class="o">.</span><span class="n">species_string</span><span class="p">)</span>
+            <span class="c1"># nvelect += abs(min(element.common_oxidation_states))</span>
+            <span class="n">nvelect</span> <span class="o">+=</span> <span class="n">valence_electron</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">nvelect</span></div>
+
+<div class="viewcode-block" id="ZindoJob.inpstring"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.zindo.ZindoJob.inpstring">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">inpstring</span><span class="p">(</span><span class="n">pmgmol</span><span class="p">,</span> <span class="n">RUNTYP</span><span class="o">=</span><span class="s1">&#39;ENERGY&#39;</span><span class="p">,</span> <span class="n">SCFTYP</span><span class="o">=</span><span class="s1">&#39;RHF&#39;</span><span class="p">,</span> <span class="n">ITMAX</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">SCFTOL</span><span class="o">=</span><span class="mf">0.0000010</span><span class="p">,</span> <span class="n">CISIZE</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">ACTSPC</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                  <span class="n">ONAME</span><span class="o">=</span><span class="s1">&#39;zindoout&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        string of input file, charge and mult will be inherited from pmgmol</span>
+
+<span class="sd">        :param pmgmol: pymatgen mol object</span>
+<span class="sd">        :param RUNTYP: can be &#39;ENERGY&#39; or &#39;GEO&#39; or &#39;RPA&#39; or &#39;CI&#39;</span>
+<span class="sd">        :param SCFTYP: type of scf</span>
+<span class="sd">        :param ITMAX: max # of iteration</span>
+<span class="sd">        :param SCFTOL: scf tol</span>
+<span class="sd">        :param CISIZE: CI basis size</span>
+<span class="sd">        :param ACTSPC: # of active orbitals in CI</span>
+<span class="sd">        :param ONAME: output name</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">pmgmol</span><span class="o">.</span><span class="n">charge</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">pmgmol</span><span class="o">.</span><span class="n">spin_multiplicity</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;W: zindo io can only handle neutral singlet right now!&#39;</span><span class="p">)</span>
+        <span class="c1"># nelect, ns, nsp, nspd, nspdf = [0]*5</span>
+        <span class="n">datain</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="k">for</span> <span class="n">site</span> <span class="ow">in</span> <span class="n">pmgmol</span><span class="o">.</span><span class="n">sites</span><span class="p">:</span>
+            <span class="n">element</span> <span class="o">=</span> <span class="n">Element</span><span class="p">(</span><span class="n">site</span><span class="o">.</span><span class="n">species_string</span><span class="p">)</span>
+            <span class="c1"># nelect += abs(min(element.common_oxidation_states))</span>
+            <span class="n">datain</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="si">{:.6f}</span><span class="s1"> </span><span class="si">{:.6f}</span><span class="s1"> </span><span class="si">{:.6f}</span><span class="s1"> </span><span class="si">{:.6f}</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">site</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">site</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">site</span><span class="o">.</span><span class="n">z</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">number</span><span class="p">)</span>
+            <span class="c1"># if element.block == &#39;s&#39;:</span>
+            <span class="c1">#     ns += 2</span>
+            <span class="c1"># elif element.block == &#39;p&#39;:</span>
+            <span class="c1">#     nsp += 2</span>
+            <span class="c1"># elif element.block == &#39;d&#39;:</span>
+            <span class="c1">#     nspd += 1</span>
+            <span class="c1"># elif element.block == &#39;f&#39;:</span>
+            <span class="c1">#     nspdf += 1</span>
+            <span class="c1"># else:</span>
+            <span class="c1">#     warnings.warn(&#39;W: this element has a row number &gt; 7 ??&#39;)</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">ZINDO_INP_TEMPLATE</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">title</span><span class="o">=</span><span class="s1">&#39;zindogen&#39;</span><span class="p">,</span> <span class="n">scftyp</span><span class="o">=</span><span class="n">SCFTYP</span><span class="p">,</span> <span class="n">runtyp</span><span class="o">=</span><span class="n">RUNTYP</span><span class="p">,</span> <span class="n">enttyp</span><span class="o">=</span><span class="s1">&#39;COORD&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;ANGS&#39;</span><span class="p">,</span> <span class="n">iprint</span><span class="o">=</span><span class="s1">&#39;1&#39;</span><span class="p">,</span> <span class="n">inttyp</span><span class="o">=</span><span class="s1">&#39;1&#39;</span><span class="p">,</span>
+            <span class="n">iapx</span><span class="o">=</span><span class="s1">&#39;3&#39;</span><span class="p">,</span> <span class="n">mult</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">itmax</span><span class="o">=</span><span class="n">ITMAX</span><span class="p">,</span> <span class="n">scftol</span><span class="o">=</span><span class="n">SCFTOL</span><span class="p">,</span>
+            <span class="c1"># nel=nelect, nzero=0, ns=ns, nsp=nsp, nspd=nspd, nspdf=nspdf, cisize=CISIZE, nactorb=ACTSPC,</span>
+            <span class="n">oname</span><span class="o">=</span><span class="n">ONAME</span><span class="p">,</span> <span class="n">datain</span><span class="o">=</span><span class="n">datain</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">s</span></div>
+
+<div class="viewcode-block" id="ZindoJob.write_single"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.zindo.ZindoJob.write_single">[docs]</a>    <span class="k">def</span> <span class="nf">write_single</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fnprefix</span><span class="p">,</span> <span class="n">RUNTYP</span><span class="o">=</span><span class="s1">&#39;ENERGY&#39;</span><span class="p">,</span> <span class="n">SCFTYP</span><span class="o">=</span><span class="s1">&#39;RHF&#39;</span><span class="p">,</span> <span class="n">ITMAX</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">SCFTOL</span><span class="o">=</span><span class="mf">0.0000010</span><span class="p">,</span> <span class="n">CISIZE</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">ACTSPC</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                     <span class="n">ONAME</span><span class="o">=</span><span class="s1">&#39;zindoout&#39;</span><span class="p">):</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inpstring</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pmgmol</span><span class="p">,</span> <span class="n">RUNTYP</span><span class="p">,</span> <span class="n">SCFTYP</span><span class="p">,</span> <span class="n">ITMAX</span><span class="p">,</span> <span class="n">SCFTOL</span><span class="p">,</span> <span class="n">CISIZE</span><span class="p">,</span> <span class="n">ACTSPC</span><span class="p">,</span> <span class="n">ONAME</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fnprefix</span> <span class="o">+</span> <span class="s1">&#39;.inp&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">fnprefix</span> <span class="o">+</span> <span class="s1">&#39;.inp&#39;</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="ZindoJob.write_dimer"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.zindo.ZindoJob.write_dimer">[docs]</a>    <span class="k">def</span> <span class="nf">write_dimer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fnprefix</span><span class="p">,</span> <span class="n">RUNTYP</span><span class="o">=</span><span class="s1">&#39;ENERGY&#39;</span><span class="p">,</span> <span class="n">SCFTYP</span><span class="o">=</span><span class="s1">&#39;RHF&#39;</span><span class="p">,</span> <span class="n">ITMAX</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">SCFTOL</span><span class="o">=</span><span class="mf">0.0000010</span><span class="p">,</span> <span class="n">CISIZE</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">ACTSPC</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                    <span class="n">ONAME</span><span class="o">=</span><span class="s1">&#39;zindoout&#39;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">isdimer</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="n">s_a</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inpstring</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mol_A</span><span class="p">,</span> <span class="n">RUNTYP</span><span class="p">,</span> <span class="n">SCFTYP</span><span class="p">,</span> <span class="n">ITMAX</span><span class="p">,</span> <span class="n">SCFTOL</span><span class="p">,</span> <span class="n">CISIZE</span><span class="p">,</span> <span class="n">ACTSPC</span><span class="p">,</span> <span class="n">ONAME</span><span class="p">)</span>
+        <span class="n">s_d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inpstring</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mol_D</span><span class="p">,</span> <span class="n">RUNTYP</span><span class="p">,</span> <span class="n">SCFTYP</span><span class="p">,</span> <span class="n">ITMAX</span><span class="p">,</span> <span class="n">SCFTOL</span><span class="p">,</span> <span class="n">CISIZE</span><span class="p">,</span> <span class="n">ACTSPC</span><span class="p">,</span> <span class="n">ONAME</span><span class="p">)</span>
+        <span class="n">s_dimer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inpstring</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pmgmol</span><span class="p">,</span> <span class="n">RUNTYP</span><span class="p">,</span> <span class="n">SCFTYP</span><span class="p">,</span> <span class="n">ITMAX</span><span class="p">,</span> <span class="n">SCFTOL</span><span class="p">,</span> <span class="n">CISIZE</span><span class="p">,</span> <span class="n">ACTSPC</span><span class="p">,</span> <span class="n">ONAME</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fnprefix</span> <span class="o">+</span> <span class="s1">&#39;_dimer.inp&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">s_dimer</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fnprefix</span> <span class="o">+</span> <span class="s1">&#39;_A.inp&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">s_a</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fnprefix</span> <span class="o">+</span> <span class="s1">&#39;_D.inp&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">s_d</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="n">fnprefix</span> <span class="o">+</span> <span class="s1">&#39;_dimer.inp&#39;</span><span class="p">,</span>
+            <span class="n">fnprefix</span> <span class="o">+</span> <span class="s1">&#39;_A.inp&#39;</span><span class="p">,</span>
+            <span class="n">fnprefix</span> <span class="o">+</span> <span class="s1">&#39;_D.inp&#39;</span><span class="p">,</span>
+        <span class="p">]</span></div>
+
+<div class="viewcode-block" id="ZindoJob.dimerjob_from_two_molecules"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.zindo.ZindoJob.dimerjob_from_two_molecules">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">dimerjob_from_two_molecules</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">pmgmol1</span><span class="p">,</span> <span class="n">pmgmol2</span><span class="p">,</span> <span class="n">jobname</span><span class="o">=</span><span class="s1">&#39;dimer&#39;</span><span class="p">):</span>
+        <span class="n">dimerpmgmol</span> <span class="o">=</span> <span class="n">Molecule</span><span class="o">.</span><span class="n">from_sites</span><span class="p">(</span><span class="n">pmgmol1</span><span class="o">.</span><span class="n">sites</span> <span class="o">+</span> <span class="n">pmgmol2</span><span class="o">.</span><span class="n">sites</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">jobname</span><span class="p">,</span> <span class="n">dimerpmgmol</span><span class="p">,</span> <span class="n">isdimer</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">mol_A</span><span class="o">=</span><span class="n">pmgmol1</span><span class="p">,</span> <span class="n">mol_D</span><span class="o">=</span><span class="n">pmgmol2</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ZindoJob.parse_tmo"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.zindo.ZindoJob.parse_tmo">[docs]</a>    <span class="k">def</span> <span class="nf">parse_tmo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tmofn</span><span class="o">=</span><span class="s1">&#39;tmo.dat&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        parse tmo.dat as NAxND array, NA is number of MOs in A, ND is number of MOs in D</span>
+<span class="sd">        NA, ND is decided by the number of valence eletrons, which is auto-gen by zindo</span>
+<span class="sd">        # of valence electronis by zindo auto-gen may NOT be identical to the real # of valence electrons!</span>
+
+<span class="sd">        :param tmofn:</span>
+<span class="sd">        :return: data[i][j] is the ti of i+1th MO of A and j+1th MO of B</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">isdimer</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;W: cannot parse tmo as this is not a dimer run!&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">tmofn</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">ls</span> <span class="o">=</span> <span class="p">[</span><span class="n">l</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">f</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span> <span class="k">if</span> <span class="n">l</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;W: cannot find zindo tmo file </span><span class="si">{}</span><span class="s1"> at </span><span class="si">{}</span><span class="s1">!&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tmofn</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()))</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="c1"># this is not safe, use # of electrons identified by zindo instead</span>
+        <span class="c1"># nmo_a = ZindoJob.get_valence_electrons(self.mol_A)</span>
+        <span class="c1"># nmo_d = ZindoJob.get_valence_electrons(self.mol_D)</span>
+
+        <span class="n">nmo_a</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">ls</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">nmo_d</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">ls</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">nmo_a</span><span class="p">,</span> <span class="n">nmo_d</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">ls</span><span class="p">[</span><span class="mi">3</span><span class="p">:]:</span>
+            <span class="n">imoa</span><span class="p">,</span> <span class="n">imod</span><span class="p">,</span> <span class="n">ti</span><span class="p">,</span> <span class="n">ticm</span><span class="p">,</span> <span class="n">emoa</span><span class="p">,</span> <span class="n">emod</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">number</span><span class="p">)</span> <span class="k">for</span> <span class="n">number</span> <span class="ow">in</span> <span class="n">l</span><span class="o">.</span><span class="n">split</span><span class="p">()]</span>
+            <span class="n">imoa</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">imoa</span><span class="p">)</span>
+            <span class="n">imod</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">imod</span><span class="p">)</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">ti</span><span class="o">=</span><span class="n">ti</span><span class="p">,</span> <span class="n">emoa</span><span class="o">=</span><span class="n">emoa</span><span class="p">,</span> <span class="n">emod</span><span class="o">=</span><span class="n">emod</span><span class="p">,</span> <span class="n">imoa</span><span class="o">=</span><span class="n">imoa</span><span class="p">,</span> <span class="n">imod</span><span class="o">=</span><span class="n">imod</span><span class="p">)</span>
+            <span class="n">data</span><span class="p">[</span><span class="n">imoa</span> <span class="o">-</span> <span class="mi">1</span><span class="p">][</span><span class="n">imod</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">d</span>
+        <span class="k">return</span> <span class="n">data</span><span class="p">,</span> <span class="n">nmo_a</span><span class="p">,</span> <span class="n">nmo_d</span></div>
+
+<div class="viewcode-block" id="ZindoJob.dimer_run"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.zindo.ZindoJob.dimer_run">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">dimer_run</span><span class="p">(</span><span class="n">jobname</span><span class="p">,</span> <span class="n">wdir</span><span class="p">,</span> <span class="n">zindobin</span><span class="p">,</span> <span class="n">zindoctbin</span><span class="p">,</span> <span class="n">zindolib</span><span class="p">,</span> <span class="n">pmgmola</span><span class="p">,</span> <span class="n">pmgmolb</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        perfrom zindo calculation for a dimer system, return parsed tmo.dat as NAxND array</span>
+
+<span class="sd">        :param jobname:</span>
+<span class="sd">        :param wdir: working dir</span>
+<span class="sd">        :param zindobin: binary path</span>
+<span class="sd">        :param zindoctbin: binary path</span>
+<span class="sd">        :param zindolib: dir path</span>
+<span class="sd">        :param pmgmola:</span>
+<span class="sd">        :param pmgmolb:</span>
+<span class="sd">        :return: tmo parsed data, # of AMOs, # of DMOs</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">zj</span> <span class="o">=</span> <span class="n">ZindoJob</span><span class="o">.</span><span class="n">dimerjob_from_two_molecules</span><span class="p">(</span><span class="n">pmgmola</span><span class="p">,</span> <span class="n">pmgmolb</span><span class="p">,</span> <span class="n">jobname</span><span class="o">=</span><span class="n">jobname</span><span class="p">)</span>
+        <span class="n">whereami</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">wdir</span><span class="p">)</span>
+
+        <span class="n">dimer_inps</span> <span class="o">=</span> <span class="n">zj</span><span class="o">.</span><span class="n">write_dimer</span><span class="p">(</span><span class="n">jobname</span><span class="p">)</span>
+        <span class="n">dimerinp</span><span class="p">,</span> <span class="n">ainp</span><span class="p">,</span> <span class="n">dinp</span> <span class="o">=</span> <span class="n">dimer_inps</span>
+        <span class="n">aout</span><span class="p">,</span> <span class="n">dout</span><span class="p">,</span> <span class="n">dimerout</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;A.out&#39;</span><span class="p">,</span> <span class="s1">&#39;D.out&#39;</span><span class="p">,</span> <span class="s1">&#39;dimer.out&#39;</span><span class="p">]</span>
+        <span class="n">env</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">ldlibpath</span> <span class="o">=</span> <span class="n">env</span><span class="p">[</span><span class="s1">&#39;LD_LIBRARY_PATH&#39;</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="n">ldlibpath</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">env</span><span class="p">[</span><span class="s1">&#39;LD_LIBRARY_PATH&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">:&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">zindolib</span><span class="p">)</span> <span class="o">+</span> <span class="n">ldlibpath</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> &lt; </span><span class="si">{}</span><span class="s2"> &gt; </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">zindobin</span><span class="p">,</span> <span class="n">ainp</span><span class="p">,</span> <span class="n">aout</span><span class="p">),</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">env</span><span class="o">=</span><span class="n">env</span><span class="p">)</span>
+        <span class="n">p</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
+        <span class="n">movefile</span><span class="p">(</span><span class="s1">&#39;mo.out&#39;</span><span class="p">,</span> <span class="s1">&#39;mo_A.out&#39;</span><span class="p">)</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> &lt; </span><span class="si">{}</span><span class="s2"> &gt; </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">zindobin</span><span class="p">,</span> <span class="n">dinp</span><span class="p">,</span> <span class="n">dout</span><span class="p">),</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">env</span><span class="o">=</span><span class="n">env</span><span class="p">)</span>
+        <span class="n">p</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
+        <span class="n">movefile</span><span class="p">(</span><span class="s1">&#39;mo.out&#39;</span><span class="p">,</span> <span class="s1">&#39;mo_D.out&#39;</span><span class="p">)</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> &lt; </span><span class="si">{}</span><span class="s2"> &gt; </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">zindoctbin</span><span class="p">,</span> <span class="n">dimerinp</span><span class="p">,</span> <span class="n">dimerout</span><span class="p">),</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">env</span><span class="o">=</span><span class="n">env</span><span class="p">)</span>
+        <span class="n">p</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
+        <span class="n">data</span><span class="p">,</span> <span class="n">nmo_a</span><span class="p">,</span> <span class="n">nmo_d</span> <span class="o">=</span> <span class="n">zj</span><span class="o">.</span><span class="n">parse_tmo</span><span class="p">(</span><span class="s1">&#39;tmo.dat&#39;</span><span class="p">)</span>
+
+        <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">whereami</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">data</span><span class="p">,</span> <span class="n">nmo_a</span><span class="p">,</span> <span class="n">nmo_d</span></div>
+
+<div class="viewcode-block" id="ZindoJob.get_hh_coupling"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.zindo.ZindoJob.get_hh_coupling">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">get_hh_coupling</span><span class="p">(</span><span class="n">coupling_data</span><span class="p">,</span> <span class="n">nmo_a</span><span class="p">,</span> <span class="n">nmo_d</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        :param nmo_a:</span>
+<span class="sd">        :param nmo_d:</span>
+<span class="sd">        :param coupling_data: the return value of self.dimer_run()</span>
+<span class="sd">        :return: the HOMO-HOMO electronic coupling in meV</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">nmo_b</span> <span class="o">=</span> <span class="n">nmo_d</span>
+        <span class="n">hh_coupling</span> <span class="o">=</span> <span class="n">coupling_data</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">nmo_a</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)][</span><span class="nb">int</span><span class="p">(</span><span class="n">nmo_b</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)][</span><span class="s1">&#39;ti&#39;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">hh_coupling</span></div>
+
+<div class="viewcode-block" id="ZindoJob.get_ll_coupling"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.zindo.ZindoJob.get_ll_coupling">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">get_ll_coupling</span><span class="p">(</span><span class="n">coupling_data</span><span class="p">,</span> <span class="n">nmo_a</span><span class="p">,</span> <span class="n">nmo_d</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        :param nmo_a:</span>
+<span class="sd">        :param nmo_d:</span>
+<span class="sd">        :param coupling_data: the return value of self.dimer_run()</span>
+<span class="sd">        :return: the HOMO-HOMO electronic coupling in meV</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">nmo_b</span> <span class="o">=</span> <span class="n">nmo_d</span>
+        <span class="n">ll_coupling</span> <span class="o">=</span> <span class="n">coupling_data</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">nmo_a</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)][</span><span class="nb">int</span><span class="p">(</span><span class="n">nmo_b</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)][</span><span class="s1">&#39;ti&#39;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">ll_coupling</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Ai, Qianxiang
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

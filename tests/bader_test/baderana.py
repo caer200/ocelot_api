@@ -58,7 +58,7 @@ def parse_acf(acfdata_fn='./ACF.dat'):
 
 # acfdata = parse_acf()
 imols = [s.properties['imol'] for s in unwrap_str_sorted.sites]
-isites = [s.properties['isite'] for s in unwrap_str_sorted.sites]
+isites = [s.properties['siteid'] for s in unwrap_str_sorted.sites]
 istie2imol_dict = dict(zip(isites, imols))
 for imol in range(len(mols)):
     molchg = 0

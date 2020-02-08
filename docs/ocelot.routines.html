@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ocelot.routines package &mdash; ocelot 0.01 documentation</title>
+  <title>ocelot.routines package &mdash; ocelot 0.2 documentation</title>
   
 
   
@@ -60,7 +60,7 @@
             
             
               <div class="version">
-                0.01
+                0.2
               </div>
             
           
@@ -87,18 +87,22 @@
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="quick_start.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="quick_start.html#quick-start">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html#schema">schema</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html#disorder">Disorder</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html#bone-config">Bone Config</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html#backbone-and-sidechain">Backbone and Sidechain</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="ocelot.html">ocelot package</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="ocelot.html#subpackages">Subpackages</a><ul class="current">
 <li class="toctree-l3 current"><a class="current reference internal" href="#">ocelot.routines package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ocelot.routines.conformerparser">ocelot.routines.conformerparser module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ocelot.routines.disparser">ocelot.routines.disparser module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-ocelot.routines.fileop">ocelot.routines.fileop module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-ocelot.routines.geometry">ocelot.routines.geometry module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-ocelot.routines.loop">ocelot.routines.loop module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-ocelot.routines.mathop">ocelot.routines.mathop module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-ocelot.routines.mopac">ocelot.routines.mopac module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-ocelot.routines.pbc">ocelot.routines.pbc module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-ocelot.routines.xyz2mol">ocelot.routines.xyz2mol module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-ocelot.routines">Module contents</a></li>
 </ul>
 </li>
@@ -179,6 +183,588 @@
 <h1>ocelot.routines package<a class="headerlink" href="#ocelot-routines-package" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-ocelot.routines.conformerparser">
+<span id="ocelot-routines-conformerparser-module"></span><h2>ocelot.routines.conformerparser module<a class="headerlink" href="#module-ocelot.routines.conformerparser" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ocelot.routines.conformerparser.ACParser">
+<em class="property">class </em><code class="sig-prename descclassname">ocelot.routines.conformerparser.</code><code class="sig-name descname">ACParser</code><span class="sig-paren">(</span><em class="sig-param">ac</em>, <em class="sig-param">charge</em>, <em class="sig-param">atomnumberlist</em>, <em class="sig-param">sani=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/conformerparser.html#ACParser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.conformerparser.ACParser" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="ocelot.routines.conformerparser.ACParser.BO_is_OK">
+<code class="sig-name descname">BO_is_OK</code><span class="sig-paren">(</span><em class="sig-param">BO</em>, <em class="sig-param">DU_from_AC</em>, <em class="sig-param">atomicNumList</em>, <em class="sig-param">charged_fragments</em>, <em class="sig-param">valences</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/conformerparser.html#ACParser.BO_is_OK"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.conformerparser.ACParser.BO_is_OK" title="Permalink to this definition">¶</a></dt>
+<dd><p>check bond order matrix based on</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>BO</strong> – </p></li>
+<li><p><strong>DU_from_AC</strong> – based on valences arg</p></li>
+<li><p><strong>atomicNumList</strong> – </p></li>
+<li><p><strong>charged_fragments</strong> – </p></li>
+<li><p><strong>valences</strong> – valence assignment related to current BO</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="ocelot.routines.conformerparser.ACParser.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">ac</em>, <em class="sig-param">charge</em>, <em class="sig-param">atomnumberlist</em>, <em class="sig-param">sani=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/conformerparser.html#ACParser.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.conformerparser.ACParser.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Variables</dt>
+<dd class="field-odd"><p><strong>self.valences_list</strong> – a list of possible valence assignment, valences_list[i] is one possbile way to assign jth atom</p>
+</dd>
+</dl>
+<p>valence based on  valences_list[i][j].
+:var self.atomic_valence_electrons: atomic_valence_electrons[i] is the #_of_ve of ith atom</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ocelot.routines.conformerparser.ACParser.addBO2mol">
+<code class="sig-name descname">addBO2mol</code><span class="sig-paren">(</span><em class="sig-param">rdmol</em>, <em class="sig-param">BO_matrix</em>, <em class="sig-param">charged_fragments</em>, <em class="sig-param">force_single=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/conformerparser.html#ACParser.addBO2mol"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.conformerparser.ACParser.addBO2mol" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ocelot.routines.conformerparser.ACParser.getUADU">
+<em class="property">static </em><code class="sig-name descname">getUADU</code><span class="sig-paren">(</span><em class="sig-param">maxValence_list</em>, <em class="sig-param">valence_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/conformerparser.html#ACParser.getUADU"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.conformerparser.ACParser.getUADU" title="Permalink to this definition">¶</a></dt>
+<dd><p>get unsaturated atoms (UA) and degree of unsaturation (DU) between two possible assignments</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>maxValence_list</strong> – </p></li>
+<li><p><strong>valence_list</strong> – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="ocelot.routines.conformerparser.ACParser.get_BO">
+<em class="property">static </em><code class="sig-name descname">get_BO</code><span class="sig-paren">(</span><em class="sig-param">AC</em>, <em class="sig-param">DU_init</em>, <em class="sig-param">valences</em>, <em class="sig-param">UA_pairs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/conformerparser.html#ACParser.get_BO"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.conformerparser.ACParser.get_BO" title="Permalink to this definition">¶</a></dt>
+<dd><p>for a valence assignment, get BO
+BO[i][j] is the bond order between ith and jth
+AC is a BO with all single bond
+the algo is to increase bond order s.t. degree of unsaturation (DU) does not change
+notice DU is calculated based on the given valences</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>DU_init</strong> – </p></li>
+<li><p><strong>AC</strong> – </p></li>
+<li><p><strong>valences</strong> – </p></li>
+<li><p><strong>UA_pairs</strong> – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="ocelot.routines.conformerparser.ACParser.get_UA_pairs">
+<em class="property">static </em><code class="sig-name descname">get_UA_pairs</code><span class="sig-paren">(</span><em class="sig-param">UA</em>, <em class="sig-param">AC</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/conformerparser.html#ACParser.get_UA_pairs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.conformerparser.ACParser.get_UA_pairs" title="Permalink to this definition">¶</a></dt>
+<dd><p>find the largest list of bonds in which all atom appears at most once</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>UA</strong> – </p></li>
+<li><p><strong>AC</strong> – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="ocelot.routines.conformerparser.ACParser.get_atomic_charge">
+<em class="property">static </em><code class="sig-name descname">get_atomic_charge</code><span class="sig-paren">(</span><em class="sig-param">atomic_number</em>, <em class="sig-param">atomic_valence_electrons</em>, <em class="sig-param">BO_valence</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/conformerparser.html#ACParser.get_atomic_charge"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.conformerparser.ACParser.get_atomic_charge" title="Permalink to this definition">¶</a></dt>
+<dd><p>atomic charge from #_valence_electrons - bond_order
+#TODO test robustness</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>atomic_number</strong> – </p></li>
+<li><p><strong>atomic_valence_electrons</strong> – </p></li>
+<li><p><strong>BO_valence</strong> – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="ocelot.routines.conformerparser.ACParser.get_bonds">
+<em class="property">static </em><code class="sig-name descname">get_bonds</code><span class="sig-paren">(</span><em class="sig-param">UA</em>, <em class="sig-param">AC</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/conformerparser.html#ACParser.get_bonds"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.conformerparser.ACParser.get_bonds" title="Permalink to this definition">¶</a></dt>
+<dd><p>get a list of unique bond tuples (i, j) between UAs</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>UA</strong> – </p></li>
+<li><p><strong>AC</strong> – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="ocelot.routines.conformerparser.ACParser.get_valence_info">
+<code class="sig-name descname">get_valence_info</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/conformerparser.html#ACParser.get_valence_info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.conformerparser.ACParser.get_valence_info" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ocelot.routines.conformerparser.ACParser.init_rdmol">
+<code class="sig-name descname">init_rdmol</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/conformerparser.html#ACParser.init_rdmol"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.conformerparser.ACParser.init_rdmol" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ocelot.routines.conformerparser.ACParser.parse">
+<code class="sig-name descname">parse</code><span class="sig-paren">(</span><em class="sig-param">charged_fragments=True</em>, <em class="sig-param">force_single=False</em>, <em class="sig-param">expliciths=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/conformerparser.html#ACParser.parse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.conformerparser.ACParser.parse" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ocelot.routines.conformerparser.ACParser.parse_bonds">
+<code class="sig-name descname">parse_bonds</code><span class="sig-paren">(</span><em class="sig-param">charged_fragments</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/conformerparser.html#ACParser.parse_bonds"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.conformerparser.ACParser.parse_bonds" title="Permalink to this definition">¶</a></dt>
+<dd><p>find the best BO</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>charged_fragments</strong> – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="ocelot.routines.conformerparser.ACParser.set_atomic_charges">
+<code class="sig-name descname">set_atomic_charges</code><span class="sig-paren">(</span><em class="sig-param">mol</em>, <em class="sig-param">BO_valences</em>, <em class="sig-param">BO_matrix</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/conformerparser.html#ACParser.set_atomic_charges"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.conformerparser.ACParser.set_atomic_charges" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ocelot.routines.conformerparser.ACParser.set_atomic_radicals">
+<code class="sig-name descname">set_atomic_radicals</code><span class="sig-paren">(</span><em class="sig-param">mol</em>, <em class="sig-param">BO_valences</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/conformerparser.html#ACParser.set_atomic_radicals"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.conformerparser.ACParser.set_atomic_radicals" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ocelot.routines.conformerparser.ACParser.valences_not_too_large">
+<em class="property">static </em><code class="sig-name descname">valences_not_too_large</code><span class="sig-paren">(</span><em class="sig-param">BO</em>, <em class="sig-param">vs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/conformerparser.html#ACParser.valences_not_too_large"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.conformerparser.ACParser.valences_not_too_large" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="ocelot.routines.conformerparser.chiral_stereo_check">
+<code class="sig-prename descclassname">ocelot.routines.conformerparser.</code><code class="sig-name descname">chiral_stereo_check</code><span class="sig-paren">(</span><em class="sig-param">mol</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/conformerparser.html#chiral_stereo_check"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.conformerparser.chiral_stereo_check" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ocelot.routines.conformerparser.clean_charges">
+<code class="sig-prename descclassname">ocelot.routines.conformerparser.</code><code class="sig-name descname">clean_charges</code><span class="sig-paren">(</span><em class="sig-param">mol</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/conformerparser.html#clean_charges"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.conformerparser.clean_charges" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ocelot.routines.conformerparser.pmgmol_to_rdmol">
+<code class="sig-prename descclassname">ocelot.routines.conformerparser.</code><code class="sig-name descname">pmgmol_to_rdmol</code><span class="sig-paren">(</span><em class="sig-param">pmg_mol</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/conformerparser.html#pmgmol_to_rdmol"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.conformerparser.pmgmol_to_rdmol" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ocelot.routines.conformerparser.valence_electron">
+<code class="sig-prename descclassname">ocelot.routines.conformerparser.</code><code class="sig-name descname">valence_electron</code><span class="sig-paren">(</span><em class="sig-param">element</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/conformerparser.html#valence_electron"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.conformerparser.valence_electron" title="Permalink to this definition">¶</a></dt>
+<dd><p>count valence electrons based on electronic configuration
+if a subshell has &gt; 10 electrons, this subshell is ignored</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-ocelot.routines.disparser">
+<span id="ocelot-routines-disparser-module"></span><h2>ocelot.routines.disparser module<a class="headerlink" href="#module-ocelot.routines.disparser" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ocelot.routines.disparser.AtomLabel">
+<em class="property">class </em><code class="sig-prename descclassname">ocelot.routines.disparser.</code><code class="sig-name descname">AtomLabel</code><span class="sig-paren">(</span><em class="sig-param">label: str</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/disparser.html#AtomLabel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.disparser.AtomLabel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="ocelot.routines.disparser.AtomLabel.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">label: str</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/disparser.html#AtomLabel.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.disparser.AtomLabel.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>a class for atom label in cif file, overkill I guess…</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>label</strong> – </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="ocelot.routines.disparser.AtomLabel.get_labels_with_same_ei">
+<code class="sig-name descname">get_labels_with_same_ei</code><span class="sig-paren">(</span><em class="sig-param">als</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/disparser.html#AtomLabel.get_labels_with_same_ei"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.disparser.AtomLabel.get_labels_with_same_ei" title="Permalink to this definition">¶</a></dt>
+<dd><p>get a list of atomlabel whose ei == al.ei</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>als</strong> – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="ocelot.routines.disparser.AtomLabel.is_tag_nonword">
+<em class="property">property </em><code class="sig-name descname">is_tag_nonword</code><a class="headerlink" href="#ocelot.routines.disparser.AtomLabel.is_tag_nonword" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="ocelot.routines.disparser.AtomLabelError">
+<em class="property">exception </em><code class="sig-prename descclassname">ocelot.routines.disparser.</code><code class="sig-name descname">AtomLabelError</code><a class="reference internal" href="_modules/ocelot/routines/disparser.html#AtomLabelError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.disparser.AtomLabelError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="ocelot.routines.disparser.CifFileError">
+<em class="property">exception </em><code class="sig-prename descclassname">ocelot.routines.disparser.</code><code class="sig-name descname">CifFileError</code><a class="reference internal" href="_modules/ocelot/routines/disparser.html#CifFileError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.disparser.CifFileError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="ocelot.routines.disparser.ConfigConstructor">
+<em class="property">class </em><code class="sig-prename descclassname">ocelot.routines.disparser.</code><code class="sig-name descname">ConfigConstructor</code><span class="sig-paren">(</span><em class="sig-param">inv_conf: [&lt;class 'pymatgen.core.sites.PeriodicSite'&gt;], disunit_pairs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/disparser.html#ConfigConstructor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.disparser.ConfigConstructor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="ocelot.routines.disparser.ConfigConstructor.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">inv_conf: [&lt;class 'pymatgen.core.sites.PeriodicSite'&gt;], disunit_pairs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/disparser.html#ConfigConstructor.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.disparser.ConfigConstructor.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize self.  See help(type(self)) for accurate signature.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ocelot.routines.disparser.ConfigConstructor.build_supercell_full_disorder">
+<em class="property">static </em><code class="sig-name descname">build_supercell_full_disorder</code><span class="sig-paren">(</span><em class="sig-param">pstructure</em>, <em class="sig-param">scaling_matrix</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/disparser.html#ConfigConstructor.build_supercell_full_disorder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.disparser.ConfigConstructor.build_supercell_full_disorder" title="Permalink to this definition">¶</a></dt>
+<dd><p>get a supercell with all disordered sites inside, should be used to generate a certain config based on instruction</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pstructure</strong> – </p></li>
+<li><p><strong>scaling_matrix</strong> – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="ocelot.routines.disparser.ConfigConstructor.dissc_to_config">
+<em class="property">static </em><code class="sig-name descname">dissc_to_config</code><span class="sig-paren">(</span><em class="sig-param">sc</em>, <em class="sig-param">disunit_pairs</em>, <em class="sig-param">instruction</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/disparser.html#ConfigConstructor.dissc_to_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.disparser.ConfigConstructor.dissc_to_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>take instructions to generate a certain config from super cell</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sc</strong> (<em>Structure</em>) – supercell structure</p></li>
+<li><p><strong>disunit_pairs</strong> – </p></li>
+<li><p><strong>instruction</strong> – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="ocelot.routines.disparser.ConfigConstructor.gen_instructions">
+<em class="property">static </em><code class="sig-name descname">gen_instructions</code><span class="sig-paren">(</span><em class="sig-param">disunit_pairs</em>, <em class="sig-param">n_asym</em>, <em class="sig-param">n_cell</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/disparser.html#ConfigConstructor.gen_instructions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.disparser.ConfigConstructor.gen_instructions" title="Permalink to this definition">¶</a></dt>
+<dd><p>get all possible instructions, notice this is exponentially scaled</p>
+<p># of configs = 2^len(self.disunitpairs)^n_asym^n_cell where 2 comes from pairwise disordered occupancies</p>
+<p>return a list of instruction to build a config</p>
+<p>instruction is a nested tuple, instruction[icell][iasym][ipair] gives idis,
+that is, instruction[1][2][3] == 4 means in the 2nd unitcell (icell=1),
+the 3rd asymm unit (iasym=2),
+the 4th disorder portion (ipair=3),
+the 5th disorder unit (disunit_pairs[3][4], idis=4) is going to present</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>disunit_pairs</strong> – </p></li>
+<li><p><strong>n_asym</strong> – </p></li>
+<li><p><strong>n_cell</strong> – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ocelot.routines.disparser.DisParser">
+<em class="property">class </em><code class="sig-prename descclassname">ocelot.routines.disparser.</code><code class="sig-name descname">DisParser</code><span class="sig-paren">(</span><em class="sig-param">cifstring: str</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/disparser.html#DisParser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.disparser.DisParser" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="ocelot.routines.disparser.DisParser.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">cifstring: str</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/disparser.html#DisParser.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.disparser.DisParser.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>this can only handle one alternative configuration for the asymmetric unit</p>
+<p>one asymmetric unit == inv_conf + disg1 + disg2</p>
+<p>disg1 = disunit_a + disunit_b + …</p>
+<p>disg2 = disunit_a’ + disunit_b’ + …</p>
+<p>DisorderPair_a = disunit_a + disunit_a’</p>
+<p>if the cif file contains previouly fitted occu and disg,
+we call it dis-0 and we use occu/disg info to get inv_conf, disg1, disg2</p>
+<p>if there is no previously fitted info, we deal with the following situations:</p>
+<blockquote>
+<div><p>dis-1:  set(self.tags) is [“”, &lt;non-word&gt;, &lt;word&gt;, …], EI&lt;non-word&gt; – EI,</p>
+<p>note x17059.cif is dis-1 but it has hydrogens like H12A – H12D, this can only be captured
+by previously fitted disg and occu,</p>
+<p>dis-2:  set(self.tags) is [“”, &lt;non-word&gt;, &lt;word&gt;, …], EI&lt;non-word&gt; – E’I’ e.g. ALOVOO.cif</p>
+<p>nodis-0: no dup in self.eis, set(self.tags) is {“”}</p>
+<p>nodis-1: dup in self.eis, set(self.tags) is [“”, &lt;word&gt;, …], this could be a dis as in ASIXEH</p>
+<p>weird: else</p>
+</div></blockquote>
+<p>for dis-1, dis-2, we fill the occu, disg fields in cifdata, so they can be coonverted to dis-0</p>
+<dl class="simple">
+<dt>Attributes:</dt><dd><p>data[atomlabel] = [x, y, z, symbol, occu, disgrp]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="ocelot.routines.disparser.DisParser.alijdict_to_disgs_and_update_data">
+<code class="sig-name descname">alijdict_to_disgs_and_update_data</code><span class="sig-paren">(</span><em class="sig-param">ali2alj: dict</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/disparser.html#DisParser.alijdict_to_disgs_and_update_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.disparser.DisParser.alijdict_to_disgs_and_update_data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ocelot.routines.disparser.DisParser.classify">
+<code class="sig-name descname">classify</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/disparser.html#DisParser.classify"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.disparser.DisParser.classify" title="Permalink to this definition">¶</a></dt>
+<dd><p>one cif file belongs to one of the following categories:</p>
+<blockquote>
+<div><p>nodis-0: no dup in self.eis, set(self.tags) is {“”}</p>
+<p>dis-1:  set(self.tags) is [“”, &lt;non-word&gt;, &lt;word&gt;, …], EI&lt;non-word&gt; – EI,</p>
+<p>note x17059.cif has hydrogens like H12A – H12D, this can only be captured
+by previously fitted disg and occu, in general there
+should be a check on whether disgs identified by the parser are identical to previously fitted</p>
+<p>dis-2:  set(self.tags) is [“”, &lt;non-word&gt;, &lt;word&gt;, …], EI&lt;non-word&gt; – E’I’ e.g. ALOVOO.cif</p>
+<p>nodis-1: dup in self.eis, set(self.tags) is [“”, &lt;word&gt;, …], this could be a dis as in ASIXEH</p>
+<p>weird: else</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="ocelot.routines.disparser.DisParser.data2cifdata">
+<em class="property">static </em><code class="sig-name descname">data2cifdata</code><span class="sig-paren">(</span><em class="sig-param">data</em>, <em class="sig-param">cifdata</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/disparser.html#DisParser.data2cifdata"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.disparser.DisParser.data2cifdata" title="Permalink to this definition">¶</a></dt>
+<dd><p>data[atomlable] = x, y, z, symbol, occu, group</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ocelot.routines.disparser.DisParser.dis0data_to_disunit_pairs">
+<code class="sig-name descname">dis0data_to_disunit_pairs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/disparser.html#DisParser.dis0data_to_disunit_pairs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.disparser.DisParser.dis0data_to_disunit_pairs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ocelot.routines.disparser.DisParser.dis1_to_dis0">
+<code class="sig-name descname">dis1_to_dis0</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/disparser.html#DisParser.dis1_to_dis0"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.disparser.DisParser.dis1_to_dis0" title="Permalink to this definition">¶</a></dt>
+<dd><p>C20 – C20?</p>
+<p>dis-1:  set(self.tags) is [“”, &lt;non-word&gt;, &lt;word&gt;, …], EI&lt;non-word&gt; – EI,</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ocelot.routines.disparser.DisParser.dis2_to_dis0">
+<code class="sig-name descname">dis2_to_dis0</code><span class="sig-paren">(</span><em class="sig-param">cutoff=1.5</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/disparser.html#DisParser.dis2_to_dis0"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.disparser.DisParser.dis2_to_dis0" title="Permalink to this definition">¶</a></dt>
+<dd><p>c20 &lt;–&gt; c16?</p>
+<p>dis-2:  set(self.tags) is [“”, &lt;non-word&gt;, &lt;word&gt;, …], EI&lt;non-word&gt; – E’I’ e.g. ALOVOO.cif</p>
+<p>will write default occu and disg to self.data</p>
+<p>this is rather unreliable, user should be warned
+for each label with &lt;non-word&gt; tag, find nearest label (within the cutoff) as a counterpart
+exception includes AGUHUG.cif (H – OH disorder)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ocelot.routines.disparser.DisParser.from_ciffile">
+<em class="property">classmethod </em><code class="sig-name descname">from_ciffile</code><span class="sig-paren">(</span><em class="sig-param">fn</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/disparser.html#DisParser.from_ciffile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.disparser.DisParser.from_ciffile" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ocelot.routines.disparser.DisParser.get_psites_from_data">
+<code class="sig-name descname">get_psites_from_data</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/disparser.html#DisParser.get_psites_from_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.disparser.DisParser.get_psites_from_data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ocelot.routines.disparser.DisParser.labels_with_nonword_suffix">
+<em class="property">property </em><code class="sig-name descname">labels_with_nonword_suffix</code><a class="headerlink" href="#ocelot.routines.disparser.DisParser.labels_with_nonword_suffix" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ocelot.routines.disparser.DisParser.labels_with_word_or_no_suffix">
+<em class="property">property </em><code class="sig-name descname">labels_with_word_or_no_suffix</code><a class="headerlink" href="#ocelot.routines.disparser.DisParser.labels_with_word_or_no_suffix" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ocelot.routines.disparser.DisParser.nodis_to_dis0">
+<code class="sig-name descname">nodis_to_dis0</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/disparser.html#DisParser.nodis_to_dis0"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.disparser.DisParser.nodis_to_dis0" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ocelot.routines.disparser.DisParser.parse">
+<code class="sig-name descname">parse</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/disparser.html#DisParser.parse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.disparser.DisParser.parse" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ocelot.routines.disparser.DisParser.to_configs">
+<code class="sig-name descname">to_configs</code><span class="sig-paren">(</span><em class="sig-param">write_files=False</em>, <em class="sig-param">scaling_mat=(1</em>, <em class="sig-param">1</em>, <em class="sig-param">1)</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/disparser.html#DisParser.to_configs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.disparser.DisParser.to_configs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ocelot.routines.disparser.DisUnit">
+<em class="property">class </em><code class="sig-prename descclassname">ocelot.routines.disparser.</code><code class="sig-name descname">DisUnit</code><span class="sig-paren">(</span><em class="sig-param">psites: [&lt;class 'pymatgen.core.sites.PeriodicSite'&gt;]</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/disparser.html#DisUnit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.disparser.DisUnit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="ocelot.routines.disparser.DisUnit.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">psites: [&lt;class 'pymatgen.core.sites.PeriodicSite'&gt;]</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/disparser.html#DisUnit.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.disparser.DisUnit.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>a portion of an asymmetric unit representing one possibility</p>
+<p>a pair of DisUnit is the basis of disorder, assuming maximal entropy</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ocelot.routines.disparser.DisUnit.geoc">
+<em class="property">property </em><code class="sig-name descname">geoc</code><a class="headerlink" href="#ocelot.routines.disparser.DisUnit.geoc" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ocelot.routines.disparser.DisUnit.get_connected_pblock">
+<em class="property">static </em><code class="sig-name descname">get_connected_pblock</code><span class="sig-paren">(</span><em class="sig-param">pblocks</em>, <em class="sig-param">cutoff=4.0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/disparser.html#DisUnit.get_connected_pblock"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.disparser.DisUnit.get_connected_pblock" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ocelot.routines.disparser.DisUnit.get_disunit_pairs_from_asym">
+<em class="property">static </em><code class="sig-name descname">get_disunit_pairs_from_asym</code><span class="sig-paren">(</span><em class="sig-param">psites</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/disparser.html#DisUnit.get_disunit_pairs_from_asym"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.disparser.DisUnit.get_disunit_pairs_from_asym" title="Permalink to this definition">¶</a></dt>
+<dd><p>get a list of xor disunit pairs</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>psites</strong> – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>[[ua, ua’], [ub, ub’], …]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="ocelot.routines.disparser.DisUnit.partition_asymmetric_unit">
+<em class="property">static </em><code class="sig-name descname">partition_asymmetric_unit</code><span class="sig-paren">(</span><em class="sig-param">psites</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/disparser.html#DisUnit.partition_asymmetric_unit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.disparser.DisUnit.partition_asymmetric_unit" title="Permalink to this definition">¶</a></dt>
+<dd><p>all disorder units in a flat list within in one asym unit</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>psites</strong> – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="ocelot.routines.disparser.DisUnitError">
+<em class="property">exception </em><code class="sig-prename descclassname">ocelot.routines.disparser.</code><code class="sig-name descname">DisUnitError</code><a class="reference internal" href="_modules/ocelot/routines/disparser.html#DisUnitError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.disparser.DisUnitError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="ocelot.routines.disparser.DisorderParserError">
+<em class="property">exception </em><code class="sig-prename descclassname">ocelot.routines.disparser.</code><code class="sig-name descname">DisorderParserError</code><a class="reference internal" href="_modules/ocelot/routines/disparser.html#DisorderParserError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.disparser.DisorderParserError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ocelot.routines.disparser.apply_symmop">
+<code class="sig-prename descclassname">ocelot.routines.disparser.</code><code class="sig-name descname">apply_symmop</code><span class="sig-paren">(</span><em class="sig-param">psites</em>, <em class="sig-param">ops</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/disparser.html#apply_symmop"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.disparser.apply_symmop" title="Permalink to this definition">¶</a></dt>
+<dd><p>symmop and xyz in cif file:</p>
+<p>lets say xyz – op1 –&gt; x’y’z’ and xyz – op2 –&gt; x!y!z! and
+it is possible to have x’y’z’ is_close x!y!z!</p>
+<p>this means one should take only x’y’z’ or x!y!z!, aka op1 is equivalent to op2 due to the symmetry implicated by
+xyz/the asymmectric unit, e.g. ALOVOO.cif – Z=2, asymmectric unit given by cif is one molecule, but there’re 4 ops</p>
+<p>so we need first check if the cif file behaves like this</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ocelot.routines.disparser.braket2float">
+<code class="sig-prename descclassname">ocelot.routines.disparser.</code><code class="sig-name descname">braket2float</code><span class="sig-paren">(</span><em class="sig-param">s</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/disparser.html#braket2float"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.disparser.braket2float" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ocelot.routines.disparser.get_nearest_label">
+<code class="sig-prename descclassname">ocelot.routines.disparser.</code><code class="sig-name descname">get_nearest_label</code><span class="sig-paren">(</span><em class="sig-param">data: dict, ali: ocelot.routines.disparser.AtomLabel, neighbor_labels: [&lt;class 'ocelot.routines.disparser.AtomLabel'&gt;], lattice: pymatgen.core.lattice.Lattice, cutoff=1.5</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/disparser.html#get_nearest_label"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.disparser.get_nearest_label" title="Permalink to this definition">¶</a></dt>
+<dd><p>given a list of potential neighbouring AtomLable, get the one that is closest and has the same element</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> – </p></li>
+<li><p><strong>ali</strong> – </p></li>
+<li><p><strong>neighbor_labels</strong> – </p></li>
+<li><p><strong>lattice</strong> – </p></li>
+<li><p><strong>cutoff</strong> – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="ocelot.routines.disparser.get_pmg_dict">
+<code class="sig-prename descclassname">ocelot.routines.disparser.</code><code class="sig-name descname">get_pmg_dict</code><span class="sig-paren">(</span><em class="sig-param">cifstring: str</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/disparser.html#get_pmg_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.disparser.get_pmg_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>use pmg dict to parse cifstring, only deal with one structure per file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>cifstring</strong> – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="ocelot.routines.disparser.get_psite_by_atomlable">
+<code class="sig-prename descclassname">ocelot.routines.disparser.</code><code class="sig-name descname">get_psite_by_atomlable</code><span class="sig-paren">(</span><em class="sig-param">psites</em>, <em class="sig-param">al</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/disparser.html#get_psite_by_atomlable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.disparser.get_psite_by_atomlable" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ocelot.routines.disparser.get_psite_label">
+<code class="sig-prename descclassname">ocelot.routines.disparser.</code><code class="sig-name descname">get_psite_label</code><span class="sig-paren">(</span><em class="sig-param">s</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/disparser.html#get_psite_label"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.disparser.get_psite_label" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ocelot.routines.disparser.get_symmop">
+<code class="sig-prename descclassname">ocelot.routines.disparser.</code><code class="sig-name descname">get_symmop</code><span class="sig-paren">(</span><em class="sig-param">data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/disparser.html#get_symmop"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.disparser.get_symmop" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ocelot.routines.disparser.sub_spgrp">
+<code class="sig-prename descclassname">ocelot.routines.disparser.</code><code class="sig-name descname">sub_spgrp</code><span class="sig-paren">(</span><em class="sig-param">string</em>, <em class="sig-param">count=0</em>, <em class="sig-param">flags=0</em><span class="sig-paren">)</span><a class="headerlink" href="#ocelot.routines.disparser.sub_spgrp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the string obtained by replacing the leftmost
+non-overlapping occurrences of the pattern in string by the
+replacement repl.  repl can be either a string or a callable;
+if a string, backslash escapes in it are processed.  If it is
+a callable, it’s passed the Match object and must return
+a replacement string to be used.</p>
+</dd></dl>
+
 </div>
 <div class="section" id="module-ocelot.routines.fileop">
 <span id="ocelot-routines-fileop-module"></span><h2>ocelot.routines.fileop module<a class="headerlink" href="#module-ocelot.routines.fileop" title="Permalink to this headline">¶</a></h2>
@@ -423,9 +1009,11 @@
 <dl class="function">
 <dt id="ocelot.routines.geometry.alpha_shape">
 <code class="sig-prename descclassname">ocelot.routines.geometry.</code><code class="sig-name descname">alpha_shape</code><span class="sig-paren">(</span><em class="sig-param">points</em>, <em class="sig-param">alpha=0.7</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/geometry.html#alpha_shape"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.geometry.alpha_shape" title="Permalink to this definition">¶</a></dt>
-<dd><p>0.7 seems work for adt</p>
+<dd><p>0.7 seems work for adt, see tests
+usually the problem seems to be there’re just too few points to get enough triangles, if we can add more points
+inside the rings we can get smaller concave hull</p>
 <p><a class="reference external" href="https://gist.github.com/dwyerk/10561690">https://gist.github.com/dwyerk/10561690</a></p>
-<p>Compute the alpha shape (concave hull) of a set of points.</p>
+<p>Compute the alpha shape (concave hull) of a set of 2D points.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -621,6 +1209,7 @@ the given axis by theta.</p>
 </div>
 <div class="section" id="module-ocelot.routines.loop">
 <span id="ocelot-routines-loop-module"></span><h2>ocelot.routines.loop module<a class="headerlink" href="#module-ocelot.routines.loop" title="Permalink to this headline">¶</a></h2>
+<p>as we are using networkx this can be deprecated…</p>
 <dl class="class">
 <dt id="ocelot.routines.loop.Loopsearcher">
 <em class="property">class </em><code class="sig-prename descclassname">ocelot.routines.loop.</code><code class="sig-name descname">Loopsearcher</code><span class="sig-paren">(</span><em class="sig-param">nbmap</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/loop.html#Loopsearcher"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.loop.Loopsearcher" title="Permalink to this definition">¶</a></dt>
@@ -658,6 +1247,30 @@ the given axis by theta.</p>
 <code class="sig-name descname">expand</code><span class="sig-paren">(</span><em class="sig-param">path_set</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/loop.html#Loopsearcher.expand"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.loop.Loopsearcher.expand" title="Permalink to this definition">¶</a></dt>
 <dd><p>the path will never intersect itself</p>
 </dd></dl>
+
+<dl class="method">
+<dt id="ocelot.routines.loop.Loopsearcher.generate_edges">
+<code class="sig-name descname">generate_edges</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/loop.html#Loopsearcher.generate_edges"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.loop.Loopsearcher.generate_edges" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ocelot.routines.loop.Loopsearcher.loop2edges">
+<em class="property">static </em><code class="sig-name descname">loop2edges</code><span class="sig-paren">(</span><em class="sig-param">loop</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/loop.html#Loopsearcher.loop2edges"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.loop.Loopsearcher.loop2edges" title="Permalink to this definition">¶</a></dt>
+<dd><p>notice here loop is sth like [1, 2, 3], where it is implied that 1 is connected to 3</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>loop</strong> – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>e.g. [{1, 2}, {2, 3}, {1, 3}]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="ocelot.routines.loop.Loopsearcher.sssr_alex">
+<code class="sig-name descname">sssr_alex</code><span class="sig-paren">(</span><em class="sig-param">size_min</em>, <em class="sig-param">size_max</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/loop.html#Loopsearcher.sssr_alex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.loop.Loopsearcher.sssr_alex" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 </dd></dl>
 
@@ -718,16 +1331,16 @@ x should be uniformly sampled over a seg</p>
 <span id="ocelot-routines-mopac-module"></span><h2>ocelot.routines.mopac module<a class="headerlink" href="#module-ocelot.routines.mopac" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="ocelot.routines.mopac.MopacInput">
-<em class="property">class </em><code class="sig-prename descclassname">ocelot.routines.mopac.</code><code class="sig-name descname">MopacInput</code><span class="sig-paren">(</span><em class="sig-param">msites</em>, <em class="sig-param">mopheader='CHARGES'</em>, <em class="sig-param">comment_line=''</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/mopac.html#MopacInput"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.mopac.MopacInput" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">ocelot.routines.mopac.</code><code class="sig-name descname">MopacInput</code><span class="sig-paren">(</span><em class="sig-param">sites</em>, <em class="sig-param">mopheader='CHARGES'</em>, <em class="sig-param">comment_line=''</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/mopac.html#MopacInput"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.mopac.MopacInput" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="method">
 <dt id="ocelot.routines.mopac.MopacInput.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">msites</em>, <em class="sig-param">mopheader='CHARGES'</em>, <em class="sig-param">comment_line=''</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/mopac.html#MopacInput.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.mopac.MopacInput.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">sites</em>, <em class="sig-param">mopheader='CHARGES'</em>, <em class="sig-param">comment_line=''</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/mopac.html#MopacInput.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.mopac.MopacInput.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>does not support selective dynamics</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>msites</strong> – </p></li>
+<li><p><strong>sites</strong> – </p></li>
 <li><p><strong>mopheader</strong> – </p></li>
 <li><p><strong>comment_line</strong> – </p></li>
 </ul>
@@ -742,11 +1355,15 @@ x should be uniformly sampled over a seg</p>
 
 <dl class="method">
 <dt id="ocelot.routines.mopac.MopacInput.sites2mopinput">
-<em class="property">static </em><code class="sig-name descname">sites2mopinput</code><span class="sig-paren">(</span><em class="sig-param">msites</em>, <em class="sig-param">header</em>, <em class="sig-param">comment</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/mopac.html#MopacInput.sites2mopinput"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.mopac.MopacInput.sites2mopinput" title="Permalink to this definition">¶</a></dt>
+<em class="property">static </em><code class="sig-name descname">sites2mopinput</code><span class="sig-paren">(</span><em class="sig-param">sites: [&lt;class 'pymatgen.core.sites.Site'&gt;], header, comment</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/mopac.html#MopacInput.sites2mopinput"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.mopac.MopacInput.sites2mopinput" title="Permalink to this definition">¶</a></dt>
 <dd><p>return the string of mopac input</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>sites</strong> – </p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sites</strong> – </p></li>
+<li><p><strong>header</strong> – </p></li>
+<li><p><strong>comment</strong> – </p></li>
+</ul>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p></p>
@@ -869,14 +1486,17 @@ x should be uniformly sampled over a seg</p>
 
 <dl class="method">
 <dt id="ocelot.routines.pbc.PBCparser.squeeze">
-<em class="property">static </em><code class="sig-name descname">squeeze</code><span class="sig-paren">(</span><em class="sig-param">pstructure</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/pbc.html#PBCparser.squeeze"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.pbc.PBCparser.squeeze" title="Permalink to this definition">¶</a></dt>
+<em class="property">static </em><code class="sig-name descname">squeeze</code><span class="sig-paren">(</span><em class="sig-param">pstructure: pymatgen.core.structure.Structure</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/pbc.html#PBCparser.squeeze"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.pbc.PBCparser.squeeze" title="Permalink to this definition">¶</a></dt>
 <dd><p>after unwrapping, the mols can be far away from each other, this tries to translate them s.t. they stay together</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>pstructure</strong> – </p>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p></p>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p></p>
+<dt class="field-even">Parameters</dt>
+<dd class="field-even"><p><strong>pstructure</strong> – </p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
 </dd>
 </dl>
 </dd></dl>
@@ -896,129 +1516,6 @@ x should be uniformly sampled over a seg</p>
 </dd></dl>
 
 </dd></dl>
-
-</div>
-<div class="section" id="module-ocelot.routines.xyz2mol">
-<span id="ocelot-routines-xyz2mol-module"></span><h2>ocelot.routines.xyz2mol module<a class="headerlink" href="#module-ocelot.routines.xyz2mol" title="Permalink to this headline">¶</a></h2>
-<p>Written by Jan H. Jensen based on this paper Yeonjoon Kim and Woo Youn Kim 
-“Universal Structure Conversion Method for Organic Molecules: From Atomic Connectivity
-to Three-Dimensional Geometry” Bull. Korean Chem. Soc. 2015, Vol. 36, 1769-1777 DOI: 10.1002/bkcs.10334</p>
-<p>MIT License</p>
-<p>Copyright (c) 2018 Jensen Group</p>
-<p>Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the “Software”), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:</p>
-<p>The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.</p>
-<p>THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.</p>
-<dl class="function">
-<dt id="ocelot.routines.xyz2mol.AC2BO">
-<code class="sig-prename descclassname">ocelot.routines.xyz2mol.</code><code class="sig-name descname">AC2BO</code><span class="sig-paren">(</span><em class="sig-param">AC</em>, <em class="sig-param">atomicNumList</em>, <em class="sig-param">charge</em>, <em class="sig-param">charged_fragments</em>, <em class="sig-param">quick</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/xyz2mol.html#AC2BO"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.xyz2mol.AC2BO" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ocelot.routines.xyz2mol.AC2mol">
-<code class="sig-prename descclassname">ocelot.routines.xyz2mol.</code><code class="sig-name descname">AC2mol</code><span class="sig-paren">(</span><em class="sig-param">mol</em>, <em class="sig-param">AC</em>, <em class="sig-param">atomicNumList</em>, <em class="sig-param">charge</em>, <em class="sig-param">charged_fragments</em>, <em class="sig-param">quick</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/xyz2mol.html#AC2mol"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.xyz2mol.AC2mol" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ocelot.routines.xyz2mol.BO2mol">
-<code class="sig-prename descclassname">ocelot.routines.xyz2mol.</code><code class="sig-name descname">BO2mol</code><span class="sig-paren">(</span><em class="sig-param">mol</em>, <em class="sig-param">BO_matrix</em>, <em class="sig-param">atomicNumList</em>, <em class="sig-param">atomic_valence_electrons</em>, <em class="sig-param">mol_charge</em>, <em class="sig-param">charged_fragments</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/xyz2mol.html#BO2mol"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.xyz2mol.BO2mol" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ocelot.routines.xyz2mol.BO_is_OK">
-<code class="sig-prename descclassname">ocelot.routines.xyz2mol.</code><code class="sig-name descname">BO_is_OK</code><span class="sig-paren">(</span><em class="sig-param">BO</em>, <em class="sig-param">AC</em>, <em class="sig-param">charge</em>, <em class="sig-param">DU</em>, <em class="sig-param">atomic_valence_electrons</em>, <em class="sig-param">atomicNumList</em>, <em class="sig-param">charged_fragments</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/xyz2mol.html#BO_is_OK"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.xyz2mol.BO_is_OK" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ocelot.routines.xyz2mol.chiral_stereo_check">
-<code class="sig-prename descclassname">ocelot.routines.xyz2mol.</code><code class="sig-name descname">chiral_stereo_check</code><span class="sig-paren">(</span><em class="sig-param">mol</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/xyz2mol.html#chiral_stereo_check"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.xyz2mol.chiral_stereo_check" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ocelot.routines.xyz2mol.clean_charges">
-<code class="sig-prename descclassname">ocelot.routines.xyz2mol.</code><code class="sig-name descname">clean_charges</code><span class="sig-paren">(</span><em class="sig-param">mol</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/xyz2mol.html#clean_charges"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.xyz2mol.clean_charges" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ocelot.routines.xyz2mol.getUA">
-<code class="sig-prename descclassname">ocelot.routines.xyz2mol.</code><code class="sig-name descname">getUA</code><span class="sig-paren">(</span><em class="sig-param">maxValence_list</em>, <em class="sig-param">valence_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/xyz2mol.html#getUA"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.xyz2mol.getUA" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ocelot.routines.xyz2mol.get_BO">
-<code class="sig-prename descclassname">ocelot.routines.xyz2mol.</code><code class="sig-name descname">get_BO</code><span class="sig-paren">(</span><em class="sig-param">AC</em>, <em class="sig-param">UA</em>, <em class="sig-param">DU</em>, <em class="sig-param">valences</em>, <em class="sig-param">UA_pairs</em>, <em class="sig-param">quick</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/xyz2mol.html#get_BO"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.xyz2mol.get_BO" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ocelot.routines.xyz2mol.get_UA_pairs">
-<code class="sig-prename descclassname">ocelot.routines.xyz2mol.</code><code class="sig-name descname">get_UA_pairs</code><span class="sig-paren">(</span><em class="sig-param">UA</em>, <em class="sig-param">AC</em>, <em class="sig-param">quick</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/xyz2mol.html#get_UA_pairs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.xyz2mol.get_UA_pairs" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ocelot.routines.xyz2mol.get_atom">
-<code class="sig-prename descclassname">ocelot.routines.xyz2mol.</code><code class="sig-name descname">get_atom</code><span class="sig-paren">(</span><em class="sig-param">atom</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/xyz2mol.html#get_atom"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.xyz2mol.get_atom" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ocelot.routines.xyz2mol.get_atomicNumList">
-<code class="sig-prename descclassname">ocelot.routines.xyz2mol.</code><code class="sig-name descname">get_atomicNumList</code><span class="sig-paren">(</span><em class="sig-param">atomic_symbols</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/xyz2mol.html#get_atomicNumList"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.xyz2mol.get_atomicNumList" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ocelot.routines.xyz2mol.get_atomic_charge">
-<code class="sig-prename descclassname">ocelot.routines.xyz2mol.</code><code class="sig-name descname">get_atomic_charge</code><span class="sig-paren">(</span><em class="sig-param">atom</em>, <em class="sig-param">atomic_valence_electrons</em>, <em class="sig-param">BO_valence</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/xyz2mol.html#get_atomic_charge"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.xyz2mol.get_atomic_charge" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ocelot.routines.xyz2mol.get_bonds">
-<code class="sig-prename descclassname">ocelot.routines.xyz2mol.</code><code class="sig-name descname">get_bonds</code><span class="sig-paren">(</span><em class="sig-param">UA</em>, <em class="sig-param">AC</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/xyz2mol.html#get_bonds"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.xyz2mol.get_bonds" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ocelot.routines.xyz2mol.get_proto_mol">
-<code class="sig-prename descclassname">ocelot.routines.xyz2mol.</code><code class="sig-name descname">get_proto_mol</code><span class="sig-paren">(</span><em class="sig-param">atomicNumList</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/xyz2mol.html#get_proto_mol"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.xyz2mol.get_proto_mol" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ocelot.routines.xyz2mol.read_xyz_file">
-<code class="sig-prename descclassname">ocelot.routines.xyz2mol.</code><code class="sig-name descname">read_xyz_file</code><span class="sig-paren">(</span><em class="sig-param">filename</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/xyz2mol.html#read_xyz_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.xyz2mol.read_xyz_file" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ocelot.routines.xyz2mol.set_atomic_charges">
-<code class="sig-prename descclassname">ocelot.routines.xyz2mol.</code><code class="sig-name descname">set_atomic_charges</code><span class="sig-paren">(</span><em class="sig-param">mol</em>, <em class="sig-param">atomicNumList</em>, <em class="sig-param">atomic_valence_electrons</em>, <em class="sig-param">BO_valences</em>, <em class="sig-param">BO_matrix</em>, <em class="sig-param">mol_charge</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/xyz2mol.html#set_atomic_charges"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.xyz2mol.set_atomic_charges" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ocelot.routines.xyz2mol.set_atomic_radicals">
-<code class="sig-prename descclassname">ocelot.routines.xyz2mol.</code><code class="sig-name descname">set_atomic_radicals</code><span class="sig-paren">(</span><em class="sig-param">mol</em>, <em class="sig-param">atomicNumList</em>, <em class="sig-param">atomic_valence_electrons</em>, <em class="sig-param">BO_valences</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/xyz2mol.html#set_atomic_radicals"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.xyz2mol.set_atomic_radicals" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ocelot.routines.xyz2mol.valences_not_too_large">
-<code class="sig-prename descclassname">ocelot.routines.xyz2mol.</code><code class="sig-name descname">valences_not_too_large</code><span class="sig-paren">(</span><em class="sig-param">BO</em>, <em class="sig-param">valences</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/xyz2mol.html#valences_not_too_large"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.xyz2mol.valences_not_too_large" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ocelot.routines.xyz2mol.xyz2AC">
-<code class="sig-prename descclassname">ocelot.routines.xyz2mol.</code><code class="sig-name descname">xyz2AC</code><span class="sig-paren">(</span><em class="sig-param">atomicNumList</em>, <em class="sig-param">xyz</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/xyz2mol.html#xyz2AC"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.xyz2mol.xyz2AC" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ocelot.routines.xyz2mol.xyz2mol">
-<code class="sig-prename descclassname">ocelot.routines.xyz2mol.</code><code class="sig-name descname">xyz2mol</code><span class="sig-paren">(</span><em class="sig-param">atomicNumList</em>, <em class="sig-param">charge</em>, <em class="sig-param">xyz_coordinates</em>, <em class="sig-param">charged_fragments</em>, <em class="sig-param">quick</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/routines/xyz2mol.html#xyz2mol"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.routines.xyz2mol.xyz2mol" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
 
 </div>
 <div class="section" id="module-ocelot.routines">

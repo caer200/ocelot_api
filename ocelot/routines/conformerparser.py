@@ -1,6 +1,4 @@
 import copy
-from scipy.spatial.distance import pdist
-from scipy.spatial.distance import squareform
 import itertools
 import re
 from collections import defaultdict
@@ -10,10 +8,11 @@ import numpy as np
 from pymatgen.core.periodic_table import Element
 from rdkit import Chem
 from rdkit.Chem import AllChem
+from scipy.spatial.distance import pdist
+from scipy.spatial.distance import squareform
 
 """
-modified based on Jan H. Jensen's implementation in xyz2mol
-will replace xyz2mol in routines
+modified based on Jan H. Jensen's implementation in [xyz2mol](https://github.com/jensengroup/xyz2mol)
 """
 
 
@@ -81,7 +80,7 @@ def pmgmol_to_rdmol(pmg_mol):
     for i in range(numsites):
         conf.SetAtomPosition(i, (coordmat[i][0], coordmat[i][1], coordmat[i][2]))
 
-    mat = np.zeros((numsites, numsites), dtype=bool)
+    mat = np.zeros((numsites, numsites))
     distmat = squareform(pdist(coordmat))
     for i in range(numsites):
         istring = pmg_mol[i].species_string
@@ -95,8 +94,8 @@ def pmgmol_to_rdmol(pmg_mol):
                 continue
             cutoff = (irad + jrad) * 1.30
             if 1e-5 < distmat[i][j] < cutoff:
-                mat[i][j] = True
-                mat[j][i] = True
+                mat[i][j] = 1
+                mat[j][i] = 1
     ap = ACParser(mat, charge, m.atomic_numbers, sani=True)
     rdmol, smiles = ap.parse(charged_fragments=False, force_single=False, expliciths=True)
     rdmol.AddConformer(conf)
@@ -208,6 +207,7 @@ class ACParser:
         the algo is to increase bond order s.t. degree of unsaturation (DU) does not change
         notice DU is calculated based on the given valences
 
+        :param DU_init:
         :param AC:
         :param valences:
         :param UA_pairs:
@@ -329,7 +329,7 @@ class ACParser:
         l2 = len(self.atomic_numbers)
         BO_valences = list(BO_matrix.sum(axis=1))
 
-        if (l != l2):
+        if l != l2:
             raise RuntimeError('sizes of adjMat ({0:d}) and atomicNumList '
                                '{1:d} differ'.format(l, l2))
 
@@ -344,7 +344,7 @@ class ACParser:
         for i in range(l):
             for j in range(i + 1, l):
                 bo = int(round(BO_matrix[i, j]))
-                if (bo == 0):
+                if bo == 0:
                     continue
                 if force_single:
                     bt = Chem.BondType.SINGLE
@@ -375,7 +375,7 @@ class ACParser:
                     q += 2
                     charge = 1
 
-            if (abs(charge) > 0):
+            if abs(charge) > 0:
                 a.SetFormalCharge(int(charge))
         if self.sani:
             mol = clean_charges(mol)
@@ -386,7 +386,7 @@ class ACParser:
         for i, atom in enumerate(self.atomic_numbers):
             a = mol.GetAtomWithIdx(i)
             charge = self.get_atomic_charge(atom, self.atomic_valence_electrons[atom], BO_valences[i])
-            if (abs(charge) > 0):
+            if abs(charge) > 0:
                 a.SetNumRadicalElectrons(abs(int(charge)))
         return mol
 

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ocelot.task package &mdash; ocelot 0.01 documentation</title>
+  <title>ocelot.task package &mdash; ocelot 0.2 documentation</title>
   
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                0.01
+                0.2
               </div>
             
           
@@ -86,7 +86,10 @@
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="quick_start.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="quick_start.html#quick-start">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html#schema">schema</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html#disorder">Disorder</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html#bone-config">Bone Config</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html#backbone-and-sidechain">Backbone and Sidechain</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="ocelot.html">ocelot package</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="ocelot.html#subpackages">Subpackages</a><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="ocelot.routines.html">ocelot.routines package</a></li>
@@ -95,12 +98,13 @@
 <li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-ocelot.task.calec">ocelot.task.calec module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-ocelot.task.dftd3">ocelot.task.dftd3 module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-ocelot.task.fitbox">ocelot.task.fitbox module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ocelot.task.hop">ocelot.task.hop module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-ocelot.task.idchg">ocelot.task.idchg module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-ocelot.task.nics">ocelot.task.nics module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-ocelot.task.pkid">ocelot.task.pkid module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-ocelot.task.reciprocal">ocelot.task.reciprocal module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-ocelot.task.wtuning">ocelot.task.wtuning module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ocelot.task.zindo">ocelot.task.zindo module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-ocelot.task">Module contents</a></li>
 </ul>
 </li>
@@ -354,8 +358,165 @@ Returns a numpy matrix.</p>
 </dd></dl>
 
 </div>
-<div class="section" id="module-ocelot.task.fitbox">
-<span id="ocelot-task-fitbox-module"></span><h2>ocelot.task.fitbox module<a class="headerlink" href="#module-ocelot.task.fitbox" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-ocelot.task.hop">
+<span id="ocelot-task-hop-module"></span><h2>ocelot.task.hop module<a class="headerlink" href="#module-ocelot.task.hop" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ocelot.task.hop.Hop">
+<em class="property">class </em><code class="sig-prename descclassname">ocelot.task.hop.</code><code class="sig-name descname">Hop</code><span class="sig-paren">(</span><em class="sig-param">config</em>, <em class="sig-param">zindobin</em>, <em class="sig-param">zindoctbin</em>, <em class="sig-param">zindolib</em>, <em class="sig-param">wdir</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/hop.html#Hop"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.hop.Hop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="ocelot.task.hop.Hop.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">config</em>, <em class="sig-param">zindobin</em>, <em class="sig-param">zindoctbin</em>, <em class="sig-param">zindolib</em>, <em class="sig-param">wdir</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/hop.html#Hop.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.hop.Hop.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize self.  See help(type(self)) for accurate signature.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ocelot.task.hop.Hop.applysym_to_coupling_data">
+<em class="property">static </em><code class="sig-name descname">applysym_to_coupling_data</code><span class="sig-paren">(</span><em class="sig-param">data</em>, <em class="sig-param">dimer_array</em>, <em class="sig-param">workdir</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/hop.html#Hop.applysym_to_coupling_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.hop.Hop.applysym_to_coupling_data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ocelot.task.hop.Hop.get_hopping_network_s1">
+<code class="sig-name descname">get_hopping_network_s1</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/hop.html#Hop.get_hopping_network_s1"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.hop.Hop.get_hopping_network_s1" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ocelot.task.hop.Hop.get_hopping_network_s2">
+<code class="sig-name descname">get_hopping_network_s2</code><span class="sig-paren">(</span><em class="sig-param">symdata</em>, <em class="sig-param">cutoff</em>, <em class="sig-param">supercell=(1</em>, <em class="sig-param">1</em>, <em class="sig-param">1)</em>, <em class="sig-param">motype='hh'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/hop.html#Hop.get_hopping_network_s2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.hop.Hop.get_hopping_network_s2" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ocelot.task.hop.Hop.get_intger_mesh">
+<em class="property">static </em><code class="sig-name descname">get_intger_mesh</code><span class="sig-paren">(</span><em class="sig-param">x</em>, <em class="sig-param">y</em>, <em class="sig-param">z</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/hop.html#Hop.get_intger_mesh"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.hop.Hop.get_intger_mesh" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ocelot.task.hop.Hop.group_dimers">
+<em class="property">static </em><code class="sig-name descname">group_dimers</code><span class="sig-paren">(</span><em class="sig-param">dimers</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/hop.html#Hop.group_dimers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.hop.Hop.group_dimers" title="Permalink to this definition">¶</a></dt>
+<dd><p>subgroup into dimercollection such that all dimers in one collection share the same ref_omol</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>dimers</strong> – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>dimercolls: a dict of dimer lists, dimercolls[x] are dimers with i==x</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="ocelot.task.hop.Hop.hopping">
+<em class="property">static </em><code class="sig-name descname">hopping</code><span class="sig-paren">(</span><em class="sig-param">supercell_data</em>, <em class="sig-param">supercell_mesh</em>, <em class="sig-param">cutoff</em>, <em class="sig-param">workdir</em>, <em class="sig-param">motype</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/hop.html#Hop.hopping"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.hop.Hop.hopping" title="Permalink to this definition">¶</a></dt>
+<dd><p>a molecule is defined by meshpoint in the supercell mesh (mp_i) and mol index (mol_i) in a cell
+hopdata[x] gives a list of molecules (represented by [mp_i, mol_i])
+that are connected to the molecule [mp_i=0, mol_i=x], including the molecule itself</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>motype</strong> – </p></li>
+<li><p><strong>supercell_mesh</strong> – 3xn meshpoints</p></li>
+<li><p><strong>supercell_data</strong> – </p></li>
+<li><p><strong>cutoff</strong> – in meV</p></li>
+<li><p><strong>workdir</strong> – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="ocelot.task.hop.Hop.run_zindo">
+<code class="sig-name descname">run_zindo</code><span class="sig-paren">(</span><em class="sig-param">alldimers</em>, <em class="sig-param">workdir</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/hop.html#Hop.run_zindo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.hop.Hop.run_zindo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run zindo for all the dimers provided and calculate electronic coupling.
+xzy files are written for each of the dimer in the respective folder. xyz file for the dimers is also written.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>alldimers</strong> – </p></li>
+<li><p><strong>workdir</strong> – working directory to run zindo</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>data[dimer.label] = [hhcoupling, llcoupling, xyzstring]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="ocelot.task.hop.Hop.screen_dimers">
+<em class="property">static </em><code class="sig-name descname">screen_dimers</code><span class="sig-paren">(</span><em class="sig-param">dimer_array</em>, <em class="sig-param">close=True</em>, <em class="sig-param">unique=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/hop.html#Hop.screen_dimers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.hop.Hop.screen_dimers" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dimer_array</strong> – ijk array as in config.get_dimers_array()</p></li>
+<li><p><strong>close</strong> – </p></li>
+<li><p><strong>unique</strong> – apply symmetry in dimer_array</p></li>
+</ul>
+</dd>
+</dl>
+<p>:return a list of dimers that are unique and close</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ocelot.task.hop.Hop.supercell_proj">
+<em class="property">static </em><code class="sig-name descname">supercell_proj</code><span class="sig-paren">(</span><em class="sig-param">dimer_array</em>, <em class="sig-param">transv_fcs</em>, <em class="sig-param">symdata</em>, <em class="sig-param">super_cell_size</em>, <em class="sig-param">motype</em>, <em class="sig-param">workdir</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/hop.html#Hop.supercell_proj"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.hop.Hop.supercell_proj" title="Permalink to this definition">¶</a></dt>
+<dd><p>we look at a supercell, in which the coupling is represented as augmented_data[mp_i][mp_j][i][j]
+which is the coupling between supercellmesh[mp_i] ith mol and supercellmesh[mp_j] jth mol</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>motype</strong> – </p></li>
+<li><p><strong>workdir</strong> – </p></li>
+<li><p><strong>dimer_array</strong> – </p></li>
+<li><p><strong>transv_fcs</strong> – </p></li>
+<li><p><strong>symdata</strong> – </p></li>
+<li><p><strong>super_cell_size</strong> – 3x1 int tuple e.g. (6, 6, 6)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>supercellmesh, augmented_data</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="ocelot.task.hop.Hop.unique_ijk">
+<em class="property">static </em><code class="sig-name descname">unique_ijk</code><span class="sig-paren">(</span><em class="sig-param">leni</em>, <em class="sig-param">lenj</em>, <em class="sig-param">lenk</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/hop.html#Hop.unique_ijk"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.hop.Hop.unique_ijk" title="Permalink to this definition">¶</a></dt>
+<dd><p>given dimer_array from config.get_dimers_array with symm=False
+get unique ijk combinations
+using symmetry dimer_array[i][j][k1] == dimer_array[j][i][k2] where transv_fcs[k1] == -transv_fcs[k2]
+note there is another symmetry in transv_fcs from cart product, transv_fcs[i] == -transv_fcs[len-i-1]
+that is k2 == len-k1-1</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>leni</strong> – </p></li>
+<li><p><strong>lenj</strong> – </p></li>
+<li><p><strong>lenk</strong> – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ocelot.task.hop.IJK">
+<em class="property">class </em><code class="sig-prename descclassname">ocelot.task.hop.</code><code class="sig-name descname">IJK</code><span class="sig-paren">(</span><em class="sig-param">ijk</em>, <em class="sig-param">klen</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/hop.html#IJK"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.hop.IJK" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="ocelot.task.hop.IJK.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">ijk</em>, <em class="sig-param">klen</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/hop.html#IJK.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.hop.IJK.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize self.  See help(type(self)) for accurate signature.</p>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 <div class="section" id="module-ocelot.task.idchg">
 <span id="ocelot-task-idchg-module"></span><h2>ocelot.task.idchg module<a class="headerlink" href="#module-ocelot.task.idchg" title="Permalink to this headline">¶</a></h2>
@@ -391,11 +552,11 @@ Returns a numpy matrix.</p>
 <span id="ocelot-task-nics-module"></span><h2>ocelot.task.nics module<a class="headerlink" href="#module-ocelot.task.nics" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="ocelot.task.nics.NICSjob">
-<em class="property">class </em><code class="sig-prename descclassname">ocelot.task.nics.</code><code class="sig-name descname">NICSjob</code><span class="sig-paren">(</span><em class="sig-param">omol</em>, <em class="sig-param">nmrscheme='GIAO'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/nics.html#NICSjob"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.nics.NICSjob" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">ocelot.task.nics.</code><code class="sig-name descname">NICSjob</code><span class="sig-paren">(</span><em class="sig-param">omol: ocelot.schema.conformer.MolConformer</em>, <em class="sig-param">nmrscheme='GIAO'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/nics.html#NICSjob"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.nics.NICSjob" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="method">
 <dt id="ocelot.task.nics.NICSjob.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">omol</em>, <em class="sig-param">nmrscheme='GIAO'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/nics.html#NICSjob.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.nics.NICSjob.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">omol: ocelot.schema.conformer.MolConformer</em>, <em class="sig-param">nmrscheme='GIAO'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/nics.html#NICSjob.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.nics.NICSjob.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initialize self.  See help(type(self)) for accurate signature.</p>
 </dd></dl>
 
@@ -459,12 +620,16 @@ for other param docs see nics_line_scan_path and pymatgen.io.gassian</p>
 <dd><p>add hydrogen to all sites on lfr(largest fused rings), and sites that are connected to lfr with double bonds
 notice this could be different from backbone, as backbone contains other fr connected to lfr with single bond 
 (eg. BDT 3mer)</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>normal_idx</strong> – 0, 1</p>
+<blockquote>
+<div><dl class="field-list simple">
+<dt class="field-odd">param normal_idx</dt>
+<dd class="field-odd"><p>0, 1</p>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>a MSitelist objects</p>
+</dl>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>a MSitelist objects</p>
 </dd>
 </dl>
 </dd></dl>
@@ -483,6 +648,12 @@ notice this could be different from backbone, as backbone contains other fr conn
 
 </dd></dl>
 
+<dl class="exception">
+<dt id="ocelot.task.nics.NicsError">
+<em class="property">exception </em><code class="sig-prename descclassname">ocelot.task.nics.</code><code class="sig-name descname">NicsError</code><a class="reference internal" href="_modules/ocelot/task/nics.html#NicsError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.nics.NicsError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+</dd></dl>
+
 </div>
 <div class="section" id="module-ocelot.task.pkid">
 <span id="ocelot-task-pkid-module"></span><h2>ocelot.task.pkid module<a class="headerlink" href="#module-ocelot.task.pkid" title="Permalink to this headline">¶</a></h2>
@@ -496,7 +667,12 @@ notice this could be different from backbone, as backbone contains other fr conn
 <dd><p>identify packing pattern</p>
 <p>the input should be a pbc config of terminated backbones</p>
 <ol class="arabic simple">
-<li><p>heuristic rules 10.1039/c7tc02553j, that worked only for small acenes, we want more</p></li>
+<li><dl class="simple">
+<dt>heuristic rules</dt><dd><p>10.1039/c7tc02553j, that worked only for small acenes, we want more
+J. AM. CHEM. SOC. 2004, 126, 4318-4328, this seems quite primitive</p>
+</dd>
+</dl>
+</li>
 <li><p>finger print Hirshfield 10.1039/c1ce05763d</p></li>
 </ol>
 </dd></dl>
@@ -505,8 +681,45 @@ notice this could be different from backbone, as backbone contains other fr conn
 <dt id="ocelot.task.pkid.PackingIdentifier.identify_heuristic">
 <code class="sig-name descname">identify_heuristic</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/pkid.html#PackingIdentifier.identify_heuristic"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.pkid.PackingIdentifier.identify_heuristic" title="Permalink to this definition">¶</a></dt>
 <dd><p>return a dictionary, keys are</p>
-<p>n_close_azm_and_parallel, n_close_azm_and_notparallel, n_close_vertical_and_parallel, n_close_vertical_and_notparallel, n_parallel_and_overlap, n_notparallel_and_overlap, packing
-:return:</p>
+<p>n_close_azm_and_parallel,
+n_close_azm_and_notparallel,
+n_close_vertical_and_parallel,
+n_close_vertical_and_notparallel,
+n_parallel_and_overlap,
+n_notparallel_and_overlap, packing</p>
+<p>these keys are defined based on:
+close_vertical: d.oslip within [1.5, 4]
+parallel: d.oangle &lt; 15 deg
+close_azm: d.oslip &lt;= 1.5
+overlap: overlap &gt; 1e-5</p>
+<p>variables used:
+1. is_not_identical: slip vector norm &gt;= 1e-5
+2. is_close: minbonedist &lt; 5.5
+3. overlap: project sites onto the plane defined by ovector of ref_mol and ref_mol.geoc,</p>
+<blockquote>
+<div><p>then get overlap of concave/convex hulls</p>
+</div></blockquote>
+<ol class="arabic simple" start="4">
+<li><p>mindist2d: min distance between two hulls</p></li>
+<li><p>d.oslip: vertical slip</p></li>
+<li><p>d.oangle: angle between o_vector</p></li>
+</ol>
+<p>workflow:
+1. from bone config get all bone dimers, maxfold=2
+2. for each molecule (a) in the unit cell</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p>get first 27*z dimers, sorted by vslipnorm, whose ref_mol is (a)</p></li>
+<li><p>if identical or not_close, do nothing</p></li>
+<li><p>get values for the keys</p></li>
+<li><p>apply classification based on the keys</p></li>
+</ol>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
@@ -608,6 +821,7 @@ using <cite>scipy.interpolate.splev</cite></p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
+<li><p><strong>eigenval</strong> – </p></li>
 <li><p><strong>kpoints</strong> (<em>str</em>) – KPOINTS filename</p></li>
 <li><p><strong>outcar</strong> (<em>str</em>) – OUTCAR filename</p></li>
 </ul>
@@ -624,10 +838,277 @@ using <cite>scipy.interpolate.splev</cite></p>
 <div class="section" id="module-ocelot.task.wtuning">
 <span id="ocelot-task-wtuning-module"></span><h2>ocelot.task.wtuning module<a class="headerlink" href="#module-ocelot.task.wtuning" title="Permalink to this headline">¶</a></h2>
 <p>originally written by Sean M. Ryno, Cheng Zhong, Haitao Sun, see /legacy/aw_tuning.py
-for a certain mol, get tuned w</p>
-<p>default keywords for gaussian
-‘scf=(xqc,fermi,noincfock,ndamp=35,conver=6,vshift=500,novaracc)’</p>
-<p>dev-ing</p>
+for a certain mol, get tuned w
+default keywords for gaussian
+‘scf=(xqc,fermi,noincfock,ndamp=35,conver=6,vshift=500,novaracc)’
+dev-ing</p>
+<dl class="class">
+<dt id="ocelot.task.wtuning.WtuingJob">
+<em class="property">class </em><code class="sig-prename descclassname">ocelot.task.wtuning.</code><code class="sig-name descname">WtuingJob</code><span class="sig-paren">(</span><em class="sig-param">func='uLC-wHPBE'</em>, <em class="sig-param">basis='def2tzvp'</em>, <em class="sig-param">name=''</em>, <em class="sig-param">nproc=16</em>, <em class="sig-param">mem=50</em>, <em class="sig-param">conver=3</em>, <em class="sig-param">n_charge=0</em>, <em class="sig-param">n_spin=1</em>, <em class="sig-param">wdir='./'</em>, <em class="sig-param">rps={'scf': {'conver': '6'</em>, <em class="sig-param">'fermi': ''</em>, <em class="sig-param">'ndamp': '35'</em>, <em class="sig-param">'noincfock': ''</em>, <em class="sig-param">'novaracc': ''</em>, <em class="sig-param">'vshift': '500'</em>, <em class="sig-param">'xqc': ''}}</em>, <em class="sig-param">scheme='Jh'</em>, <em class="sig-param">bmin=0.05</em>, <em class="sig-param">bmax=0.5</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/wtuning.html#WtuingJob"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.wtuning.WtuingJob" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="ocelot.task.wtuning.WtuingJob.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">func='uLC-wHPBE'</em>, <em class="sig-param">basis='def2tzvp'</em>, <em class="sig-param">name=''</em>, <em class="sig-param">nproc=16</em>, <em class="sig-param">mem=50</em>, <em class="sig-param">conver=3</em>, <em class="sig-param">n_charge=0</em>, <em class="sig-param">n_spin=1</em>, <em class="sig-param">wdir='./'</em>, <em class="sig-param">rps={'scf': {'conver': '6'</em>, <em class="sig-param">'fermi': ''</em>, <em class="sig-param">'ndamp': '35'</em>, <em class="sig-param">'noincfock': ''</em>, <em class="sig-param">'novaracc': ''</em>, <em class="sig-param">'vshift': '500'</em>, <em class="sig-param">'xqc': ''}}</em>, <em class="sig-param">scheme='Jh'</em>, <em class="sig-param">bmin=0.05</em>, <em class="sig-param">bmax=0.5</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/wtuning.html#WtuingJob.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.wtuning.WtuingJob.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize self.  See help(type(self)) for accurate signature.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ocelot.task.wtuning.WtuingJob.extract_abs">
+<code class="sig-name descname">extract_abs</code><span class="sig-paren">(</span><em class="sig-param">fn</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/wtuning.html#WtuingJob.extract_abs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.wtuning.WtuingJob.extract_abs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ocelot.task.wtuning.WtuingJob.extract_energy">
+<code class="sig-name descname">extract_energy</code><span class="sig-paren">(</span><em class="sig-param">fn</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/wtuning.html#WtuingJob.extract_energy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.wtuning.WtuingJob.extract_energy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ocelot.task.wtuning.WtuingJob.gauss_run">
+<code class="sig-name descname">gauss_run</code><span class="sig-paren">(</span><em class="sig-param">fn</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/wtuning.html#WtuingJob.gauss_run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.wtuning.WtuingJob.gauss_run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ocelot.task.wtuning.WtuingJob.geo_opt">
+<code class="sig-name descname">geo_opt</code><span class="sig-paren">(</span><em class="sig-param">rps={}</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/wtuning.html#WtuingJob.geo_opt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.wtuning.WtuingJob.geo_opt" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ocelot.task.wtuning.WtuingJob.omega_FindC">
+<code class="sig-name descname">omega_FindC</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/wtuning.html#WtuingJob.omega_FindC"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.wtuning.WtuingJob.omega_FindC" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate scheme value from extracted data
+Set the optimization criterion (the value to minimize),
+available options are:
+J2—((HOMO-IP)^2+(A_HOMO+EA)^2)
+Jh—(HOMO-IP)
+Jl—(LUMO+EA)
+Jn2—((HOMO-IP)^2+(LUMO+EA)^2)
+O2—((A_HOMO-LUMO)^2+(C_LUMO-HOMO)^2)
+:return: Jn, Jl, Jh value (depending on scheme)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ocelot.task.wtuning.WtuingJob.omega_extract">
+<code class="sig-name descname">omega_extract</code><span class="sig-paren">(</span><em class="sig-param">fn</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/wtuning.html#WtuingJob.omega_extract"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.wtuning.WtuingJob.omega_extract" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pull important data from Log Files after run
+:param fn: Filename of Log File to be read
+:return: Energies of Molecule, HOMO and LUMO in eV</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ocelot.task.wtuning.WtuingJob.omega_format">
+<code class="sig-name descname">omega_format</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/wtuning.html#WtuingJob.omega_format"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.wtuning.WtuingJob.omega_format" title="Permalink to this definition">¶</a></dt>
+<dd><p>Format IOp strings based off of omega value, then update route parameters dictionary and input filenames</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ocelot.task.wtuning.WtuingJob.omega_gauss_do">
+<code class="sig-name descname">omega_gauss_do</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/wtuning.html#WtuingJob.omega_gauss_do"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.wtuning.WtuingJob.omega_gauss_do" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run Gaussian in subprocess and wait for termination. Extract data from output when done</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ocelot.task.wtuning.WtuingJob.omega_iopstr">
+<em class="property">property </em><code class="sig-name descname">omega_iopstr</code><a class="headerlink" href="#ocelot.task.wtuning.WtuingJob.omega_iopstr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ocelot.task.wtuning.WtuingJob.omega_tune">
+<code class="sig-name descname">omega_tune</code><span class="sig-paren">(</span><em class="sig-param">dis=3</em>, <em class="sig-param">tol=0.0001</em>, <em class="sig-param">deltaomega=0.2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/wtuning.html#WtuingJob.omega_tune"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.wtuning.WtuingJob.omega_tune" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ocelot.task.wtuning.WtuingJob.omega_wtune">
+<code class="sig-name descname">omega_wtune</code><span class="sig-paren">(</span><em class="sig-param">omega_in</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/wtuning.html#WtuingJob.omega_wtune"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.wtuning.WtuingJob.omega_wtune" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>omega_in</strong> – Value for ‘fminbound’ function to pass scalars into</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Scheme value from FindC</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="ocelot.task.wtuning.WtuingJob.to_dict">
+<code class="sig-name descname">to_dict</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/wtuning.html#WtuingJob.to_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.wtuning.WtuingJob.to_dict" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ocelot.task.wtuning.WtuingJob.to_file">
+<code class="sig-name descname">to_file</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/wtuning.html#WtuingJob.to_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.wtuning.WtuingJob.to_file" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ocelot.task.wtuning.WtuingJob.tuning_cycle">
+<code class="sig-name descname">tuning_cycle</code><span class="sig-paren">(</span><em class="sig-param">eps=0.01</em>, <em class="sig-param">dis=3</em>, <em class="sig-param">tol=0.001</em>, <em class="sig-param">max_cycles=5</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/wtuning.html#WtuingJob.tuning_cycle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.wtuning.WtuingJob.tuning_cycle" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="ocelot.task.wtuning.gauss_in_gen">
+<code class="sig-prename descclassname">ocelot.task.wtuning.</code><code class="sig-name descname">gauss_in_gen</code><span class="sig-paren">(</span><em class="sig-param">name</em>, <em class="sig-param">mol</em>, <em class="sig-param">type</em>, <em class="sig-param">func</em>, <em class="sig-param">basis</em>, <em class="sig-param">charge</em>, <em class="sig-param">spin</em>, <em class="sig-param">route_params</em>, <em class="sig-param">link0_params</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/wtuning.html#gauss_in_gen"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.wtuning.gauss_in_gen" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-ocelot.task.zindo">
+<span id="ocelot-task-zindo-module"></span><h2>ocelot.task.zindo module<a class="headerlink" href="#module-ocelot.task.zindo" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ocelot.task.zindo.ZindoJob">
+<em class="property">class </em><code class="sig-prename descclassname">ocelot.task.zindo.</code><code class="sig-name descname">ZindoJob</code><span class="sig-paren">(</span><em class="sig-param">jobname</em>, <em class="sig-param">pmgmol</em>, <em class="sig-param">isdimer=False</em>, <em class="sig-param">mol_A=None</em>, <em class="sig-param">mol_D=None</em>, <em class="sig-param">upconvert=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/zindo.html#ZindoJob"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.zindo.ZindoJob" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="ocelot.task.zindo.ZindoJob.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">jobname</em>, <em class="sig-param">pmgmol</em>, <em class="sig-param">isdimer=False</em>, <em class="sig-param">mol_A=None</em>, <em class="sig-param">mol_D=None</em>, <em class="sig-param">upconvert=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/zindo.html#ZindoJob.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.zindo.ZindoJob.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize self.  See help(type(self)) for accurate signature.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ocelot.task.zindo.ZindoJob.dimer_run">
+<em class="property">static </em><code class="sig-name descname">dimer_run</code><span class="sig-paren">(</span><em class="sig-param">jobname</em>, <em class="sig-param">wdir</em>, <em class="sig-param">zindobin</em>, <em class="sig-param">zindoctbin</em>, <em class="sig-param">zindolib</em>, <em class="sig-param">pmgmola</em>, <em class="sig-param">pmgmolb</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/zindo.html#ZindoJob.dimer_run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.zindo.ZindoJob.dimer_run" title="Permalink to this definition">¶</a></dt>
+<dd><p>perfrom zindo calculation for a dimer system, return parsed tmo.dat as NAxND array</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>jobname</strong> – </p></li>
+<li><p><strong>wdir</strong> – working dir</p></li>
+<li><p><strong>zindobin</strong> – binary path</p></li>
+<li><p><strong>zindoctbin</strong> – binary path</p></li>
+<li><p><strong>zindolib</strong> – dir path</p></li>
+<li><p><strong>pmgmola</strong> – </p></li>
+<li><p><strong>pmgmolb</strong> – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>tmo parsed data, # of AMOs, # of DMOs</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="ocelot.task.zindo.ZindoJob.dimerjob_from_two_molecules">
+<em class="property">classmethod </em><code class="sig-name descname">dimerjob_from_two_molecules</code><span class="sig-paren">(</span><em class="sig-param">pmgmol1</em>, <em class="sig-param">pmgmol2</em>, <em class="sig-param">jobname='dimer'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/zindo.html#ZindoJob.dimerjob_from_two_molecules"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.zindo.ZindoJob.dimerjob_from_two_molecules" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ocelot.task.zindo.ZindoJob.get_hh_coupling">
+<em class="property">static </em><code class="sig-name descname">get_hh_coupling</code><span class="sig-paren">(</span><em class="sig-param">coupling_data</em>, <em class="sig-param">nmo_a</em>, <em class="sig-param">nmo_d</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/zindo.html#ZindoJob.get_hh_coupling"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.zindo.ZindoJob.get_hh_coupling" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nmo_a</strong> – </p></li>
+<li><p><strong>nmo_d</strong> – </p></li>
+<li><p><strong>coupling_data</strong> – the return value of self.dimer_run()</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the HOMO-HOMO electronic coupling in meV</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="ocelot.task.zindo.ZindoJob.get_ll_coupling">
+<em class="property">static </em><code class="sig-name descname">get_ll_coupling</code><span class="sig-paren">(</span><em class="sig-param">coupling_data</em>, <em class="sig-param">nmo_a</em>, <em class="sig-param">nmo_d</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/zindo.html#ZindoJob.get_ll_coupling"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.zindo.ZindoJob.get_ll_coupling" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nmo_a</strong> – </p></li>
+<li><p><strong>nmo_d</strong> – </p></li>
+<li><p><strong>coupling_data</strong> – the return value of self.dimer_run()</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the HOMO-HOMO electronic coupling in meV</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="ocelot.task.zindo.ZindoJob.get_valence_electrons">
+<em class="property">static </em><code class="sig-name descname">get_valence_electrons</code><span class="sig-paren">(</span><em class="sig-param">pmgmol</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/zindo.html#ZindoJob.get_valence_electrons"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.zindo.ZindoJob.get_valence_electrons" title="Permalink to this definition">¶</a></dt>
+<dd><p>pymatgen has a weird <cite>valence</cite> property for element, e.g. for carbon valence is 2
+this is just for neutral mol</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>pmgmol</strong> – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="ocelot.task.zindo.ZindoJob.inpstring">
+<em class="property">static </em><code class="sig-name descname">inpstring</code><span class="sig-paren">(</span><em class="sig-param">pmgmol</em>, <em class="sig-param">RUNTYP='ENERGY'</em>, <em class="sig-param">SCFTYP='RHF'</em>, <em class="sig-param">ITMAX=500</em>, <em class="sig-param">SCFTOL=1e-06</em>, <em class="sig-param">CISIZE=0</em>, <em class="sig-param">ACTSPC=0</em>, <em class="sig-param">ONAME='zindoout'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/zindo.html#ZindoJob.inpstring"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.zindo.ZindoJob.inpstring" title="Permalink to this definition">¶</a></dt>
+<dd><p>string of input file, charge and mult will be inherited from pmgmol</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pmgmol</strong> – pymatgen mol object</p></li>
+<li><p><strong>RUNTYP</strong> – can be ‘ENERGY’ or ‘GEO’ or ‘RPA’ or ‘CI’</p></li>
+<li><p><strong>SCFTYP</strong> – type of scf</p></li>
+<li><p><strong>ITMAX</strong> – max # of iteration</p></li>
+<li><p><strong>SCFTOL</strong> – scf tol</p></li>
+<li><p><strong>CISIZE</strong> – CI basis size</p></li>
+<li><p><strong>ACTSPC</strong> – # of active orbitals in CI</p></li>
+<li><p><strong>ONAME</strong> – output name</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="ocelot.task.zindo.ZindoJob.legit">
+<em class="property">property </em><code class="sig-name descname">legit</code><a class="headerlink" href="#ocelot.task.zindo.ZindoJob.legit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ocelot.task.zindo.ZindoJob.parse_tmo">
+<code class="sig-name descname">parse_tmo</code><span class="sig-paren">(</span><em class="sig-param">tmofn='tmo.dat'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/zindo.html#ZindoJob.parse_tmo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.zindo.ZindoJob.parse_tmo" title="Permalink to this definition">¶</a></dt>
+<dd><p>parse tmo.dat as NAxND array, NA is number of MOs in A, ND is number of MOs in D
+NA, ND is decided by the number of valence eletrons, which is auto-gen by zindo
+# of valence electronis by zindo auto-gen may NOT be identical to the real # of valence electrons!</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>tmofn</strong> – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>data[i][j] is the ti of i+1th MO of A and j+1th MO of B</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="ocelot.task.zindo.ZindoJob.write_dimer">
+<code class="sig-name descname">write_dimer</code><span class="sig-paren">(</span><em class="sig-param">fnprefix</em>, <em class="sig-param">RUNTYP='ENERGY'</em>, <em class="sig-param">SCFTYP='RHF'</em>, <em class="sig-param">ITMAX=500</em>, <em class="sig-param">SCFTOL=1e-06</em>, <em class="sig-param">CISIZE=0</em>, <em class="sig-param">ACTSPC=0</em>, <em class="sig-param">ONAME='zindoout'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/zindo.html#ZindoJob.write_dimer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.zindo.ZindoJob.write_dimer" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ocelot.task.zindo.ZindoJob.write_single">
+<code class="sig-name descname">write_single</code><span class="sig-paren">(</span><em class="sig-param">fnprefix</em>, <em class="sig-param">RUNTYP='ENERGY'</em>, <em class="sig-param">SCFTYP='RHF'</em>, <em class="sig-param">ITMAX=500</em>, <em class="sig-param">SCFTOL=1e-06</em>, <em class="sig-param">CISIZE=0</em>, <em class="sig-param">ACTSPC=0</em>, <em class="sig-param">ONAME='zindoout'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/zindo.html#ZindoJob.write_single"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.zindo.ZindoJob.write_single" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="ocelot.task.zindo.conver2zindo">
+<code class="sig-prename descclassname">ocelot.task.zindo.</code><code class="sig-name descname">conver2zindo</code><span class="sig-paren">(</span><em class="sig-param">pmgmol</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/zindo.html#conver2zindo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.zindo.conver2zindo" title="Permalink to this definition">¶</a></dt>
+<dd><p>this will replace elements that are not in Zindo_elements with elements in the same group</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ocelot.task.zindo.valence_electron">
+<code class="sig-prename descclassname">ocelot.task.zindo.</code><code class="sig-name descname">valence_electron</code><span class="sig-paren">(</span><em class="sig-param">element</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/task/zindo.html#valence_electron"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.task.zindo.valence_electron" title="Permalink to this definition">¶</a></dt>
+<dd><p>count valence electrons based on electronic configuration
+if a subshell has &gt; 10 electrons, this subshell is ignored</p>
+</dd></dl>
+
 </div>
 <div class="section" id="module-ocelot.task">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-ocelot.task" title="Permalink to this headline">¶</a></h2>
