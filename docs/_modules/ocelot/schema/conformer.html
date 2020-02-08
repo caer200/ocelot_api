@@ -155,30 +155,30 @@
   <h1>Source code for ocelot.schema.conformer</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">itertools</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
-<span class="kn">from</span> <span class="nn">copy</span> <span class="k">import</span> <span class="n">deepcopy</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
 
 <span class="kn">import</span> <span class="nn">matplotlib.patches</span> <span class="k">as</span> <span class="nn">patches</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 <span class="kn">import</span> <span class="nn">networkx</span> <span class="k">as</span> <span class="nn">nx</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">rdkit.Chem</span> <span class="k">as</span> <span class="nn">Chem</span>
-<span class="kn">from</span> <span class="nn">pymatgen.core.structure</span> <span class="k">import</span> <span class="n">Element</span>
-<span class="kn">from</span> <span class="nn">pymatgen.core.structure</span> <span class="k">import</span> <span class="n">Molecule</span><span class="p">,</span> <span class="n">Site</span>
-<span class="kn">from</span> <span class="nn">pymatgen.io.xyz</span> <span class="k">import</span> <span class="n">XYZ</span>
-<span class="kn">from</span> <span class="nn">scipy.spatial.distance</span> <span class="k">import</span> <span class="n">cdist</span>
-<span class="kn">from</span> <span class="nn">scipy.spatial.distance</span> <span class="k">import</span> <span class="n">pdist</span>
-<span class="kn">from</span> <span class="nn">scipy.spatial.distance</span> <span class="k">import</span> <span class="n">squareform</span>
-<span class="kn">from</span> <span class="nn">shapely.geometry</span> <span class="k">import</span> <span class="n">Polygon</span>
+<span class="kn">from</span> <span class="nn">pymatgen.core.structure</span> <span class="kn">import</span> <span class="n">Element</span>
+<span class="kn">from</span> <span class="nn">pymatgen.core.structure</span> <span class="kn">import</span> <span class="n">Molecule</span><span class="p">,</span> <span class="n">Site</span>
+<span class="kn">from</span> <span class="nn">pymatgen.io.xyz</span> <span class="kn">import</span> <span class="n">XYZ</span>
+<span class="kn">from</span> <span class="nn">scipy.spatial.distance</span> <span class="kn">import</span> <span class="n">cdist</span>
+<span class="kn">from</span> <span class="nn">scipy.spatial.distance</span> <span class="kn">import</span> <span class="n">pdist</span>
+<span class="kn">from</span> <span class="nn">scipy.spatial.distance</span> <span class="kn">import</span> <span class="n">squareform</span>
+<span class="kn">from</span> <span class="nn">shapely.geometry</span> <span class="kn">import</span> <span class="n">Polygon</span>
 
-<span class="kn">from</span> <span class="nn">ocelot.routines.conformerparser</span> <span class="k">import</span> <span class="n">ACParser</span>
-<span class="kn">from</span> <span class="nn">ocelot.routines.geometry</span> <span class="k">import</span> <span class="n">angle_btw</span><span class="p">,</span> <span class="n">Fitter</span>
-<span class="kn">from</span> <span class="nn">ocelot.routines.geometry</span> <span class="k">import</span> <span class="n">coord_transform</span>
-<span class="kn">from</span> <span class="nn">ocelot.routines.geometry</span> <span class="k">import</span> <span class="n">get_proj_point2plane</span><span class="p">,</span> <span class="n">alpha_shape</span>
-<span class="kn">from</span> <span class="nn">ocelot.routines.geometry</span> <span class="k">import</span> <span class="n">norm</span>
-<span class="kn">from</span> <span class="nn">ocelot.routines.geometry</span> <span class="k">import</span> <span class="n">rotate_along_axis</span>
-<span class="kn">from</span> <span class="nn">ocelot.routines.geometry</span> <span class="k">import</span> <span class="n">rotation_matrix</span>
-<span class="kn">from</span> <span class="nn">ocelot.routines.geometry</span> <span class="k">import</span> <span class="n">unify</span>
-<span class="kn">from</span> <span class="nn">ocelot.schema.graph</span> <span class="k">import</span> <span class="n">BasicGraph</span><span class="p">,</span> <span class="n">MolGraph</span>
+<span class="kn">from</span> <span class="nn">ocelot.routines.conformerparser</span> <span class="kn">import</span> <span class="n">ACParser</span>
+<span class="kn">from</span> <span class="nn">ocelot.routines.geometry</span> <span class="kn">import</span> <span class="n">angle_btw</span><span class="p">,</span> <span class="n">Fitter</span>
+<span class="kn">from</span> <span class="nn">ocelot.routines.geometry</span> <span class="kn">import</span> <span class="n">coord_transform</span>
+<span class="kn">from</span> <span class="nn">ocelot.routines.geometry</span> <span class="kn">import</span> <span class="n">get_proj_point2plane</span><span class="p">,</span> <span class="n">alpha_shape</span>
+<span class="kn">from</span> <span class="nn">ocelot.routines.geometry</span> <span class="kn">import</span> <span class="n">norm</span>
+<span class="kn">from</span> <span class="nn">ocelot.routines.geometry</span> <span class="kn">import</span> <span class="n">rotate_along_axis</span>
+<span class="kn">from</span> <span class="nn">ocelot.routines.geometry</span> <span class="kn">import</span> <span class="n">rotation_matrix</span>
+<span class="kn">from</span> <span class="nn">ocelot.routines.geometry</span> <span class="kn">import</span> <span class="n">unify</span>
+<span class="kn">from</span> <span class="nn">ocelot.schema.graph</span> <span class="kn">import</span> <span class="n">BasicGraph</span><span class="p">,</span> <span class="n">MolGraph</span>
 
 <span class="n">_coordination_rule</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s1">&#39;H&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
@@ -236,16 +236,16 @@
 
 <div class="viewcode-block" id="SiteidOperation"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.conformer.SiteidOperation">[docs]</a><span class="k">class</span> <span class="nc">SiteidOperation</span><span class="p">:</span>
 
-    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">sites</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
 
-    <span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sites</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">sites</span><span class="o">.</span><span class="fm">__iter__</span><span class="p">()</span>
 
-<div class="viewcode-block" id="SiteidOperation.__init__"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.conformer.SiteidOperation.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sites</span><span class="p">):</span>
+<div class="viewcode-block" id="SiteidOperation.__init__"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.conformer.SiteidOperation.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sites</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">sites</span> <span class="o">=</span> <span class="n">sites</span>
 
         <span class="n">allkeys</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;siteid&#39;</span><span class="p">]</span>
@@ -357,7 +357,7 @@
 
 <div class="viewcode-block" id="BasicConformer"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.conformer.BasicConformer">[docs]</a><span class="k">class</span> <span class="nc">BasicConformer</span><span class="p">(</span><span class="n">SiteidOperation</span><span class="p">):</span>
 
-<div class="viewcode-block" id="BasicConformer.__init__"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.conformer.BasicConformer.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sites</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">spin_multiplicity</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">validate_proximity</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">siteids</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="BasicConformer.__init__"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.conformer.BasicConformer.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sites</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">spin_multiplicity</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">validate_proximity</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">siteids</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        if siteids is None, siteid is set to site.properties[&#39;siteid&#39;] or none if site.properties doesnot have a key as &#39;siteid&#39;</span>
 
@@ -384,20 +384,20 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">SiteidError</span><span class="p">(</span><span class="s1">&#39;siteids are not legit!&#39;</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="c1"># using center should be enough for msites in a mol</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pmgmol</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">pmgmol</span><span class="p">:</span>
             <span class="k">return</span> <span class="mi">1</span>
         <span class="k">return</span> <span class="mi">0</span>
 
-    <span class="k">def</span> <span class="nf">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="k">return</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__eq__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">pmgmol</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">Molecule</span><span class="o">.</span><span class="n">from_sites</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sites</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">outs</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">:&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)]</span>
         <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
             <span class="n">outs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="fm">__repr__</span><span class="p">()</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">s</span><span class="o">.</span><span class="n">properties</span><span class="o">.</span><span class="fm">__repr__</span><span class="p">())</span>
@@ -678,7 +678,7 @@
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">siteids</span><span class="p">:</span>
             <span class="n">nbs</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">siteids</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">bmat</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="ow">and</span> <span class="n">j</span><span class="o">!=</span><span class="n">i</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">bmat</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="ow">and</span> <span class="n">j</span> <span class="o">!=</span> <span class="n">i</span><span class="p">:</span>
                     <span class="n">nbs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>
             <span class="n">ma</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">nbs</span>
         <span class="k">return</span> <span class="n">ma</span></div>
@@ -863,7 +863,7 @@
 
 <div class="viewcode-block" id="BondConformer"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.conformer.BondConformer">[docs]</a><span class="k">class</span> <span class="nc">BondConformer</span><span class="p">(</span><span class="n">BasicConformer</span><span class="p">):</span>
 
-<div class="viewcode-block" id="BondConformer.__init__"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.conformer.BondConformer.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sites</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">spin_multiplicity</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">validate_proximity</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">siteids</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="BondConformer.__init__"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.conformer.BondConformer.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sites</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">spin_multiplicity</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">validate_proximity</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">siteids</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">sites</span><span class="p">,</span> <span class="n">charge</span><span class="p">,</span> <span class="n">spin_multiplicity</span><span class="p">,</span> <span class="n">validate_proximity</span><span class="p">,</span> <span class="n">siteids</span><span class="p">)</span>
         <span class="c1"># self.checkstatus(&#39;all assigned&#39;, &#39;unique ids&#39;)</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
@@ -877,7 +877,7 @@
 
 
 <div class="viewcode-block" id="RingConformer"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.conformer.RingConformer">[docs]</a><span class="k">class</span> <span class="nc">RingConformer</span><span class="p">(</span><span class="n">BasicConformer</span><span class="p">):</span>
-<div class="viewcode-block" id="RingConformer.__init__"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.conformer.RingConformer.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sites</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">spin_multiplicity</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">validate_proximity</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">siteids</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="RingConformer.__init__"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.conformer.RingConformer.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sites</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">spin_multiplicity</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">validate_proximity</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">siteids</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">sites</span><span class="p">,</span> <span class="n">charge</span><span class="p">,</span> <span class="n">spin_multiplicity</span><span class="p">,</span> <span class="n">validate_proximity</span><span class="p">,</span> <span class="n">siteids</span><span class="p">)</span>
         <span class="c1"># self.checkstatus(&#39;all assigned&#39;, &#39;unique ids&#39;)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">n_member</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
@@ -1161,7 +1161,7 @@
 <div class="viewcode-block" id="FragConformer"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.conformer.FragConformer">[docs]</a><span class="k">class</span> <span class="nc">FragConformer</span><span class="p">(</span><span class="n">BasicConformer</span><span class="p">):</span>
     <span class="n">_conformer_properties</span> <span class="o">=</span> <span class="p">{}</span>
 
-<div class="viewcode-block" id="FragConformer.__init__"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.conformer.FragConformer.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
+<div class="viewcode-block" id="FragConformer.__init__"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.conformer.FragConformer.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span> <span class="n">sites</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">spin_multiplicity</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">validate_proximity</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">siteids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="n">conformer_properties</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="n">rings</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -1284,7 +1284,7 @@
         <span class="s1">&#39;pfiterror&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">}</span>
 
-<div class="viewcode-block" id="BoneConformer.__init__"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.conformer.BoneConformer.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
+<div class="viewcode-block" id="BoneConformer.__init__"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.conformer.BoneConformer.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span> <span class="n">sites</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">spin_multiplicity</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">validate_proximity</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">siteids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="n">conformer_properties</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="n">rings</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -1373,7 +1373,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_sidechain_conformer_properties</span> <span class="o">=</span> <span class="p">{}</span>
 
-<div class="viewcode-block" id="SidechainConformer.__init__"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.conformer.SidechainConformer.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
+<div class="viewcode-block" id="SidechainConformer.__init__"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.conformer.SidechainConformer.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span> <span class="n">sites</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">spin_multiplicity</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">validate_proximity</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">siteids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="n">conformer_properties</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="n">rings</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -1400,7 +1400,7 @@
         <span class="c1"># &#39;smiles&#39;: None,</span>
     <span class="p">}</span>
 
-<div class="viewcode-block" id="MolConformer.__init__"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.conformer.MolConformer.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
+<div class="viewcode-block" id="MolConformer.__init__"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.conformer.MolConformer.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span> <span class="n">sites</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">spin_multiplicity</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">validate_proximity</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">siteids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">prop</span><span class="o">=</span><span class="kc">None</span>
     <span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">sites</span><span class="p">,</span> <span class="n">charge</span><span class="p">,</span> <span class="n">spin_multiplicity</span><span class="p">,</span> <span class="n">validate_proximity</span><span class="p">,</span> <span class="n">siteids</span><span class="p">)</span>
@@ -1475,7 +1475,7 @@
 
 <div class="viewcode-block" id="ConformerDimer"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.conformer.ConformerDimer">[docs]</a><span class="k">class</span> <span class="nc">ConformerDimer</span><span class="p">:</span>
 
-<div class="viewcode-block" id="ConformerDimer.__init__"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.conformer.ConformerDimer.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">conformer_ref</span><span class="p">:</span> <span class="n">MolConformer</span><span class="p">,</span> <span class="n">conformer_var</span><span class="p">:</span> <span class="n">MolConformer</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+<div class="viewcode-block" id="ConformerDimer.__init__"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.conformer.ConformerDimer.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">conformer_ref</span><span class="p">:</span> <span class="n">MolConformer</span><span class="p">,</span> <span class="n">conformer_var</span><span class="p">:</span> <span class="n">MolConformer</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        basically 2 conformers</span>
 
@@ -1738,7 +1738,7 @@
 
 
 <div class="viewcode-block" id="DimerCollection"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.conformer.DimerCollection">[docs]</a><span class="k">class</span> <span class="nc">DimerCollection</span><span class="p">:</span>
-<div class="viewcode-block" id="DimerCollection.__init__"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.conformer.DimerCollection.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dimers</span><span class="p">):</span>
+<div class="viewcode-block" id="DimerCollection.__init__"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.conformer.DimerCollection.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dimers</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        just a list of dimers, they should share the same ref_mol</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -1761,6 +1761,7 @@
 
 <div class="viewcode-block" id="DimerCollection.to_xyz"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.conformer.DimerCollection.to_xyz">[docs]</a>    <span class="k">def</span> <span class="nf">to_xyz</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="p">,</span> <span class="n">lalabel</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param lalabel:</span>
 <span class="sd">        :param fn: xyz file name, with extension</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>

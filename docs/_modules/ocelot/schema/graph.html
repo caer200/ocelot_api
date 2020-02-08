@@ -154,17 +154,17 @@
             
   <h1>Source code for ocelot.schema.graph</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">itertools</span>
-<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
-<span class="kn">from</span> <span class="nn">operator</span> <span class="k">import</span> <span class="n">eq</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
+<span class="kn">from</span> <span class="nn">operator</span> <span class="kn">import</span> <span class="n">eq</span>
 
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 <span class="kn">import</span> <span class="nn">networkx</span> <span class="k">as</span> <span class="nn">nx</span>
 <span class="kn">import</span> <span class="nn">networkx.algorithms.isomorphism</span> <span class="k">as</span> <span class="nn">iso</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">pymatgen.core.periodic_table</span> <span class="k">import</span> <span class="n">Element</span>
-<span class="kn">from</span> <span class="nn">pymatgen.vis.structure_vtk</span> <span class="k">import</span> <span class="n">EL_COLORS</span>
+<span class="kn">from</span> <span class="nn">pymatgen.core.periodic_table</span> <span class="kn">import</span> <span class="n">Element</span>
+<span class="kn">from</span> <span class="nn">pymatgen.vis.structure_vtk</span> <span class="kn">import</span> <span class="n">EL_COLORS</span>
 
-<span class="kn">from</span> <span class="nn">ocelot.routines.conformerparser</span> <span class="k">import</span> <span class="n">ACParser</span>
+<span class="kn">from</span> <span class="nn">ocelot.routines.conformerparser</span> <span class="kn">import</span> <span class="n">ACParser</span>
 
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">a graph of integer nodes with a &quot;symbol&quot; attribute</span>
@@ -188,19 +188,19 @@
 
 <div class="viewcode-block" id="BasicGraph"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.graph.BasicGraph">[docs]</a><span class="k">class</span> <span class="nc">BasicGraph</span><span class="p">:</span>
 
-<div class="viewcode-block" id="BasicGraph.__init__"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.graph.BasicGraph.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph</span><span class="p">:</span> <span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">):</span>
+<div class="viewcode-block" id="BasicGraph.__init__"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.graph.BasicGraph.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph</span><span class="p">:</span> <span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">graph</span> <span class="o">=</span> <span class="n">graph</span></div>
 
-    <span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">outs</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">:&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)]</span>
         <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">:</span>
             <span class="n">outs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">symbols</span><span class="p">[</span><span class="n">n</span><span class="p">]))</span>
         <span class="k">return</span> <span class="s2">&quot;; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">outs</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        equality is measured based on graph isomorphism</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -337,7 +337,7 @@
 
 <div class="viewcode-block" id="FragmentGraph"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.graph.FragmentGraph">[docs]</a><span class="k">class</span> <span class="nc">FragmentGraph</span><span class="p">(</span><span class="n">BasicGraph</span><span class="p">):</span>
 
-<div class="viewcode-block" id="FragmentGraph.__init__"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.graph.FragmentGraph.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph</span><span class="p">,</span> <span class="n">joints</span><span class="p">,</span> <span class="n">partition_scheme</span><span class="o">=</span><span class="s1">&#39;lgcr&#39;</span><span class="p">):</span>
+<div class="viewcode-block" id="FragmentGraph.__init__"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.graph.FragmentGraph.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph</span><span class="p">,</span> <span class="n">joints</span><span class="p">,</span> <span class="n">partition_scheme</span><span class="o">=</span><span class="s1">&#39;lgcr&#39;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        fragment is a BasicGraph with joints</span>
 
@@ -372,7 +372,7 @@
 
 
 <div class="viewcode-block" id="BackboneGraph"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.graph.BackboneGraph">[docs]</a><span class="k">class</span> <span class="nc">BackboneGraph</span><span class="p">(</span><span class="n">FragmentGraph</span><span class="p">):</span>
-<div class="viewcode-block" id="BackboneGraph.__init__"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.graph.BackboneGraph.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph</span><span class="p">,</span> <span class="n">joints</span><span class="p">,</span> <span class="n">partition_scheme</span><span class="o">=</span><span class="s1">&#39;lgcr&#39;</span><span class="p">):</span>
+<div class="viewcode-block" id="BackboneGraph.__init__"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.graph.BackboneGraph.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph</span><span class="p">,</span> <span class="n">joints</span><span class="p">,</span> <span class="n">partition_scheme</span><span class="o">=</span><span class="s1">&#39;lgcr&#39;</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">joints</span><span class="p">,</span> <span class="n">partition_scheme</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ringfp</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">rings</span><span class="p">])</span></div>
 
@@ -387,7 +387,7 @@
 
 
 <div class="viewcode-block" id="SidechainGraph"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.graph.SidechainGraph">[docs]</a><span class="k">class</span> <span class="nc">SidechainGraph</span><span class="p">(</span><span class="n">FragmentGraph</span><span class="p">):</span>
-<div class="viewcode-block" id="SidechainGraph.__init__"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.graph.SidechainGraph.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph</span><span class="p">,</span> <span class="n">joints</span><span class="p">,</span> <span class="n">partition_scheme</span><span class="o">=</span><span class="s1">&#39;lgcr&#39;</span><span class="p">):</span>
+<div class="viewcode-block" id="SidechainGraph.__init__"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.graph.SidechainGraph.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph</span><span class="p">,</span> <span class="n">joints</span><span class="p">,</span> <span class="n">partition_scheme</span><span class="o">=</span><span class="s1">&#39;lgcr&#39;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        it is not possible for a side chain to have two frag-joints connected to one bone-joint, as this should be</span>
 <span class="sd">        already in backbone</span>
@@ -421,7 +421,7 @@
 
 <div class="viewcode-block" id="MolGraph"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.graph.MolGraph">[docs]</a><span class="k">class</span> <span class="nc">MolGraph</span><span class="p">(</span><span class="n">BasicGraph</span><span class="p">):</span>
 
-<div class="viewcode-block" id="MolGraph.__init__"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.graph.MolGraph.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph</span><span class="p">):</span>
+<div class="viewcode-block" id="MolGraph.__init__"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.graph.MolGraph.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        this is the schema for molecule with fused rings</span>
 

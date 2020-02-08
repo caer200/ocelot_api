@@ -154,20 +154,20 @@
             
   <h1>Source code for ocelot.task.nics</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">warnings</span>
-<span class="kn">from</span> <span class="nn">copy</span> <span class="k">import</span> <span class="n">deepcopy</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">pymatgen.core.structure</span> <span class="k">import</span> <span class="n">Molecule</span>
-<span class="kn">from</span> <span class="nn">pymatgen.core.structure</span> <span class="k">import</span> <span class="n">Site</span>
-<span class="kn">from</span> <span class="nn">pymatgen.io.gaussian</span> <span class="k">import</span> <span class="n">GaussianInput</span>
-<span class="kn">from</span> <span class="nn">scipy.spatial.distance</span> <span class="k">import</span> <span class="n">pdist</span>
-<span class="kn">from</span> <span class="nn">scipy.spatial.distance</span> <span class="k">import</span> <span class="n">squareform</span>
+<span class="kn">from</span> <span class="nn">pymatgen.core.structure</span> <span class="kn">import</span> <span class="n">Molecule</span>
+<span class="kn">from</span> <span class="nn">pymatgen.core.structure</span> <span class="kn">import</span> <span class="n">Site</span>
+<span class="kn">from</span> <span class="nn">pymatgen.io.gaussian</span> <span class="kn">import</span> <span class="n">GaussianInput</span>
+<span class="kn">from</span> <span class="nn">scipy.spatial.distance</span> <span class="kn">import</span> <span class="n">pdist</span>
+<span class="kn">from</span> <span class="nn">scipy.spatial.distance</span> <span class="kn">import</span> <span class="n">squareform</span>
 
-<span class="kn">from</span> <span class="nn">ocelot.routines.geometry</span> <span class="k">import</span> <span class="n">angle_btw</span>
-<span class="kn">from</span> <span class="nn">ocelot.routines.geometry</span> <span class="k">import</span> <span class="n">genlinepts</span>
-<span class="kn">from</span> <span class="nn">ocelot.schema.conformer</span> <span class="k">import</span> <span class="n">MolConformer</span>
-<span class="kn">from</span> <span class="nn">ocelot.schema.conformer</span> <span class="k">import</span> <span class="n">RingConformer</span>
-<span class="kn">from</span> <span class="nn">ocelot.schema.conformer</span> <span class="k">import</span> <span class="n">_coordination_rule</span>
+<span class="kn">from</span> <span class="nn">ocelot.routines.geometry</span> <span class="kn">import</span> <span class="n">angle_btw</span>
+<span class="kn">from</span> <span class="nn">ocelot.routines.geometry</span> <span class="kn">import</span> <span class="n">genlinepts</span>
+<span class="kn">from</span> <span class="nn">ocelot.schema.conformer</span> <span class="kn">import</span> <span class="n">MolConformer</span>
+<span class="kn">from</span> <span class="nn">ocelot.schema.conformer</span> <span class="kn">import</span> <span class="n">RingConformer</span>
+<span class="kn">from</span> <span class="nn">ocelot.schema.conformer</span> <span class="kn">import</span> <span class="n">_coordination_rule</span>
 
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">given a non-solvent omol, generate input for nics scan, parse output</span>
@@ -182,7 +182,7 @@
 <div class="viewcode-block" id="NICSjob"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.nics.NICSjob">[docs]</a><span class="k">class</span> <span class="nc">NICSjob</span><span class="p">:</span>
     <span class="n">lgfr</span><span class="p">:</span> <span class="p">[</span><span class="n">RingConformer</span><span class="p">]</span>
 
-<div class="viewcode-block" id="NICSjob.__init__"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.nics.NICSjob.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">omol</span><span class="p">:</span> <span class="n">MolConformer</span><span class="p">,</span> <span class="n">nmrscheme</span><span class="o">=</span><span class="s1">&#39;GIAO&#39;</span><span class="p">):</span>
+<div class="viewcode-block" id="NICSjob.__init__"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.nics.NICSjob.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">omol</span><span class="p">:</span> <span class="n">MolConformer</span><span class="p">,</span> <span class="n">nmrscheme</span><span class="o">=</span><span class="s1">&#39;GIAO&#39;</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">omol</span> <span class="o">=</span> <span class="n">omol</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">nmrscheme</span> <span class="o">=</span> <span class="n">nmrscheme</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">omol</span><span class="o">.</span><span class="n">is_solvent</span><span class="p">:</span>

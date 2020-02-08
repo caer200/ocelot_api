@@ -154,7 +154,8 @@
             
   <h1>Source code for ocelot.task.idchg</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">subprocess</span>
-<span class="kn">from</span> <span class="nn">ocelot.routines.mopac</span> <span class="k">import</span> <span class="n">MopacInput</span><span class="p">,</span> <span class="n">MopacOutput</span>
+
+<span class="kn">from</span> <span class="nn">ocelot.routines.mopac</span> <span class="kn">import</span> <span class="n">MopacInput</span><span class="p">,</span> <span class="n">MopacOutput</span>
 
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">identify charged site with mopac routines</span>
@@ -166,7 +167,7 @@
 
 <div class="viewcode-block" id="IdChg"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.idchg.IdChg">[docs]</a><span class="k">class</span> <span class="nc">IdChg</span><span class="p">:</span>
 
-<div class="viewcode-block" id="IdChg.__init__"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.idchg.IdChg.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pmgmol</span><span class="p">,</span> <span class="n">jobname</span><span class="p">,</span> <span class="n">mopaccmd</span><span class="p">):</span>
+<div class="viewcode-block" id="IdChg.__init__"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.idchg.IdChg.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pmgmol</span><span class="p">,</span> <span class="n">jobname</span><span class="p">,</span> <span class="n">mopaccmd</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">pmgmol</span> <span class="o">=</span> <span class="n">pmgmol</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">jobname</span> <span class="o">=</span> <span class="n">jobname</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">sites</span> <span class="o">=</span> <span class="n">pmgmol</span><span class="o">.</span><span class="n">sites</span>
@@ -179,7 +180,8 @@
         <span class="nb">min</span> <span class="o">=</span> <span class="n">MopacInput</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sites</span><span class="p">,</span> <span class="n">mopheader</span><span class="o">=</span><span class="s1">&#39;CHARGES&#39;</span><span class="p">,</span> <span class="n">comment_line</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
         <span class="nb">min</span><span class="o">.</span><span class="n">write_mopinput</span><span class="p">(</span><span class="n">wdir</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputname</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="IdChg.parse_out"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.idchg.IdChg.parse_out">[docs]</a>    <span class="k">def</span> <span class="nf">parse_out</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outfn</span><span class="p">):</span>
+<div class="viewcode-block" id="IdChg.parse_out"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.idchg.IdChg.parse_out">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">parse_out</span><span class="p">(</span><span class="n">outfn</span><span class="p">):</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">outfn</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="n">fstring</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
         <span class="n">mout</span> <span class="o">=</span> <span class="n">MopacOutput</span><span class="p">(</span><span class="n">fstring</span><span class="o">=</span><span class="n">fstring</span><span class="p">,</span> <span class="n">caltype</span><span class="o">=</span><span class="s1">&#39;CHARGES&#39;</span><span class="p">)</span>

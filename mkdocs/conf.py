@@ -18,7 +18,7 @@ sys.path.insert(0, '../')
 # -- Project information -----------------------------------------------------
 
 project = 'ocelot'
-copyright = '2019, Ai, Qianxiang'
+copyright = '2020, Ai, Qianxiang'
 author = 'Ai, Qianxiang'
 
 # The short X.Y version

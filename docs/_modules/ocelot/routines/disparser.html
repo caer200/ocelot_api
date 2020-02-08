@@ -157,25 +157,25 @@
 <span class="kn">import</span> <span class="nn">math</span>
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
-<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
-<span class="kn">from</span> <span class="nn">copy</span> <span class="k">import</span> <span class="n">deepcopy</span>
-<span class="kn">from</span> <span class="nn">itertools</span> <span class="k">import</span> <span class="n">groupby</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
+<span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">groupby</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">pymatgen.core.operations</span> <span class="k">import</span> <span class="n">SymmOp</span>
-<span class="kn">from</span> <span class="nn">pymatgen.core.structure</span> <span class="k">import</span> <span class="n">Lattice</span>
-<span class="kn">from</span> <span class="nn">pymatgen.core.structure</span> <span class="k">import</span> <span class="n">PeriodicSite</span>
-<span class="kn">from</span> <span class="nn">pymatgen.core.structure</span> <span class="k">import</span> <span class="n">Structure</span>
-<span class="kn">from</span> <span class="nn">pymatgen.core.structure</span> <span class="k">import</span> <span class="n">lattice_points_in_supercell</span>
-<span class="kn">from</span> <span class="nn">pymatgen.io.cif</span> <span class="k">import</span> <span class="n">CifFile</span>
-<span class="kn">from</span> <span class="nn">pymatgen.io.cif</span> <span class="k">import</span> <span class="n">_get_cod_data</span>
-<span class="kn">from</span> <span class="nn">pymatgen.io.cif</span> <span class="k">import</span> <span class="n">str2float</span>
-<span class="kn">from</span> <span class="nn">pymatgen.io.cif</span> <span class="k">import</span> <span class="n">sub_spgrp</span>
-<span class="kn">from</span> <span class="nn">pymatgen.symmetry.groups</span> <span class="k">import</span> <span class="n">SYMM_DATA</span>
-<span class="kn">from</span> <span class="nn">pymatgen.symmetry.groups</span> <span class="k">import</span> <span class="n">SpaceGroup</span>
-<span class="kn">from</span> <span class="nn">pymatgen.util.coord</span> <span class="k">import</span> <span class="n">pbc_shortest_vectors</span>
+<span class="kn">from</span> <span class="nn">pymatgen.core.operations</span> <span class="kn">import</span> <span class="n">SymmOp</span>
+<span class="kn">from</span> <span class="nn">pymatgen.core.structure</span> <span class="kn">import</span> <span class="n">Lattice</span>
+<span class="kn">from</span> <span class="nn">pymatgen.core.structure</span> <span class="kn">import</span> <span class="n">PeriodicSite</span>
+<span class="kn">from</span> <span class="nn">pymatgen.core.structure</span> <span class="kn">import</span> <span class="n">Structure</span>
+<span class="kn">from</span> <span class="nn">pymatgen.core.structure</span> <span class="kn">import</span> <span class="n">lattice_points_in_supercell</span>
+<span class="kn">from</span> <span class="nn">pymatgen.io.cif</span> <span class="kn">import</span> <span class="n">CifFile</span>
+<span class="kn">from</span> <span class="nn">pymatgen.io.cif</span> <span class="kn">import</span> <span class="n">_get_cod_data</span>
+<span class="kn">from</span> <span class="nn">pymatgen.io.cif</span> <span class="kn">import</span> <span class="n">str2float</span>
+<span class="kn">from</span> <span class="nn">pymatgen.io.cif</span> <span class="kn">import</span> <span class="n">sub_spgrp</span>
+<span class="kn">from</span> <span class="nn">pymatgen.symmetry.groups</span> <span class="kn">import</span> <span class="n">SYMM_DATA</span>
+<span class="kn">from</span> <span class="nn">pymatgen.symmetry.groups</span> <span class="kn">import</span> <span class="n">SpaceGroup</span>
+<span class="kn">from</span> <span class="nn">pymatgen.util.coord</span> <span class="kn">import</span> <span class="n">pbc_shortest_vectors</span>
 
-<span class="kn">from</span> <span class="nn">ocelot.routines.pbc</span> <span class="k">import</span> <span class="n">PBCparser</span>
+<span class="kn">from</span> <span class="nn">ocelot.routines.pbc</span> <span class="kn">import</span> <span class="n">PBCparser</span>
 
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">DisParser: parse cif file into a list of configurations with no disorder</span>
@@ -286,7 +286,7 @@
 
 
 <div class="viewcode-block" id="AtomLabel"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.disparser.AtomLabel">[docs]</a><span class="k">class</span> <span class="nc">AtomLabel</span><span class="p">:</span>
-<div class="viewcode-block" id="AtomLabel.__init__"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.disparser.AtomLabel.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<div class="viewcode-block" id="AtomLabel.__init__"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.disparser.AtomLabel.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        a class for atom label in cif file, overkill I guess...</span>
 
@@ -309,21 +309,20 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">ei</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">element</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">label</span>
 
-    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">label</span>
 
-    <span class="k">def</span> <span class="nf">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">hash</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">label</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">label</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">label</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">is_tag_nonword</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">m</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;^\W$&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tag</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;^\W$&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tag</span><span class="p">)</span>
 
 <div class="viewcode-block" id="AtomLabel.get_labels_with_same_ei"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.disparser.AtomLabel.get_labels_with_same_ei">[docs]</a>    <span class="k">def</span> <span class="nf">get_labels_with_same_ei</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">als</span><span class="p">):</span>
@@ -512,7 +511,7 @@
 
     <span class="n">labels</span><span class="p">:</span> <span class="p">[</span><span class="n">AtomLabel</span><span class="p">]</span>
 
-<div class="viewcode-block" id="DisParser.__init__"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.disparser.DisParser.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cifstring</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<div class="viewcode-block" id="DisParser.__init__"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.disparser.DisParser.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cifstring</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        this can only handle one alternative configuration for the asymmetric unit</span>
 
@@ -813,7 +812,6 @@
         <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">confs</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div></div>
 
 
-
 <div class="viewcode-block" id="get_symmop"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.disparser.get_symmop">[docs]</a><span class="k">def</span> <span class="nf">get_symmop</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
     <span class="n">symops</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">symmetry_label</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;_symmetry_equiv_pos_as_xyz&quot;</span><span class="p">,</span>
@@ -905,19 +903,19 @@
 
 
 <div class="viewcode-block" id="DisUnit"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.disparser.DisUnit">[docs]</a><span class="k">class</span> <span class="nc">DisUnit</span><span class="p">:</span>
-    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">l</span><span class="p">)</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">labels</span><span class="p">])</span>
 
-    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__repr__</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">labels</span><span class="p">)</span> <span class="o">==</span> <span class="nb">set</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">labels</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">hash</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">labels</span><span class="p">))</span>
 
-<div class="viewcode-block" id="DisUnit.__init__"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.disparser.DisUnit.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">psites</span><span class="p">:</span> <span class="p">[</span><span class="n">PeriodicSite</span><span class="p">]):</span>
+<div class="viewcode-block" id="DisUnit.__init__"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.disparser.DisUnit.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">psites</span><span class="p">:</span> <span class="p">[</span><span class="n">PeriodicSite</span><span class="p">]):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        a portion of an asymmetric unit representing one possibility</span>
 
@@ -1006,7 +1004,7 @@
 
 <div class="viewcode-block" id="DisUnit.get_connected_pblock"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.disparser.DisUnit.get_connected_pblock">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">get_connected_pblock</span><span class="p">(</span><span class="n">pblocks</span><span class="p">,</span> <span class="n">cutoff</span><span class="o">=</span><span class="mf">4.0</span><span class="p">):</span>
-        <span class="kn">from</span> <span class="nn">scipy.spatial.distance</span> <span class="k">import</span> <span class="n">cdist</span>
+        <span class="kn">from</span> <span class="nn">scipy.spatial.distance</span> <span class="kn">import</span> <span class="n">cdist</span>
         <span class="kn">import</span> <span class="nn">networkx</span> <span class="k">as</span> <span class="nn">nx</span>
 
         <span class="k">def</span> <span class="nf">get_coords</span><span class="p">(</span><span class="n">pb</span><span class="p">:</span> <span class="p">[</span><span class="n">PeriodicSite</span><span class="p">]):</span>
@@ -1050,7 +1048,7 @@
 
 <div class="viewcode-block" id="ConfigConstructor"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.disparser.ConfigConstructor">[docs]</a><span class="k">class</span> <span class="nc">ConfigConstructor</span><span class="p">:</span>
 
-<div class="viewcode-block" id="ConfigConstructor.__init__"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.disparser.ConfigConstructor.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inv_conf</span><span class="p">:</span> <span class="p">[</span><span class="n">PeriodicSite</span><span class="p">],</span> <span class="n">disunit_pairs</span><span class="p">):</span>
+<div class="viewcode-block" id="ConfigConstructor.__init__"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.disparser.ConfigConstructor.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inv_conf</span><span class="p">:</span> <span class="p">[</span><span class="n">PeriodicSite</span><span class="p">],</span> <span class="n">disunit_pairs</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">inv_conf</span> <span class="o">=</span> <span class="n">inv_conf</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">disunit_pairs</span> <span class="o">=</span> <span class="n">disunit_pairs</span></div>
 

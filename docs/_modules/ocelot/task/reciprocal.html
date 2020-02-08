@@ -154,12 +154,14 @@
             
   <h1>Source code for ocelot.task.reciprocal</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">copy</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-<span class="kn">from</span> <span class="nn">pymatgen.core.structure</span> <span class="k">import</span> <span class="n">Structure</span>
-<span class="kn">from</span> <span class="nn">ocelot.routines</span> <span class="k">import</span> <span class="n">fileop</span><span class="p">,</span> <span class="n">mathop</span>
-<span class="kn">from</span> <span class="nn">ocelot.routines.geometry</span> <span class="k">import</span> <span class="n">frac2cart</span>
-<span class="kn">from</span> <span class="nn">scipy</span> <span class="k">import</span> <span class="n">interpolate</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">pymatgen.core.structure</span> <span class="kn">import</span> <span class="n">Structure</span>
+<span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">interpolate</span>
+
+<span class="kn">from</span> <span class="nn">ocelot.routines</span> <span class="kn">import</span> <span class="n">fileop</span><span class="p">,</span> <span class="n">mathop</span>
+<span class="kn">from</span> <span class="nn">ocelot.routines.geometry</span> <span class="kn">import</span> <span class="n">frac2cart</span>
 
 <span class="n">plt</span><span class="o">.</span><span class="n">switch_backend</span><span class="p">(</span><span class="s1">&#39;agg&#39;</span><span class="p">)</span>
 
@@ -175,7 +177,7 @@
 <span class="sd">    5. TODO tb fitting, see 10.1002/adts.201800204</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="BZsampler.__init__"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.reciprocal.BZsampler.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jobcomment</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">sampling_scheme</span><span class="p">):</span>
+<div class="viewcode-block" id="BZsampler.__init__"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.reciprocal.BZsampler.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jobcomment</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">sampling_scheme</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        object used to sample BZ</span>
 

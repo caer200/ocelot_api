@@ -153,16 +153,17 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ocelot.task.calec</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">sys</span>
-<span class="kn">import</span> <span class="nn">re</span>
+<span></span><span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
+
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">numpy.matlib</span>
-<span class="kn">from</span> <span class="nn">scipy.linalg</span> <span class="k">import</span> <span class="n">blas</span>
-<span class="kn">from</span> <span class="nn">scipy.linalg</span> <span class="k">import</span> <span class="n">lapack</span>
-<span class="kn">from</span> <span class="nn">numba</span> <span class="k">import</span> <span class="n">jit</span>
-<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
-<span class="kn">from</span> <span class="nn">pymatgen.io.gaussian</span> <span class="k">import</span> <span class="n">GaussianInput</span>
-<span class="kn">from</span> <span class="nn">pymatgen.core.structure</span> <span class="k">import</span> <span class="n">Molecule</span>
+<span class="kn">from</span> <span class="nn">numba</span> <span class="kn">import</span> <span class="n">jit</span>
+<span class="kn">from</span> <span class="nn">pymatgen.core.structure</span> <span class="kn">import</span> <span class="n">Molecule</span>
+<span class="kn">from</span> <span class="nn">pymatgen.io.gaussian</span> <span class="kn">import</span> <span class="n">GaussianInput</span>
+<span class="kn">from</span> <span class="nn">scipy.linalg</span> <span class="kn">import</span> <span class="n">blas</span>
+<span class="kn">from</span> <span class="nn">scipy.linalg</span> <span class="kn">import</span> <span class="n">lapack</span>
 
 <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">electronic coupling calculator with</span>
@@ -202,7 +203,7 @@
 <span class="sd">    all in eV</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="ElectronicCoupling.__init__"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.calec.ElectronicCoupling.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sysname</span><span class="p">,</span> <span class="n">mono_a</span><span class="p">,</span> <span class="n">mono_b</span><span class="p">,</span> <span class="n">caltype</span><span class="o">=</span><span class="s1">&#39;gauss&#39;</span><span class="p">):</span>
+<div class="viewcode-block" id="ElectronicCoupling.__init__"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.calec.ElectronicCoupling.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sysname</span><span class="p">,</span> <span class="n">mono_a</span><span class="p">,</span> <span class="n">mono_b</span><span class="p">,</span> <span class="n">caltype</span><span class="o">=</span><span class="s1">&#39;gauss&#39;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        setup ec calculations</span>
 <span class="sd">        :param sysname:</span>

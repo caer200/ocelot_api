@@ -153,15 +153,15 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ocelot.schema.configuration</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">copy</span> <span class="k">import</span> <span class="n">deepcopy</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">List</span>
+<span></span><span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">pymatgen.core.sites</span> <span class="k">import</span> <span class="n">PeriodicSite</span>
-<span class="kn">from</span> <span class="nn">pymatgen.core.structure</span> <span class="k">import</span> <span class="n">Structure</span><span class="p">,</span> <span class="n">Molecule</span>
+<span class="kn">from</span> <span class="nn">pymatgen.core.sites</span> <span class="kn">import</span> <span class="n">PeriodicSite</span>
+<span class="kn">from</span> <span class="nn">pymatgen.core.structure</span> <span class="kn">import</span> <span class="n">Structure</span><span class="p">,</span> <span class="n">Molecule</span>
 
-<span class="kn">from</span> <span class="nn">ocelot.routines.pbc</span> <span class="k">import</span> <span class="n">PBCparser</span>
-<span class="kn">from</span> <span class="nn">ocelot.schema.conformer</span> <span class="k">import</span> <span class="n">ConformerDimer</span><span class="p">,</span> <span class="n">MolConformer</span><span class="p">,</span> <span class="n">conformer_addhmol</span>
+<span class="kn">from</span> <span class="nn">ocelot.routines.pbc</span> <span class="kn">import</span> <span class="n">PBCparser</span>
+<span class="kn">from</span> <span class="nn">ocelot.schema.conformer</span> <span class="kn">import</span> <span class="n">ConformerDimer</span><span class="p">,</span> <span class="n">MolConformer</span><span class="p">,</span> <span class="n">conformer_addhmol</span>
 
 
 <div class="viewcode-block" id="Config"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.configuration.Config">[docs]</a><span class="k">class</span> <span class="nc">Config</span><span class="p">:</span>
@@ -170,7 +170,7 @@
     <span class="n">mols</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Molecule</span><span class="p">]</span>
     <span class="n">pstructure</span><span class="p">:</span> <span class="n">Structure</span>
 
-<div class="viewcode-block" id="Config.__init__"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.configuration.Config.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pstructure</span><span class="p">):</span>
+<div class="viewcode-block" id="Config.__init__"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.configuration.Config.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pstructure</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        :param pstructure: Structure without disorder</span>
 <span class="sd">        &quot;&quot;&quot;</span>

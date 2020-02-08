@@ -153,13 +153,15 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ocelot.task.zindo</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">warnings</span>
-<span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">from</span> <span class="nn">ocelot.routines.fileop</span> <span class="k">import</span> <span class="n">movefile</span>
-<span class="kn">import</span> <span class="nn">subprocess</span>
-<span class="kn">from</span> <span class="nn">pymatgen.core.structure</span> <span class="k">import</span> <span class="n">Element</span><span class="p">,</span> <span class="n">Molecule</span><span class="p">,</span> <span class="n">Site</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span></span><span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">subprocess</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">pymatgen.core.structure</span> <span class="kn">import</span> <span class="n">Element</span><span class="p">,</span> <span class="n">Molecule</span><span class="p">,</span> <span class="n">Site</span>
+
+<span class="kn">from</span> <span class="nn">ocelot.routines.fileop</span> <span class="kn">import</span> <span class="n">movefile</span>
 
 <span class="c1"># http://www.esi.umontreal.ca/accelrys/life/insight2000.1/zindo/3_Implementation.html</span>
 <span class="n">Zindo_elements</span> <span class="o">=</span> <span class="p">[</span>
@@ -247,7 +249,7 @@
 
 <div class="viewcode-block" id="ZindoJob"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.zindo.ZindoJob">[docs]</a><span class="k">class</span> <span class="nc">ZindoJob</span><span class="p">:</span>
 
-<div class="viewcode-block" id="ZindoJob.__init__"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.zindo.ZindoJob.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jobname</span><span class="p">,</span> <span class="n">pmgmol</span><span class="p">,</span> <span class="n">isdimer</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">mol_A</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mol_D</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">upconvert</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="ZindoJob.__init__"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.zindo.ZindoJob.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jobname</span><span class="p">,</span> <span class="n">pmgmol</span><span class="p">,</span> <span class="n">isdimer</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">mol_A</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mol_D</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">upconvert</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">jobname</span> <span class="o">=</span> <span class="n">jobname</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">pmgmol</span> <span class="o">=</span> <span class="n">pmgmol</span>  <span class="c1"># add deepcopy?</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">isdimer</span> <span class="o">=</span> <span class="n">isdimer</span>

@@ -155,7 +155,8 @@
   <h1>Source code for ocelot.task.dftd3</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">subprocess</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
-<span class="kn">from</span> <span class="nn">ocelot.routines.fileop</span> <span class="k">import</span> <span class="n">createdir</span>
+
+<span class="kn">from</span> <span class="nn">ocelot.routines.fileop</span> <span class="kn">import</span> <span class="n">createdir</span>
 
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">dftd3 from Grimme for pbc system</span>
@@ -183,7 +184,7 @@
 
 <div class="viewcode-block" id="DFTD3"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.dftd3.DFTD3">[docs]</a><span class="k">class</span> <span class="nc">DFTD3</span><span class="p">:</span>
 
-<div class="viewcode-block" id="DFTD3.__init__"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.dftd3.DFTD3.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jobname</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">func</span><span class="o">=</span><span class="s1">&#39;pbe&#39;</span><span class="p">,</span> <span class="n">damping</span><span class="o">=</span><span class="s1">&#39;bj&#39;</span><span class="p">,</span> <span class="n">dftd2</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">cutoff</span><span class="o">=</span><span class="mf">94.8683</span><span class="p">,</span> <span class="n">cnthr</span><span class="o">=</span><span class="mi">40</span><span class="p">):</span>
+<div class="viewcode-block" id="DFTD3.__init__"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.dftd3.DFTD3.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jobname</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">func</span><span class="o">=</span><span class="s1">&#39;pbe&#39;</span><span class="p">,</span> <span class="n">damping</span><span class="o">=</span><span class="s1">&#39;bj&#39;</span><span class="p">,</span> <span class="n">dftd2</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">cutoff</span><span class="o">=</span><span class="mf">94.8683</span><span class="p">,</span> <span class="n">cnthr</span><span class="o">=</span><span class="mi">40</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        init a dftd3 calculation</span>
 

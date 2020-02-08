@@ -153,24 +153,26 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ocelot.task.hop</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">ocelot.task.zindo</span> <span class="k">import</span> <span class="n">ZindoJob</span><span class="p">,</span> <span class="n">conver2zindo</span>
-<span class="kn">from</span> <span class="nn">ocelot.schema.conformer</span> <span class="k">import</span> <span class="n">DimerCollection</span>
-<span class="kn">import</span> <span class="nn">json</span>
+<span></span><span class="kn">import</span> <span class="nn">json</span>
 <span class="kn">import</span> <span class="nn">os</span>
+
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
-<span class="c1">#TODO parallel zindo calculations</span>
+<span class="kn">from</span> <span class="nn">ocelot.schema.conformer</span> <span class="kn">import</span> <span class="n">DimerCollection</span>
+<span class="kn">from</span> <span class="nn">ocelot.task.zindo</span> <span class="kn">import</span> <span class="n">ZindoJob</span><span class="p">,</span> <span class="n">conver2zindo</span>
+
+<span class="c1"># TODO parallel zindo calculations</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">for a certain crystal config, get perocalation pathway</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 
 <div class="viewcode-block" id="IJK"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.hop.IJK">[docs]</a><span class="k">class</span> <span class="nc">IJK</span><span class="p">:</span>
-<div class="viewcode-block" id="IJK.__init__"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.hop.IJK.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ijk</span><span class="p">,</span> <span class="n">klen</span><span class="p">):</span>
+<div class="viewcode-block" id="IJK.__init__"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.hop.IJK.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ijk</span><span class="p">,</span> <span class="n">klen</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ijk</span> <span class="o">=</span> <span class="n">ijk</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">klen</span> <span class="o">=</span> <span class="n">klen</span></div>
 
-    <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">klen</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">klen</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">False</span>
         <span class="n">i1</span><span class="p">,</span> <span class="n">j1</span><span class="p">,</span> <span class="n">k1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ijk</span>
@@ -182,7 +184,7 @@
 
 <div class="viewcode-block" id="Hop"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.hop.Hop">[docs]</a><span class="k">class</span> <span class="nc">Hop</span><span class="p">:</span>
 
-<div class="viewcode-block" id="Hop.__init__"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.hop.Hop.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">zindobin</span><span class="p">,</span> <span class="n">zindoctbin</span><span class="p">,</span> <span class="n">zindolib</span><span class="p">,</span> <span class="n">wdir</span><span class="p">):</span>
+<div class="viewcode-block" id="Hop.__init__"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.hop.Hop.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">zindobin</span><span class="p">,</span> <span class="n">zindoctbin</span><span class="p">,</span> <span class="n">zindolib</span><span class="p">,</span> <span class="n">wdir</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">workdir</span> <span class="o">=</span> <span class="n">wdir</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">zindobin</span> <span class="o">=</span> <span class="n">zindobin</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">zindoctbin</span> <span class="o">=</span> <span class="n">zindoctbin</span>
@@ -308,7 +310,7 @@
         <span class="k">for</span> <span class="n">lab</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
             <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">lab</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">)]</span>
             <span class="n">symdata</span><span class="p">[</span><span class="n">lab</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">lab</span><span class="p">]</span>
-            <span class="n">symlab</span> <span class="o">=</span> <span class="s1">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">index</span><span class="p">)</span> <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span>  <span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">lenk</span> <span class="o">-</span> <span class="n">k</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]])</span>
+            <span class="n">symlab</span> <span class="o">=</span> <span class="s1">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">index</span><span class="p">)</span> <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">lenk</span> <span class="o">-</span> <span class="n">k</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]])</span>
             <span class="n">symlabentry</span> <span class="o">=</span> <span class="p">[</span><span class="n">data</span><span class="p">[</span><span class="n">lab</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="n">lab</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">dimer_array</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">lenk</span> <span class="o">-</span> <span class="n">k</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">to_xyzstring</span><span class="p">()]</span>
             <span class="n">symdata</span><span class="p">[</span><span class="n">symlab</span><span class="p">]</span> <span class="o">=</span> <span class="n">symlabentry</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">/symdata2.json&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">workdir</span><span class="p">),</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
@@ -348,7 +350,7 @@
         <span class="n">super_cell_mesh</span> <span class="o">=</span> <span class="n">Hop</span><span class="o">.</span><span class="n">get_intger_mesh</span><span class="p">(</span><span class="n">size_x</span><span class="p">,</span> <span class="n">size_y</span><span class="p">,</span> <span class="n">size_z</span><span class="p">)</span>
         <span class="n">mesh_size</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">super_cell_mesh</span><span class="p">)</span>
         <span class="n">augmented_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">mesh_size</span><span class="p">,</span> <span class="n">mesh_size</span><span class="p">,</span> <span class="n">leni</span><span class="p">,</span> <span class="n">lenj</span><span class="p">))</span>
-        <span class="n">mat_v_x2y</span> <span class="o">=</span> <span class="n">super_cell_mesh</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,:,:]</span><span class="o">-</span><span class="n">super_cell_mesh</span><span class="p">[:,</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,:]</span>
+        <span class="n">mat_v_x2y</span> <span class="o">=</span> <span class="n">super_cell_mesh</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span> <span class="o">-</span> <span class="n">super_cell_mesh</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="p">:]</span>
         <span class="k">for</span> <span class="n">mi</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">mesh_size</span><span class="p">):</span>
             <span class="k">for</span> <span class="n">mj</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">mesh_size</span><span class="p">):</span>
                 <span class="c1"># v_mi2mj = super_cell_mesh[mj] - super_cell_mesh[mi]</span>
@@ -423,7 +425,7 @@
 
 <div class="viewcode-block" id="Hop.get_hopping_network_s2"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.hop.Hop.get_hopping_network_s2">[docs]</a>    <span class="k">def</span> <span class="nf">get_hopping_network_s2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">symdata</span><span class="p">,</span> <span class="n">cutoff</span><span class="p">,</span> <span class="n">supercell</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">motype</span><span class="o">=</span><span class="s1">&#39;hh&#39;</span><span class="p">):</span>
         <span class="n">mesh</span><span class="p">,</span> <span class="n">augdata</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">supercell_proj</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dimer_array</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tranv_fcs</span><span class="p">,</span> <span class="n">symdata</span><span class="p">,</span> <span class="n">super_cell_size</span><span class="o">=</span><span class="n">supercell</span><span class="p">,</span>
-                                           <span class="n">motype</span><span class="o">=</span><span class="n">motype</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">workdir</span><span class="p">)</span>
+                                            <span class="n">motype</span><span class="o">=</span><span class="n">motype</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">workdir</span><span class="p">)</span>
         <span class="c1"># this gives &#39;ll_netdata4.json&#39; or &#39;hh_netdata4.json&#39;</span>
         <span class="n">network</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hopping</span><span class="p">(</span><span class="n">augdata</span><span class="p">,</span> <span class="n">mesh</span><span class="p">,</span> <span class="n">cutoff</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">workdir</span><span class="p">,</span> <span class="n">motype</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">mesh</span><span class="p">,</span> <span class="n">augdata</span><span class="p">,</span> <span class="n">network</span></div></div>
@@ -496,8 +498,6 @@
     <span class="c1">#     with open(&#39;{}/netdata4.json&#39;.format(workdir), &#39;w&#39;) as f:</span>
     <span class="c1">#         json.dump(network, f)</span>
     <span class="c1">#     return network</span>
-
-
 </pre></div>
 
            </div>

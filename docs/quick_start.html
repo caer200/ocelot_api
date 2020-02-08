@@ -213,7 +213,7 @@ To extract no-disorder <code class="docutils literal notranslate"><span class="p
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ocelot.routines.disparser</span> <span class="kn">import</span> <span class="n">DisParser</span>
 <span class="n">ciffile</span> <span class="o">=</span> <span class="s1">&#39;x17059.cif&#39;</span>
 <span class="n">dp</span> <span class="o">=</span> <span class="n">DisParser</span><span class="o">.</span><span class="n">from_ciffile</span><span class="p">(</span><span class="n">ciffile</span><span class="p">)</span>
-<span class="n">dp</span><span class="o">.</span><span class="n">to_configs</span><span class="p">(</span><span class="n">write_files</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>  <span class="c1"># writes conf_x.cif </span>
+<span class="n">dp</span><span class="o">.</span><span class="n">to_configs</span><span class="p">(</span><span class="n">write_files</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># writes conf_x.cif </span>
 </pre></div>
 </div>
 <p>Here the <code class="docutils literal notranslate"><span class="pre">to_config</span></code> method will write <em>all</em> possible configurations of a unit cell,
@@ -244,7 +244,7 @@ The idea is first to strip the side groups:</p>
 
 <span class="n">pid</span> <span class="o">=</span> <span class="n">PackingIdentifier</span><span class="p">(</span><span class="n">bc</span><span class="p">)</span>
 <span class="n">packingd</span> <span class="o">=</span> <span class="n">pid</span><span class="o">.</span><span class="n">identify_heuristic</span><span class="p">()</span>
-<span class="k">print</span><span class="p">(</span><span class="n">packingd</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;packing&#39;</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">packingd</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;packing&#39;</span><span class="p">])</span>
 <span class="c1"># brickwork</span>
 </pre></div>
 </div>
@@ -263,9 +263,9 @@ can start with <em>SMILES</em></p>
 <span class="n">rdmol</span> <span class="o">=</span> <span class="n">MolFromSmiles</span><span class="p">(</span><span class="n">smiles</span><span class="p">)</span>
 <span class="n">mg</span> <span class="o">=</span> <span class="n">MolGraph</span><span class="o">.</span><span class="n">from_rdmol</span><span class="p">(</span><span class="n">rdmol</span><span class="p">)</span>
 <span class="n">backbone</span><span class="p">,</span> <span class="n">sidegroups</span> <span class="o">=</span> <span class="n">mg</span><span class="o">.</span><span class="n">partition_to_bone_frags</span><span class="p">(</span><span class="s1">&#39;lgfr&#39;</span><span class="p">)</span>
-<span class="k">print</span><span class="p">(</span><span class="n">backbone</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">backbone</span><span class="p">)</span>
 <span class="k">for</span> <span class="n">sg</span> <span class="ow">in</span> <span class="n">sidegroups</span><span class="p">:</span>
-    <span class="k">print</span><span class="p">(</span><span class="n">sg</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">sg</span><span class="p">)</span>
 
 <span class="c1"># BackboneGraph:; 6 C; 7 C; 8 C; 9 C; 10 C; 11 C; 12 C; 13 C; 20 C; 21 C; 28 C; 29 C; 30 C; 31 C; 32 C; 33 C; 34 C; 41 C</span>
 <span class="c1"># SidechainGraph:; 0 C; 1 C; 2 C; 3 C; 4 C; 5 C</span>
@@ -283,9 +283,9 @@ in the molecule”. For other schemes of extracting backbone, see API doc for <c
 
 <span class="n">mc</span> <span class="o">=</span> <span class="n">MolConformer</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="s1">&#39;rub.xyz&#39;</span><span class="p">)</span>
 <span class="n">bone_conformer</span><span class="p">,</span> <span class="n">sccs</span><span class="p">,</span> <span class="n">bg</span><span class="p">,</span> <span class="n">scgs</span> <span class="o">=</span> <span class="n">mc</span><span class="o">.</span><span class="n">partition</span><span class="p">(</span><span class="n">coplane_cutoff</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
-<span class="k">print</span><span class="p">(</span><span class="n">bone_conformer</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">bone_conformer</span><span class="p">)</span>
 <span class="k">for</span> <span class="n">sc</span> <span class="ow">in</span> <span class="n">sccs</span><span class="p">:</span>
-    <span class="k">print</span><span class="p">(</span><span class="n">sc</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">sc</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>This would give the fragment conformers of this molecule, you can use <code class="docutils literal notranslate"><span class="pre">coplane_cutoff</span></code>
