@@ -1,5 +1,4 @@
 from ocelot.schema.conformer import MolConformer
-from pymatgen.core.structure import Molecule
 from ocelot.task.nics import NICSjob
 """
 this will wirte sigma-0.gjf and total-0.gjf

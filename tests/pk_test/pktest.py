@@ -1,11 +1,26 @@
-from ocelot.schema.config import Config
-from ocelot.routines.pbc import CIFparser
-import glob
+from ocelot.routines.disparser import DisParser
 from ocelot.task.pkid import PackingIdentifier
-
+from ocelot.schema.configuration import Config
+import glob
 """
 this reads cif files from tipge-*.cif, identify packing patterns and write backbone-only configs
 """
+
+
+def pkid_ciffile(ciffile):
+    dp = DisParser.from_ciffile(ciffile)
+    dp.to_configs(write_files=True)  # writes conf_x.cif
+
+    # backbone config
+    config = Config.from_file('conf_0.cif')
+    bc, boneonly_pstructure, terminated_backbone_hmols = config.get_bone_config()
+    boneonly_pstructure.to('cif', 'boneonly.cif')
+
+    pid = PackingIdentifier(bc)
+    packingd = pid.identify_heuristic()
+    return packingd
+
+
 
 
 def inspect_cif(ciffile):
