@@ -1,5 +1,4 @@
-from ocelot.schema.config import Config
-from ocelot.routines.pbc import CIFparser
+from ocelot.schema.configuration import Config
 import glob
 from ocelot.task.pkid import PackingIdentifier
 

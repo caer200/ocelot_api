@@ -1,0 +1,296 @@
+data_x17061 
+ 
+_audit_creation_method            'SHELXL-2016/6' 
+# CIF edited on-the-fly by script CIFFIX (S. Parkin, 2000-2016). 
+# CIFFIX: http://xray.uky.edu/people/parkin/programs/ciffix 
+_audit_update_record              ? 
+ 
+_shelx_SHELXL_version_number      '2016/6' 
+ 
+_publ_section_exptl_refinement 
+; 
+H atoms were found in difference Fourier maps, but subsequently included 
+in the refinement using riding models, with constrained distances set to 
+0.95 \%A (C~sp2~H), 0.98 \%A (RCH~3~) and 1.00 \%A (R~3~CH).  U~iso~(H) 
+parameters were set to values of either 1.2U~eq~ or 1.5U~eq~ (RCH~3~ only) 
+of the attached atom. 
+; 
+ 
+_publ_section_references 
+; 
+Bruker-AXS (2006). 
+  <i>APEX2</i> Bruker-AXS Inc., Madison, WI, USA. 
+ 
+Hope, H. (1994). 
+  <i>Prog. Inorg. Chem.</i> <b>41</b>, 1--19. 
+ 
+Krause, L., Herbst-Irmer, R., Sheldrick, G.M. & Stalke, D. (2015). 
+  <i>J. Appl. Cryst.</i> <b>48</b>, 3--10. 
+ 
+Parkin, S. & Hope, H. (1998). 
+  <i>J. Appl. Cryst.</i> <b>31</b>, 945--953. 
+ 
+Parkin, S. (2000). 
+  <i>Acta Cryst.</i> A<b>56</b>, 157--162. 
+ 
+Parkin, S. (2013). 
+  <i>CIFFIX</i>, http://xray.uky.edu/people/parkin/programs/ciffix 
+ 
+Sheldrick, G.M. (2008). 
+  <i>Acta Cryst.</i> A<b>64</b>, 112--122. 
+ 
+Sheldrick, G.M. (2015a). 
+  <i>Acta Cryst.</i> A<b>71</b>, 3--8. 
+ 
+Sheldrick, G.M. (2015b). 
+  <i>Acta Cryst.</i> C<b>71</b>, 3--8. 
+ 
+Spek, A.L. (2009). 
+  <i>Acta Cryst.</i> D<b>65</b>, 148--155. 
+; 
+ 
+_publ_section_acknowledgements 
+; 
+The X8 Proteum diffractometer was funded by the NSF (MRI CHE0319176, 70%), 
+and by the University of Kentucky (cost share, 30%). 
+; 
+ 
+_chemical_name_systematic         ? 
+_chemical_name_common             ? 
+_chemical_melting_point           ? 
+_chemical_formula_moiety          'C44 H54 Ge2' 
+_chemical_formula_sum             'C44 H54 Ge2' 
+_chemical_formula_weight          728.05 
+ 
+loop_ 
+ _atom_type_symbol 
+ _atom_type_description 
+ _atom_type_scat_dispersion_real 
+ _atom_type_scat_dispersion_imag 
+ _atom_type_scat_source 
+ 'C'  'C'   0.0181   0.0091 
+ 'International Tables Vol C Tables 4.2.6.8 and 6.1.1.4' 
+ 'H'  'H'   0.0000   0.0000 
+ 'International Tables Vol C Tables 4.2.6.8 and 6.1.1.4' 
+ 'Ge'  'Ge'  -1.0885   0.8855 
+ 'International Tables Vol C Tables 4.2.6.8 and 6.1.1.4' 
+ 
+_space_group_crystal_system       triclinic 
+_space_group_IT_number            2 
+_space_group_name_H-M_alt         'P -1' 
+_space_group_name_Hall            '-P 1' 
+ 
+_shelx_space_group_comment 
+; 
+The symmetry employed for this shelxl refinement is uniquely defined 
+by the following loop, which should always be used as a source of 
+symmetry information in preference to the above space-group names. 
+They are only intended as comments. 
+; 
+ 
+loop_ 
+ _space_group_symop_operation_xyz 
+ 'x, y, z' 
+ '-x, -y, -z' 
+ 
+_cell_length_a                    8.5753(2) 
+_cell_length_b                    10.8951(2) 
+_cell_length_c                    10.9628(2) 
+_cell_angle_alpha                 67.029(1) 
+_cell_angle_beta                  87.521(1) 
+_cell_angle_gamma                 87.155(1) 
+_cell_volume                      941.54(3) 
+_cell_formula_units_Z             1 
+_cell_measurement_temperature     180(2) 
+_cell_measurement_reflns_used     7772 
+_cell_measurement_theta_min       4.38 
+_cell_measurement_theta_max       69.03 
+ 
+_exptl_crystal_description        tablet 
+_exptl_crystal_colour             blue 
+_exptl_crystal_density_meas       ? 
+_exptl_crystal_density_method     ? 
+_exptl_crystal_density_diffrn     1.284 
+_exptl_crystal_F_000              382 
+_exptl_transmission_factor_min    ? 
+_exptl_transmission_factor_max    ? 
+_exptl_crystal_size_max           0.270 
+_exptl_crystal_size_mid           0.200 
+_exptl_crystal_size_min           0.060 
+_exptl_absorpt_coefficient_mu     2.164 
+_shelx_estimated_absorpt_T_min    0.593 
+_shelx_estimated_absorpt_T_max    0.881 
+_exptl_absorpt_correction_type    multi-scan 
+_exptl_absorpt_correction_T_min   0.643 
+_exptl_absorpt_correction_T_max   0.864 
+_exptl_absorpt_process_details    '<i>SADABS</i> (Krause et al., 2015)' 
+_exptl_absorpt_special_details 
+; 
+In addition to absorption, multi-scan techniques also correct other slowly 
+varying changes in scale factor over reciprocal space, such as those caused 
+by x-ray beam inhomogeneity, goniometer imperfection, crystal decomposition, 
+crystal longer than the x-ray beam cross section, absorption by the crystal 
+mount etc.  These account, by and large, for much of the difference between 
+estimated values of Tmin and Tmax and the _exptl_absorpt_correction_ values. 
+; 
+ 
+_exptl_special_details 
+; 
+The crystal was mounted using polyisobutene oil on the tip of a fine glass 
+fibre, which was fastened in a copper mounting pin with electrical solder. 
+It was placed directly into the cold gas stream of a liquid-nitrogen based 
+cryostat (Hope, 1994; Parkin & Hope, 1998). 
+ 
+The crystals underwent a destructive phase transition when cooled to 90K. 
+Visual inspection of crystal integrity and diffraction quality vs temperature 
+established a safe temperature for data collection of -93\% C. 
+; 
+ 
+_diffrn_ambient_temperature       180(2) 
+_diffrn_radiation_wavelength      1.54178 
+_diffrn_radiation_type            CuK\a 
+_diffrn_source                    'fine-focus rotating anode' 
+_diffrn_measurement_device_type   'Bruker X8 Proteum diffractometer' 
+_diffrn_measurement_method        '\f and \w scans' 
+_diffrn_detector_area_resol_mean  5.6 
+_diffrn_reflns_number             12743 
+_diffrn_reflns_av_unetI/netI      0.0430 
+_diffrn_reflns_av_R_equivalents   0.0497 
+_diffrn_reflns_limit_h_min        -10 
+_diffrn_reflns_limit_h_max        6 
+_diffrn_reflns_limit_k_min        -13 
+_diffrn_reflns_limit_k_max        13 
+_diffrn_reflns_limit_l_min        -13 
+_diffrn_reflns_limit_l_max        11 
+_diffrn_reflns_theta_min          4.382 
+_diffrn_reflns_theta_max          69.827 
+_diffrn_reflns_theta_full         67.679 
+_diffrn_measured_fraction_theta_max                0.963 
+_diffrn_measured_fraction_theta_full               0.987 
+_diffrn_reflns_Laue_measured_fraction_max          0.963 
+_diffrn_reflns_Laue_measured_fraction_full         0.987 
+_diffrn_reflns_point_group_measured_fraction_max   0.963 
+_diffrn_reflns_point_group_measured_fraction_full  0.987 
+ 
+_reflns_number_total              3432 
+_reflns_number_gt                 3187 
+_reflns_threshold_expression      'I > 2\s(I)' 
+_reflns_Friedel_coverage          0.000 
+_reflns_Friedel_fraction_max      . 
+_reflns_Friedel_fraction_full     . 
+_reflns_special_details 
+; 
+Reflections were merged by SHELXL according to the crystal 
+class for the calculation of statistics and refinement. 
+ 
+_reflns_Friedel_fraction is defined as the number of unique 
+Friedel pairs measured divided by the number that would be 
+possible theoretically, ignoring centric projections and 
+systematic absences. 
+; 
+ 
+_computing_data_collection        '<i>APEX2</i> (Bruker-AXS, 2006)' 
+_computing_cell_refinement        '<i>APEX2</i> (Bruker-AXS, 2006)' 
+_computing_data_reduction         '<i>APEX2</i> (Bruker-AXS, 2006)' 
+_computing_structure_solution     '<i>SHELXT</i> (Sheldrick, 2015a)' 
+_computing_structure_refinement   '<i>SHELXL-2016/6</i> (Sheldrick, 2015b)' 
+_computing_molecular_graphics     '<i>XP in SHELXTL</i> (Sheldrick, 2008)' 
+_computing_publication_material 
+'<i>SHELX</i> (Sheldrick, 2008) and <i>CIFFIX</i> (Parkin, 2013)' 
+ 
+_refine_special_details 
+; 
+Refinement progress was checked using <i>Platon</i> (Spek, 2009) and by 
+an <i>R</i>-tensor (Parkin, 2000). The final model was further checked 
+with the IUCr utility <i>checkCIF</i>. 
+; 
+_refine_ls_structure_factor_coef  Fsqd 
+_refine_ls_matrix_type            full 
+_refine_ls_weighting_scheme       calc 
+_refine_ls_weighting_details 
+'w=1/[\s^2^(Fo^2^)+(0.0464P)^2^+0.5672P] where P=(Fo^2^+2Fc^2^)/3' 
+_atom_sites_solution_primary      direct 
+_atom_sites_solution_secondary    difmap 
+_atom_sites_solution_hydrogens    difmap 
+_refine_ls_hydrogen_treatment     constr 
+_refine_ls_extinction_method      none 
+_refine_ls_extinction_coef        . 
+_refine_ls_number_reflns          3432 
+_refine_ls_number_parameters      214 
+_refine_ls_number_restraints      0 
+_refine_ls_R_factor_all           0.0382 
+_refine_ls_R_factor_gt            0.0354 
+_refine_ls_wR_factor_ref          0.0923 
+_refine_ls_wR_factor_gt           0.0906 
+_refine_ls_goodness_of_fit_ref    1.049 
+_refine_ls_restrained_S_all       1.049 
+_refine_ls_shift/su_max           0.001 
+_refine_ls_shift/su_mean          0.000 
+ 
+loop_ 
+ _atom_site_label 
+ _atom_site_type_symbol 
+ _atom_site_fract_x 
+ _atom_site_fract_y 
+ _atom_site_fract_z 
+ _atom_site_U_iso_or_equiv 
+ _atom_site_adp_type 
+ _atom_site_occupancy 
+ _atom_site_site_symmetry_order 
+ _atom_site_calc_flag 
+ _atom_site_refinement_flags_posn 
+ _atom_site_refinement_flags_adp 
+ _atom_site_refinement_flags_occupancy 
+ _atom_site_disorder_assembly 
+ _atom_site_disorder_group 
+Ge1 Ge 0.71586(3) 0.17429(2) 0.68998(2) 0.02225(11) Uani 1 1 d . . . . . 
+C1 C 0.5510(3) 0.4159(2) 0.9326(2) 0.0217(5) Uani 1 1 d . . . . . 
+C2 C 0.4016(3) 0.4805(2) 0.9086(2) 0.0210(4) Uani 1 1 d . . . . . 
+C3 C 0.3002(3) 0.4628(2) 0.8190(2) 0.0246(5) Uani 1 1 d . . . . . 
+H3 H 0.333376 0.406081 0.774698 0.030 Uiso 1 1 calc R U . . . 
+C4 C 0.1542(3) 0.5256(2) 0.7939(2) 0.0248(5) Uani 1 1 d . . . . . 
+C5 C 0.0521(3) 0.5096(3) 0.7017(3) 0.0309(5) Uani 1 1 d . . . . . 
+H5 H 0.085063 0.454187 0.655946 0.037 Uiso 1 1 calc R U . . . 
+C6 C -0.0903(3) 0.5718(3) 0.6785(3) 0.0357(6) Uani 1 1 d . . . . . 
+H6 H -0.156140 0.559467 0.616944 0.043 Uiso 1 1 calc R U . . . 
+C7 C -0.1428(3) 0.6558(3) 0.7454(3) 0.0370(6) Uani 1 1 d . . . . . 
+H7 H -0.243497 0.698391 0.728976 0.044 Uiso 1 1 calc R U . . . 
+C8 C -0.0489(3) 0.6751(3) 0.8329(3) 0.0323(6) Uani 1 1 d . . . . . 
+H8 H -0.084906 0.731421 0.876758 0.039 Uiso 1 1 calc R U . . . 
+C9 C 0.1027(3) 0.6120(2) 0.8597(2) 0.0252(5) Uani 1 1 d . . . . . 
+C10 C 0.2007(3) 0.6299(2) 0.9488(2) 0.0251(5) Uani 1 1 d . . . . . 
+H10 H 0.166384 0.686437 0.992851 0.030 Uiso 1 1 calc R U . . . 
+C11 C 0.3495(3) 0.5664(2) 0.9752(2) 0.0211(4) Uani 1 1 d . . . . . 
+C12 C 0.6031(3) 0.3345(2) 0.8621(2) 0.0227(5) Uani 1 1 d . . . . . 
+C13 C 0.6454(3) 0.2689(2) 0.7998(2) 0.0253(5) Uani 1 1 d . . . . . 
+C14 C 0.9460(3) 0.1816(3) 0.6765(3) 0.0307(5) Uani 1 1 d . . . . . 
+H14 H 0.970697 0.274120 0.614003 0.037 Uiso 1 1 calc R U . . . 
+C15 C 1.0224(3) 0.1596(3) 0.8078(3) 0.0428(7) Uani 1 1 d . . . . . 
+H15A H 1.012718 0.066358 0.868852 0.064 Uiso 1 1 calc R U . . . 
+H15B H 0.970036 0.218028 0.847062 0.064 Uiso 1 1 calc R U . . . 
+H15C H 1.133079 0.180490 0.791245 0.064 Uiso 1 1 calc R U . . . 
+C16 C 1.0184(3) 0.0879(4) 0.6149(4) 0.0521(8) Uani 1 1 d . . . . . 
+H16A H 1.131622 0.098771 0.604448 0.078 Uiso 1 1 calc R U . . . 
+H16B H 0.973536 0.109241 0.528020 0.078 Uiso 1 1 calc R U . . . 
+H16C H 0.996735 -0.004485 0.672768 0.078 Uiso 1 1 calc R U . . . 
+C17 C 0.6412(3) -0.0090(2) 0.7756(3) 0.0318(6) Uani 1 1 d . . . . . 
+H17 H 0.686063 -0.061585 0.724471 0.038 Uiso 1 1 calc R U . . . 
+C18 C 0.6989(4) -0.0752(3) 0.9176(3) 0.0446(7) Uani 1 1 d . . . . . 
+H18A H 0.660807 -0.022556 0.968440 0.067 Uiso 1 1 calc R U . . . 
+H18B H 0.813329 -0.079808 0.916182 0.067 Uiso 1 1 calc R U . . . 
+H18C H 0.659403 -0.165494 0.959180 0.067 Uiso 1 1 calc R U . . . 
+C19 C 0.4634(3) -0.0114(3) 0.7740(3) 0.0438(7) Uani 1 1 d . . . . . 
+H19A H 0.429697 -0.102759 0.822867 0.066 Uiso 1 1 calc R U . . . 
+H19B H 0.429603 0.020225 0.682182 0.066 Uiso 1 1 calc R U . . . 
+H19C H 0.416743 0.046851 0.815930 0.066 Uiso 1 1 calc R U . . . 
+C20 C 0.6279(3) 0.2740(2) 0.5135(2) 0.0297(5) Uani 1 1 d . . . . . 
+H20 H 0.694530 0.352787 0.468754 0.036 Uiso 1 1 calc R U . . . 
+C21 C 0.6389(4) 0.1932(3) 0.4270(3) 0.0483(8) Uani 1 1 d . . . . . 
+H21A H 0.577304 0.113229 0.468231 0.072 Uiso 1 1 calc R U . . . 
+H21B H 0.748333 0.166835 0.417716 0.072 Uiso 1 1 calc R U . . . 
+H21C H 0.598286 0.247516 0.339284 0.072 Uiso 1 1 calc R U . . . 
+C22 C 0.4620(3) 0.3289(3) 0.5175(3) 0.0458(7) Uani 1 1 d . . . . . 
+H22A H 0.433332 0.390665 0.428345 0.069 Uiso 1 1 calc R U . . . 
+H22B H 0.455792 0.376146 0.577583 0.069 Uiso 1 1 calc R U . . . 
+H22C H 0.389950 0.255131 0.549320 0.069 Uiso 1 1 calc R U . . . 
+ 
