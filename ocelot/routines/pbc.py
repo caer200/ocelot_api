@@ -54,7 +54,7 @@ class PBCparser:
             ini_idx = unvisited[0]
             block = [ini_idx]
             # unwrap.append(psites[ini_idx])
-            unwrap_block = [Site(psites[ini_idx].species_string, psites[ini_idx].coords)]
+            unwrap_block = [Site(psites[ini_idx].species_string, psites[ini_idx].coords, properties=deepcopy(psites[ini_idx].properties))]
             unwrap_pblock = [psites[ini_idx]]
             pointer = 0
             while pointer != len(block):
@@ -89,17 +89,17 @@ class PBCparser:
                 unwrap.append(unwrap_pblock_list[i][j])
 
         # this does not work, from_sites cannot pickup properties
-        # mols = [Molecule.from_sites(sites) for sites in unwrap_block_list]
-        mols = []
-        for group in unwrap_block_list:
-            property_list = []
-            for i in range(len(group)):
-                property_list.append(deepcopy(group[i].properties))
-                group[i].properties = {}
-            mol = Molecule.from_sites(group)
-            for i in range(len(group)):
-                mol._sites[i].properties = property_list[i]
-            mols.append(mol)
+        mols = [Molecule.from_sites(sites) for sites in unwrap_block_list]
+        # mols = []
+        # for group in unwrap_block_list:
+        #     property_list = []
+        #     for i in range(len(group)):
+        #         property_list.append(deepcopy(group[i].properties))
+        #         group[i].properties = {}
+        #     mol = Molecule.from_sites(group)
+        #     for i in range(len(group)):
+        #         mol._sites[i].properties = property_list[i]
+        #     mols.append(mol)
 
         unwrap = sorted(deepcopy(unwrap), key=lambda x: x.species_string)
         unwrap_str_sorted = Structure.from_sites(unwrap)

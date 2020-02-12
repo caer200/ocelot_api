@@ -172,11 +172,11 @@ def rotation_matrix(axis, theta, thetaunit='degree'):
     """
     if thetaunit == 'degree':
         theta = np.deg2rad(theta)
-    if axis is 'x':
+    if axis == 'x':
         axis = np.array([1, 0, 0])
-    elif axis is 'y':
+    elif axis == 'y':
         axis = np.array([0, 1, 0])
-    elif axis is 'z':
+    elif axis == 'z':
         axis = np.array([0, 0, 1])
     else:
         axis = np.asarray(axis)

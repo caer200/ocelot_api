@@ -622,6 +622,12 @@ class BasicConformer(SiteidOperation):
         except SiteidError:
             so.assign_siteid()
         # print(cls.__class__.__name__, so.sites)
+        if siteids is None:
+            try:
+                idsfromsites = [s.properties['siteid'] for s in sites]
+            except KeyError:
+                idsfromsites = None
+            siteids = idsfromsites
         return cls(so.sites, charge, spin_multiplicity, validate_proximity, siteids)
 
     @classmethod
@@ -1053,6 +1059,12 @@ class FragConformer(BasicConformer):
         :param siteids:
         :return:
         """
+        if siteids is None:
+            try:
+                idsfromsites = [s.properties['siteid'] for s in sites]
+            except KeyError:
+                idsfromsites = None
+            siteids = idsfromsites
         c = cls(sites, charge, spin_multiplicity, validate_proximity, siteids, conformer_properties, rings, joints)
         try:
             c.checkstatus(*siteidcheck)

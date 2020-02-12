@@ -641,13 +641,12 @@ class DisParser:  # chaos parser sounds cooler?
         # sc, n_unitcell = ConfigConstructor.build_supercell_full_disorder(pstructure, scaling_mat)
         mols, unwrap_str_sorted, unwrap_pblock_list = PBCparser.unwrap(pstructure)
         sc, n_unitcell = ConfigConstructor.build_supercell_full_disorder(unwrap_str_sorted, scaling_mat)
-
         conf_ins = cc.gen_instructions(disunit_pairs, len(symmops), n_unitcell)
         iconf = 0
         confs = []
         for confin in conf_ins:
             conf, conf_occu = ConfigConstructor.dissc_to_config(sc, disunit_pairs, confin)
-            confs.append([conf, conf_occu])
+            confs.append([conf, conf_occu, mols])  # this molecule still contains disordered sites!
             if write_files:
                 conf.to('cif', 'conf_{}.cif'.format(iconf))  # pymatgen somehow does not write disg field in the cif
             iconf += 1
