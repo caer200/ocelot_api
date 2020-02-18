@@ -1,0 +1,43 @@
+Effective mass calculator 1.51py
+Stencil: 3
+License: MIT
+Developed by: Alexandr Fonari and Chris Sutton
+Started at: 2020-02-18 16:54
+
+Contents of the emc_inp0.035 file:
+
+0.0 0.0 0.0                      	 	 ! K-POINT in the reciprocal crystal coord. (3 floats)
+0.035	                                   	 ! step size in 1/Bohr units (1 float)
+119                                    	 ! band number, (1 integer) 119vb 120cb
+V                                     	  	 ! program identifier (1 char)
+     8.1959717218489700    0.0868747481257023    0.0268467090210415
+    -1.0776788828800150    7.6923616980251763   -0.0968169773480368
+     0.2331394395730543   -3.7127184357693386   16.6142460439078192
+
+
+==========
+
+0.035
+Successfully opened EIGENVAL, preparing to parse it...
+
+-> fd_effmass_st3: Effective mass tensor:
+
+    -0.22391588     -0.20900615      0.00272995
+    -0.20900615     -0.61828862      0.00769486
+     0.00272995      0.00769486      0.01007981
+
+[[-0.22391587981626046, -0.20900615416397225, 0.0027299497673204487], [-0.20900615416397225, -0.6182886231260902, 0.0076948584100844574], [0.0027299497673204487, 0.0076948584100844574, 0.010079814525490739]]
+Principle effective masses and directions:
+
+Effective mass (0):       -1.411
+Original eigenvectors: 0.39605 0.91816 -0.01134
+Normal fractional coordinates: 0.53897 1.00000 -0.00080
+
+Effective mass (1):       -7.476
+Original eigenvectors: 0.91823 -0.39603 0.00376
+Normal fractional coordinates: 1.00000 -0.50230 -0.00239
+
+Effective mass (2):       98.288
+Original eigenvectors: 0.00104 0.01190 0.99993
+Normal fractional coordinates: 0.04043 0.50782 1.00000
+
