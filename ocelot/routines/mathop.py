@@ -26,7 +26,7 @@ def ev_to_ha(eigen_list):
     """
     ha_list = []
     for i in eigen_list:
-        ha = float(i) * 0.0367493
+        ha = float(i) / 27.21138505
         ha_list.append(ha)
     return ha_list
 

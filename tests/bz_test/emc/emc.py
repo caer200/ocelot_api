@@ -64,6 +64,7 @@ for i in range(len(a)):
 #   CONSTANTS
 #
 Bohr = 0.52917721092
+print(st5)
 
 
 #
@@ -217,10 +218,12 @@ def jacobi(ainput):
 
 #
 def cart2frac(basis, v):
+    print('cart: ', v)
     return MAT_m_VEC(T(INVERT_3X3(basis)), v)
 
 
 def fd_effmass_st3(e, h):
+    print(e)
     m = [[0.0 for i in range(3)] for j in range(3)]
     m[0][0] = (e[1] - 2.0 * e[0] + e[2]) / h ** 2
     m[1][1] = (e[3] - 2.0 * e[0] + e[4]) / h ** 2
@@ -282,7 +285,7 @@ def generate_kpoints(kpt_frac, st, h, prg, basis):
     #
     kpt_rec = MAT_m_VEC(T(basis_r), kpt_frac)
     print('-> generate_kpoints: K-point in reciprocal coordinates: %5.3f %5.3f %5.3f' % (
-    kpt_rec[0], kpt_rec[1], kpt_rec[2]))
+        kpt_rec[0], kpt_rec[1], kpt_rec[2]))
     #
     if prg == 'V' or prg == 'P':
         h = h * (1 / Bohr)  # [1/A]
@@ -468,6 +471,7 @@ def get_eff_masses(m, basis):
     for i in range(3):
         vecs_cart[i] = eigvec[i]
         vecs_frac[i] = cart2frac(basis, eigvec[i])
+        print('frac:', vecs_frac[i])
         vecs_n[i] = N(vecs_frac[i])
     #
     em = [1.0 / eigval[i] for i in range(len(eigval))]
