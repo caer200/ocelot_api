@@ -288,7 +288,7 @@ class BZsampler:
         for i in range(len(r_d['y'])):
             ax.scatter(r_d['x'], r_d['y'][i], c='r', s=0.2)
 
-        ax.set_xlabel(r'$\mathrm{k\ (2\pi \cdot \AA^{-1}})}$')
+        ax.set_xlabel(r'$\mathrm{k\ (\AA^{-1}})}$')
         ax.set_ylabel(ylabel)
         ax.set_xlim(r_d['x'][0], r_d['x'][-1])
         ax.set_ylim(yrange)
