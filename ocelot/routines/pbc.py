@@ -88,7 +88,6 @@ class PBCparser:
                 unwrap_pblock_list[i][j].properties['imol'] = i
                 unwrap.append(unwrap_pblock_list[i][j])
 
-        # this does not work, from_sites cannot pickup properties
         mols = [Molecule.from_sites(sites) for sites in unwrap_block_list]
         # mols = []
         # for group in unwrap_block_list:

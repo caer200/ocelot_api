@@ -3,10 +3,13 @@ from typing import List
 
 import numpy as np
 from pymatgen.core.sites import PeriodicSite
-from pymatgen.core.structure import Structure, Molecule
+from pymatgen.core.structure import Molecule
+from pymatgen.core.structure import Structure
 
 from ocelot.routines.pbc import PBCparser
-from ocelot.schema.conformer import ConformerDimer, MolConformer, conformer_addhmol
+from ocelot.schema.conformer import ConformerDimer
+from ocelot.schema.conformer import MolConformer
+from ocelot.schema.conformer import conformer_addhmol
 
 
 class Config:
@@ -15,7 +18,7 @@ class Config:
     mols: List[Molecule]
     pstructure: Structure
 
-    def __init__(self, pstructure):
+    def __init__(self, pstructure, occu=1.0):
         """
         :param pstructure: Structure without disorder
         """
@@ -29,7 +32,15 @@ class Config:
             self.hassolvent = False
         for i in range(self.z):
             self.molconformers[i].conformer_properties = {'index in the cell': i}
+        self.occu = occu
         # self.dimers_array, self.transv_fcs = self.get_dimers_array(2)
+
+    def molconformers_all_legit(self):
+        return all(mc.can_rdmol for mc in self.molconformers)
+
+    def molgraph_set(self):
+        molgraphs = [mc.to_graph() for mc in self.molconformers]
+        return set(molgraphs)
 
     def as_dict(self, dimermaxfold=2):
         """
@@ -39,7 +50,7 @@ class Config:
         """
         d = {"@module": self.__class__.__module__, "@class": self.__class__.__name__,
              'pymatgen_structure': self.pstructure.as_dict(), 'mols': [m.as_dict() for m in self.mols],
-             'mcs': [m.as_dict() for m in self.molconformers], 'z': self.z}
+             'mcs': [m.as_dict() for m in self.molconformers], 'z': self.z, 'occu': self.occu}
 
         dimers_array, transv_fcs = self.get_dimers_array(dimermaxfold)
         dimers_dictarray = np.empty((self.z, self.z, len(transv_fcs)), dtype=dict)
@@ -48,6 +59,7 @@ class Config:
                 for k in range(len(transv_fcs)):
                     dimers_dictarray[i][j][k] = dimers_array[i][j][k].as_dict()
         d['dimers_dict_array'] = dimers_dictarray
+        d['dimers_dict_array_maxfold'] = dimermaxfold
         return d
 
     @classmethod
@@ -58,7 +70,11 @@ class Config:
         pymatgen_structure
         """
         pstructure = Structure.from_dict(d['pymatgen_structure'])
-        return cls(pstructure)
+        try:
+            occu = d['occu']
+        except KeyError:
+            occu = 1.0
+        return cls(pstructure, occu)
 
     def get_dimers_array(self, maxfold=2, fast=False, symm=False):
         """

@@ -528,6 +528,14 @@ class BasicConformer(SiteidOperation):
             ma[i] = nbs
         return ma
 
+    @property
+    def can_rdmol(self):
+        try:
+            self.to_rdmol()
+            return True
+        except:
+            return False
+
     def get_bondmat_based_on_siteid(self, co=1.3):
         self.checkstatus('all assigned', 'unique ids')
         distmat = self.distmat
