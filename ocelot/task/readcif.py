@@ -68,7 +68,7 @@ class ReadCif:
         dic = {}
         k = lambda x: x.properties['imol']
         psites = sorted(c.sites, key=k)
-        insepect_data = {}
+        disorderinfo = {}
         for imol, group in groupby(psites, key=k):
             dic[imol] = list(group)  # e.g. dic[0] is psites with the imol=0
             disordered_siteid = []
@@ -85,6 +85,5 @@ class ReadCif:
                     mol_disorder_info = 'sc disorder'
             else:
                 mol_disorder_info = 'no disorder'
-            molconformer.conformer_properties['disorder'] = mol_disorder_info
-            insepect_data[imol] = molconformer
-        return insepect_data
+            disorderinfo[imol] = mol_disorder_info
+        return disorderinfo

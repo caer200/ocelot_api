@@ -12,10 +12,6 @@ PBCparser: get unwrapped structure and mols
 
 
 class PBCparser:
-    #
-    # def __init__(self, pstructure):
-    #     self.nsites = len(pstructure)
-    #     self.structure = pstructure
 
     @staticmethod
     def get_dist_and_trans(lattice, fc1, fc2):
@@ -40,8 +36,8 @@ class PBCparser:
         :return:
         """
         psites = pstructure.sites
-        for isite in range(len(psites)):
-            psites[isite].properties['siteid'] = isite
+        # for isite in range(len(psites)):
+        #     psites[isite].properties['siteid'] = isite
         pindices = range(len(psites))
         visited = []
         block_list = []
@@ -102,12 +98,17 @@ class PBCparser:
 
         unwrap = sorted(deepcopy(unwrap), key=lambda x: x.species_string)
         unwrap_str_sorted = Structure.from_sites(unwrap)
+        print(mols[0][0].properties)
+        print(unwrap_pblock_list[0][0].properties)
+        print(unwrap_str_sorted[0].properties)
+        print('haha')
         return mols, unwrap_str_sorted, unwrap_pblock_list
 
     @staticmethod
     def squeeze(pstructure: Structure):
         """
-        after unwrapping, the mols can be far away from each other, this tries to translate them s.t. they stay together
+        after unwrapping, the mols can be far away from each other,
+        this tries to translate them s.t. they stay together
 
         :rtype:
         :param pstructure:

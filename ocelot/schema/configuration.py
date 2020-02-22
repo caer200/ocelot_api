@@ -20,7 +20,7 @@ class Config:
 
     def __init__(self, pstructure, occu=1.0):
         """
-        :param pstructure: Structure without disorder
+        :param pstructure: Structure without disorder, sites should be already unwrapped and squeezed
         """
         self.pstructure = pstructure
         self.mols, self.molconformers, self.unwrap_structure = PBCparser.squeeze(self.pstructure)
@@ -34,6 +34,16 @@ class Config:
             self.molconformers[i].conformer_properties = {'index in the cell': i}
         self.occu = occu
         # self.dimers_array, self.transv_fcs = self.get_dimers_array(2)
+
+    def __repr__(self):
+        s = 'configuration with occu: {}\n'.format(self.occu)
+        for psite in self.unwrap_structure.sites:
+        # for psite in self.pstructure.sites:
+            s += psite.__repr__()
+            s += '\t'
+            s += psite.properties.__repr__()
+            s += '\n'
+        return s
 
     def molconformers_all_legit(self):
         return all(mc.can_rdmol for mc in self.molconformers)

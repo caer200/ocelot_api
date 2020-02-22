@@ -444,6 +444,14 @@ class DisParser:  # chaos parser sounds cooler?
         return disu_pairs, inv_conf
 
     def get_psites_from_data(self):
+        """
+        get psites from self.data, each psite will be assigned properties with fields
+        occu
+        disg
+        label
+
+        :return:
+        """
         ps = []
         for k in self.data.keys():
             x, y, z, symbol, occu, disgrp = self.data[k]
@@ -627,7 +635,7 @@ class DisParser:  # chaos parser sounds cooler?
             ali2alj[ali] = alj
         return self.alijdict_to_disgs_and_update_data(ali2alj)
 
-    def to_configs(self, write_files=False, scaling_mat=(1, 1, 1)):
+    def to_configs(self, write_files=False, scaling_mat=(1, 1, 1), assign_siteid=True):
         disunit_pairs, inv_conf = self.parse()
         cc = ConfigConstructor(disunit_pairs, inv_conf)
 
@@ -635,6 +643,11 @@ class DisParser:  # chaos parser sounds cooler?
 
         raw_symmops = get_symmop(self.cifdata)
         psites, symmops = apply_symmop(psites, raw_symmops)
+
+        if assign_siteid:
+            print('siteid is assigned in dp.to_configs')
+            for isite in range(len(psites)):
+                psites[isite].properties['siteid'] = isite
 
         pstructure = Structure.from_sites(psites, to_unit_cell=True)
 

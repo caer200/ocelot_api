@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import networkx as nx
 import networkx.algorithms.isomorphism as iso
 import numpy as np
+from networkx import Graph
 from pymatgen.core.periodic_table import Element
 from pymatgen.vis.structure_vtk import EL_COLORS
 
@@ -38,6 +39,20 @@ class BasicGraph:
 
     def __len__(self):
         return len(self.graph.nodes)
+
+    def __hash__(self):
+        """
+        see https://stackoverflow.com/questions/46999771/
+        use with caution...
+
+        :return:
+        """
+        g: nx.Graph = self.graph
+        t = nx.triangles(g)
+        c = nx.number_of_cliques(g)
+        props = [(g.degree[v], t[v], c[v]) for v in g]
+        props.sort()
+        return hash(tuple(props))
 
     def __repr__(self):
         outs = ["{}:".format(self.__class__.__name__)]
