@@ -444,6 +444,14 @@ class DisParser:  # chaos parser sounds cooler?
         return disu_pairs, inv_conf
 
     def get_psites_from_data(self):
+        """
+        get psites from self.data, each psite will be assigned properties with fields
+        occu
+        disg
+        label
+
+        :return:
+        """
         ps = []
         for k in self.data.keys():
             x, y, z, symbol, occu, disgrp = self.data[k]
@@ -627,33 +635,45 @@ class DisParser:  # chaos parser sounds cooler?
             ali2alj[ali] = alj
         return self.alijdict_to_disgs_and_update_data(ali2alj)
 
-    def to_configs(self, write_files=False, scaling_mat=(1, 1, 1)):
+    def to_configs(self, write_files=False, scaling_mat=(1, 1, 1), assign_siteids=True):
+        """
+        return
+            pstructure, pmg structure is the unit cell structure with all disordered sites
+            unwrap_str, pmg unwrap structure, with all disordered sites
+            mols, a list of pmg mol with disordered sties
+            confs, [[conf1, occu1], ...], conf1 is a clean structure
+        """
         disunit_pairs, inv_conf = self.parse()
         cc = ConfigConstructor(disunit_pairs, inv_conf)
 
-        psites = self.get_psites_from_data()
+        psites = self.get_psites_from_data()  # assign fields: occu, disg, label
 
         raw_symmops = get_symmop(self.cifdata)
-        psites, symmops = apply_symmop(psites, raw_symmops)
+        psites, symmops = apply_symmop(psites, raw_symmops)  # assign field: iasym
+
 
         pstructure = Structure.from_sites(psites, to_unit_cell=True)
 
         # sc, n_unitcell = ConfigConstructor.build_supercell_full_disorder(pstructure, scaling_mat)
-        mols, unwrap_str_sorted, unwrap_pblock_list = PBCparser.unwrap(pstructure)
-        sc, n_unitcell = ConfigConstructor.build_supercell_full_disorder(unwrap_str_sorted, scaling_mat)
+        mols, unwrap_str, unwrap_pblock_list = PBCparser.unwrap(pstructure)  # assign field: imol
+        sc, n_unitcell = ConfigConstructor.build_supercell_full_disorder(unwrap_str, scaling_mat)
+        if assign_siteids:
+            print('siteid is assigned to supercell in dp.to_configs')
+            for isite in range(len(sc)):
+                sc[isite].properties['siteid'] = isite
         conf_ins = cc.gen_instructions(disunit_pairs, len(symmops), n_unitcell)
         iconf = 0
         confs = []
         for confin in conf_ins:
             conf, conf_occu = ConfigConstructor.dissc_to_config(sc, disunit_pairs, confin)
-            confs.append([conf, conf_occu, mols])  # this molecule still contains disordered sites!
+            confs.append([conf, conf_occu])  # this molecule still contains disordered sites!
             if write_files:
                 conf.to('cif', 'conf_{}.cif'.format(iconf))  # pymatgen somehow does not write disg field in the cif
             iconf += 1
         if write_files:
             pstructure.to('cif', 'confgen_ps.cif')
             # unwrap_str_sorted.to('cif', 'confgen_unwrap.cif')
-        return sorted(confs, key=lambda x: x[1], reverse=True)
+        return pstructure, unwrap_str, mols, sorted(confs, key=lambda x: x[1], reverse=True)
 
 
 def get_symmop(data):

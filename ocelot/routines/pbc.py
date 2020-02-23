@@ -4,18 +4,16 @@ from copy import deepcopy
 from pymatgen.core.structure import Site, PeriodicSite, Molecule, Structure
 from pymatgen.util.coord import pbc_shortest_vectors
 
-from ocelot.schema.conformer import MolConformer, Element
+from ocelot.schema.conformer import Element
 
 """
 PBCparser: get unwrapped structure and mols
+
+method here should not rely on ocelot schema
 """
 
 
 class PBCparser:
-    #
-    # def __init__(self, pstructure):
-    #     self.nsites = len(pstructure)
-    #     self.structure = pstructure
 
     @staticmethod
     def get_dist_and_trans(lattice, fc1, fc2):
@@ -36,12 +34,18 @@ class PBCparser:
         """
         unwrap the structure, extract isolated mols
 
+        this will create *new* psites to be returned, these psites will inherit properties and a new property
+        'imol' will be written
+        psite with imol=x is an element of both mols[x] and unwrap_pblock_list[x]
+
+        this method is not supposed to modify siteid!
+
         :param pstructure: periodic structure obj from pymatgen
-        :return:
+        :return: mols, unwrap_str_sorted, unwrap_pblock_list
         """
         psites = pstructure.sites
-        for isite in range(len(psites)):
-            psites[isite].properties['siteid'] = isite
+        # for isite in range(len(psites)):
+        #     psites[isite].properties['siteid'] = isite
         pindices = range(len(psites))
         visited = []
         block_list = []
@@ -54,7 +58,8 @@ class PBCparser:
             ini_idx = unvisited[0]
             block = [ini_idx]
             # unwrap.append(psites[ini_idx])
-            unwrap_block = [Site(psites[ini_idx].species_string, psites[ini_idx].coords, properties=deepcopy(psites[ini_idx].properties))]
+            unwrap_block = [Site(psites[ini_idx].species_string, psites[ini_idx].coords,
+                                 properties=deepcopy(psites[ini_idx].properties))]
             unwrap_pblock = [psites[ini_idx]]
             pointer = 0
             while pointer != len(block):
@@ -88,66 +93,45 @@ class PBCparser:
                 unwrap_pblock_list[i][j].properties['imol'] = i
                 unwrap.append(unwrap_pblock_list[i][j])
 
-        # this does not work, from_sites cannot pickup properties
         mols = [Molecule.from_sites(sites) for sites in unwrap_block_list]
-        # mols = []
-        # for group in unwrap_block_list:
-        #     property_list = []
-        #     for i in range(len(group)):
-        #         property_list.append(deepcopy(group[i].properties))
-        #         group[i].properties = {}
-        #     mol = Molecule.from_sites(group)
-        #     for i in range(len(group)):
-        #         mol._sites[i].properties = property_list[i]
-        #     mols.append(mol)
 
-        unwrap = sorted(deepcopy(unwrap), key=lambda x: x.species_string)
-        unwrap_str_sorted = Structure.from_sites(unwrap)
-        return mols, unwrap_str_sorted, unwrap_pblock_list
+        # unwrap_structure = Structure.from_sites(sorted(unwrap, key=lambda x: x.species_string))
+        unwrap_structure = Structure.from_sites(unwrap)
+        return mols, unwrap_structure, unwrap_pblock_list
 
     @staticmethod
-    def squeeze(pstructure: Structure):
+    def unwrap_and_squeeze(pstructure: Structure):
         """
         after unwrapping, the mols can be far away from each other, this tries to translate them s.t. they stay together
 
-        :rtype:
         :param pstructure:
         :return:
         """
         mols, unwrap_structure, psiteblocks = PBCparser.unwrap(pstructure)
-
-        moleconformers = []
-        for mm in mols:
-            mc = MolConformer.from_pmgmol(mm)
-            if not mc.is_solvent:
-                moleconformers.append(mc)
-
-        if len(moleconformers) > 1:
-            refpoint = moleconformers[0].backbone.geoc
+        if len(mols) > 1:
+            refpoint = mols[0].center_of_mass
             refpoint = unwrap_structure.lattice.get_fractional_coords(refpoint)
-            for i in range(1, len(moleconformers)):
-                varmol = moleconformers[i]
-                varpoint = varmol.backbone.geoc
+            for i in range(1, len(mols)):
+                varmol = mols[i]
+                varpoint = varmol.center_of_mass
                 varpoint = unwrap_structure.lattice.get_fractional_coords(varpoint)
                 distance, fctrans = PBCparser.get_dist_and_trans(unwrap_structure.lattice, refpoint, varpoint)
                 for j in range(len(psiteblocks[i])):
                     psiteblocks[i][j]._frac_coords += fctrans
-            psites = []
-            mols = []
+            squeeze_psites = []
+            squeeze_mols = []
+            pblock: [PeriodicSite]
             for pblock in psiteblocks:
-                block = []
+                squeeze_block = []
                 for ps in pblock:
-                    psites.append(ps)
-                    block.append(Site(ps.species_string, ps.coords))
-                mol = Molecule.from_sites(block)
-                mols.append(mol)
-            unwrap_structure = Structure.from_sites(sorted(psites, key=lambda x: x.species_string))
+                    squeeze_psites.append(ps)
+                    squeeze_block.append(
+                        Site(ps.species_string, ps.coords, properties=ps.properties))  # do we need deepcopy?
+                mol = Molecule.from_sites(squeeze_block)
+                squeeze_mols.append(mol)
+            squeeze_unwrap_structure = Structure.from_sites(squeeze_psites)
+            return squeeze_mols, squeeze_unwrap_structure, psiteblocks
 
-            moleconformers = []
-            for m in mols:
-                mc = MolConformer.from_pmgmol(m)
-                if not mc.is_solvent:
-                    moleconformers.append(mc)
-            return mols, moleconformers, unwrap_structure
 
-        return mols, moleconformers, unwrap_structure
+        else:
+            return mols, unwrap_structure, psiteblocks

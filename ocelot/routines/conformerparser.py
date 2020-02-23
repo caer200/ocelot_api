@@ -102,13 +102,13 @@ def pmgmol_to_rdmol(pmg_mol):
 
 class ACParser:
 
-    def __init__(self, ac, charge, atomnumberlist, sani=True):
+    def __init__(self, ac:np.ndarray, charge, atomnumberlist, sani=True):
         """
         :var self.valences_list: a list of possible valence assignment, valences_list[i] is one possbile way to assign jth atom
         valence based on  valences_list[i][j].
         :var self.atomic_valence_electrons: atomic_valence_electrons[i] is the #_of_ve of ith atom
         """
-        self.AC = ac
+        self.AC = ac.astype(int)
         self.sani = sani
         self.atomic_numbers = atomnumberlist
         self.natoms = len(self.atomic_numbers)

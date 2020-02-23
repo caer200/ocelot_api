@@ -3,10 +3,13 @@ from typing import List
 
 import numpy as np
 from pymatgen.core.sites import PeriodicSite
-from pymatgen.core.structure import Structure, Molecule
+from pymatgen.core.structure import Molecule
+from pymatgen.core.structure import Structure
 
 from ocelot.routines.pbc import PBCparser
-from ocelot.schema.conformer import ConformerDimer, MolConformer, conformer_addhmol
+from ocelot.schema.conformer import ConformerDimer
+from ocelot.schema.conformer import MolConformer
+from ocelot.schema.conformer import conformer_addhmol
 
 
 class Config:
@@ -15,31 +18,59 @@ class Config:
     mols: List[Molecule]
     pstructure: Structure
 
-    def __init__(self, pstructure):
+    def __init__(self, pstructure: Structure, occu=1.0, assign_siteids=True):
         """
         :param pstructure: Structure without disorder
         """
-        self.pstructure = pstructure
-        self.mols, self.molconformers, self.unwrap_structure = PBCparser.squeeze(self.pstructure)
-        self.zreal = len(self.mols)
-        self.z = len([omol for omol in self.molconformers if not omol.is_solvent])  # no solvent!
-        if self.z < self.zreal:
+        self.pstructure = deepcopy(pstructure)
+
+        if assign_siteids:
+            print('assign siteid when init a config')
+            for isite in range(len(self.pstructure)):
+                self.pstructure[isite].properties['siteid'] = isite
+        self.mols, self.unwrap_structure, self.psiteblocks = PBCparser.unwrap_and_squeeze(self.pstructure)
+        # self.mols, self.molconformers, self.unwrap_structure = PBCparser.squeeze(self.pstructure)
+
+        self.molconformers = [MolConformer.from_pmgmol(m) for m in self.mols]
+
+        self.z = len(self.molconformers)
+        self.z_nonsolvent = len([m for m in self.molconformers if not m.is_solvent])
+        if self.z_nonsolvent < self.z:
             self.hassolvent = True
         else:
             self.hassolvent = False
         for i in range(self.z):
-            self.molconformers[i].conformer_properties = {'index in the cell': i}
+            self.molconformers[i].conformer_properties = {
+                'index in the cell': i}  # this is just imol for sites in the mc
+        self.occu = occu
         # self.dimers_array, self.transv_fcs = self.get_dimers_array(2)
+
+    def __repr__(self):
+        s = 'configuration with occu: {}\n'.format(self.occu)
+        for psite in self.unwrap_structure.sites:
+        # for psite in self.pstructure.sites:
+            s += psite.__repr__()
+            s += '\t'
+            s += psite.properties.__repr__()
+            s += '\n'
+        return s
+
+    def molconformers_all_legit(self):
+        return all(mc.can_rdmol for mc in self.molconformers)
+
+    def molgraph_set(self):
+        molgraphs = [mc.to_graph() for mc in self.molconformers]
+        return set(molgraphs)
 
     def as_dict(self, dimermaxfold=2):
         """
         keys are
 
-        pymatgen_structure, mols, omols, z, dimers_dict_array
+        pymatgen_structure, mols, mcs, z, dimers_dict_array, occu
         """
         d = {"@module": self.__class__.__module__, "@class": self.__class__.__name__,
              'pymatgen_structure': self.pstructure.as_dict(), 'mols': [m.as_dict() for m in self.mols],
-             'mcs': [m.as_dict() for m in self.molconformers], 'z': self.z}
+             'mcs': [m.as_dict() for m in self.molconformers], 'z': self.z, 'occu': self.occu}
 
         dimers_array, transv_fcs = self.get_dimers_array(dimermaxfold)
         dimers_dictarray = np.empty((self.z, self.z, len(transv_fcs)), dtype=dict)
@@ -48,6 +79,7 @@ class Config:
                 for k in range(len(transv_fcs)):
                     dimers_dictarray[i][j][k] = dimers_array[i][j][k].as_dict()
         d['dimers_dict_array'] = dimers_dictarray
+        d['dimers_dict_array_maxfold'] = dimermaxfold
         return d
 
     @classmethod
@@ -58,7 +90,11 @@ class Config:
         pymatgen_structure
         """
         pstructure = Structure.from_dict(d['pymatgen_structure'])
-        return cls(pstructure)
+        try:
+            occu = d['occu']
+        except KeyError:
+            occu = 1.0
+        return cls(pstructure, occu)
 
     def get_dimers_array(self, maxfold=2, fast=False, symm=False):
         """
