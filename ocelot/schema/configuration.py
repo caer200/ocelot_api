@@ -18,20 +18,30 @@ class Config:
     mols: List[Molecule]
     pstructure: Structure
 
-    def __init__(self, pstructure, occu=1.0):
+    def __init__(self, pstructure: Structure, occu=1.0, assign_siteids=True):
         """
-        :param pstructure: Structure without disorder, sites should be already unwrapped and squeezed
+        :param pstructure: Structure without disorder
         """
-        self.pstructure = pstructure
-        self.mols, self.molconformers, self.unwrap_structure = PBCparser.squeeze(self.pstructure)
-        self.zreal = len(self.mols)
-        self.z = len([omol for omol in self.molconformers if not omol.is_solvent])  # no solvent!
-        if self.z < self.zreal:
+        self.pstructure = deepcopy(pstructure)
+
+        if assign_siteids:
+            print('assign siteid when init a config')
+            for isite in range(len(self.pstructure)):
+                self.pstructure[isite].properties['siteid'] = isite
+        self.mols, self.unwrap_structure, self.psiteblocks = PBCparser.unwrap_and_squeeze(self.pstructure)
+        # self.mols, self.molconformers, self.unwrap_structure = PBCparser.squeeze(self.pstructure)
+
+        self.molconformers = [MolConformer.from_pmgmol(m) for m in self.mols]
+
+        self.z = len(self.molconformers)
+        self.z_nonsolvent = len([m for m in self.molconformers if not m.is_solvent])
+        if self.z_nonsolvent < self.z:
             self.hassolvent = True
         else:
             self.hassolvent = False
         for i in range(self.z):
-            self.molconformers[i].conformer_properties = {'index in the cell': i}
+            self.molconformers[i].conformer_properties = {
+                'index in the cell': i}  # this is just imol for sites in the mc
         self.occu = occu
         # self.dimers_array, self.transv_fcs = self.get_dimers_array(2)
 
@@ -56,7 +66,7 @@ class Config:
         """
         keys are
 
-        pymatgen_structure, mols, omols, z, dimers_dict_array
+        pymatgen_structure, mols, mcs, z, dimers_dict_array, occu
         """
         d = {"@module": self.__class__.__module__, "@class": self.__class__.__name__,
              'pymatgen_structure': self.pstructure.as_dict(), 'mols': [m.as_dict() for m in self.mols],

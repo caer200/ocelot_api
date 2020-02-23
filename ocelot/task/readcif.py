@@ -3,14 +3,14 @@ from collections import OrderedDict
 
 from ocelot.schema.configuration import Config
 from ocelot.routines.disparser import DisParser
-from ocelot.routines.pbc import MolConformer
+from ocelot.schema.conformer import MolConformer
 from ocelot.routines.pbc import Site
 
 """
 ReadCif implements a set of checkers/functions as the first step of reading cif file
 1. is one type of molecule?
 2. is the molecule legit? (can it be parsed to rdmol)
-3. where is disorder --> bone or side group or no
+3. where is the disorder --> bone or side group or no
 4. get all configurations (during which molconformers for each config will be obtained)
 """
 
@@ -20,10 +20,11 @@ class ReadCif:
     def __init__(self, cifstring):
         self.cifstring = cifstring
         dp = DisParser(self.cifstring)
-        config_infos = dp.to_configs(write_files=False)  # if True writes conf_x.cif, configs is a list of pmg Structure
+        dis_pstructure, dis_unwrap_str, dis_mols, config_infos = dp.to_configs(write_files=False)  # if True writes conf_x.cif, configs is a list of pmg Structure
+        self.disordered_pstructure = dis_unwrap_str
+        self.disordered_pmgmols = dis_mols
         self.config_structures = []
         self.occus = []
-        self.mols_w_disorder = config_infos[0][2]  # all mols are the same
         for item in config_infos:
             self.config_structures.append(item[0])
             self.occus.append(item[1])
@@ -31,7 +32,7 @@ class ReadCif:
         self.configs = []
         for i in range(len(self.config_structures)):
             structure = self.config_structures[i]
-            self.configs.append(Config(structure, occu=self.occus[i]))
+            self.configs.append(Config(structure, occu=self.occus[i], assign_siteids=False))
 
         self.properties = OrderedDict()
         self.properties['is_one_type_mol'] = all(len(c.molgraph_set()) == len(c.molconformers) for c in self.configs)
@@ -43,7 +44,8 @@ class ReadCif:
         d['cifstring'] = self.cifstring
         d['clean_pstructures'] = [s.as_dict() for s in self.config_structures]
         d['occus'] = self.occus
-        d['mols_w_disorder'] = [m.as_dict() for m in self.mols_w_disorder]
+        d['disordered_pmgmols'] = [m.as_dict() for m in self.disordered_pmgmols]
+        d['disordered_pstructure'] = self.disordered_pstructure.as_dict()
         d['configs'] = [c.as_dict() for c in self.configs]
         d['properties'] = self.properties
         return d
