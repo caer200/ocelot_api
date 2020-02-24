@@ -72,14 +72,14 @@ class Config:
              'pymatgen_structure': self.pstructure.as_dict(), 'mols': [m.as_dict() for m in self.mols],
              'mcs': [m.as_dict() for m in self.molconformers], 'z': self.z, 'occu': self.occu}
 
-        dimers_array, transv_fcs = self.get_dimers_array(dimermaxfold, fast=True)
-        dimers_dictarray = np.empty((self.z, self.z, len(transv_fcs)), dtype=dict)
-        for i in range(self.z):
-            for j in range(self.z):
-                for k in range(len(transv_fcs)):
-                    dimers_dictarray[i][j][k] = dimers_array[i][j][k].as_dict()
-        d['dimers_dict_array'] = dimers_dictarray
-        d['dimers_dict_array_maxfold'] = dimermaxfold
+        # dimers_array, transv_fcs = self.get_dimers_array(dimermaxfold, fast=True)
+        # dimers_dictarray = np.empty((self.z, self.z, len(transv_fcs)), dtype=dict)
+        # for i in range(self.z):
+        #     for j in range(self.z):
+        #         for k in range(len(transv_fcs)):
+        #             dimers_dictarray[i][j][k] = dimers_array[i][j][k].as_dict()
+        # d['dimers_dict_array'] = dimers_dictarray
+        # d['dimers_dict_array_maxfold'] = dimermaxfold
         return d
 
     @classmethod
