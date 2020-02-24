@@ -1022,9 +1022,9 @@ def conformer_addhmol(c: BasicConformer, joints=None, original: BasicConformer =
     for ihs in range(len(hsites_to_be_added)):
         for k in original_site_keys:
             if k != 'siteid':
-                hsites_to_be_added[ihs].properties = None
+                hsites_to_be_added[ihs].properties[k] = None
             else:
-                hsites_to_be_added[ihs].properties = -ihs
+                hsites_to_be_added[ihs].properties[k] = -(ihs+1)
     sites += hsites_to_be_added
     return Molecule.from_sites(SiteidOperation(sites).sites)
 
