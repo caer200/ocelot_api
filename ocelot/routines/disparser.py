@@ -443,6 +443,21 @@ class DisParser:  # chaos parser sounds cooler?
         disu_pairs, inv_conf = DisUnit.get_disunit_pairs_from_asym(psites)
         return disu_pairs, inv_conf
 
+    def as_dict(self):
+        d = OrderedDict()
+        d['cifstring'] = self.cifstring
+        d['cifdata'] = self.cifdata
+        d['data'] = self.data
+        d['was_fitted'] = self.was_fitted
+        d['identifier'] = self.identifier
+        d['disorder_class'] = self.classify()
+        return d
+
+    @classmethod
+    def from_dict(cls, d):
+        cifs = d['cifstring']
+        return cls(cifs)
+
     def get_psites_from_data(self):
         """
         get psites from self.data, each psite will be assigned properties with fields
