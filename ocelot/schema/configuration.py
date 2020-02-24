@@ -18,7 +18,7 @@ class Config:
     mols: List[Molecule]
     pstructure: Structure
 
-    def __init__(self, pstructure: Structure, occu=1.0, assign_siteids=True):
+    def __init__(self, pstructure: Structure, occu=1.0, assign_siteids=False):
         """
         :param pstructure: Structure without disorder
         """
