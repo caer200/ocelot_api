@@ -154,7 +154,7 @@ class Config:
             backbone_sites += b.sites
 
         boneonly_psites = [PeriodicSite(s.species_string, s.coords, self.unwrap_structure.lattice, to_unit_cell=True,
-                                        coords_are_cartesian=True)
+                                        coords_are_cartesian=True, properties=s.properties)
                            for s in backbone_sites]
         boneonly_pstructure = Structure.from_sites(boneonly_psites)
         return Config(boneonly_pstructure), boneonly_pstructure, terminated_backbone_hmols
