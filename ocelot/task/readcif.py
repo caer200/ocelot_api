@@ -46,6 +46,7 @@ class ReadCif:
         d['occus'] = self.occus
         d['disordered_pmgmols'] = [m.as_dict() for m in self.disordered_pmgmols]
         d['disordered_pstructure'] = self.disordered_pstructure.as_dict()
+        d['disparser'] = self.dp.as_dict()
         d['configs'] = [c.as_dict() for c in self.configs]
         d['properties'] = self.properties
         return d
