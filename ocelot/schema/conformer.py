@@ -1013,8 +1013,19 @@ def conformer_addh(c: BasicConformer, joints=None, original: BasicConformer = No
 def conformer_addhmol(c: BasicConformer, joints=None, original: BasicConformer = None):
     hsite_dict = conformer_addh(c, joints, original)
     sites = deepcopy(c.sites)
+    pks = [s.properties.keys() for s in sites]
+    pks.sort(key=lambda x:len(x), reverse=True)
+    original_site_keys = pks[0]
+    hsites_to_be_added = []
     for k, v in hsite_dict.items():
-        sites += v
+        hsites_to_be_added += v
+    for ihs in range(len(hsites_to_be_added)):
+        for k in original_site_keys:
+            if k != 'siteid':
+                hsites_to_be_added[ihs].properties = None
+            else:
+                hsites_to_be_added[ihs].properties = -ihs
+    sites += hsites_to_be_added
     return Molecule.from_sites(SiteidOperation(sites).sites)
 
 
