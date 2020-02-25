@@ -32,7 +32,7 @@ class ReadCif:
         self.configs = []
         for i in range(len(self.config_structures)):
             structure = self.config_structures[i]
-            self.configs.append(Config(structure, occu=self.occus[i], assign_siteids=False))
+            self.configs.append(Config.from_pstructure(structure, occu=self.occus[i], assign_siteids=False))
 
         self.properties = OrderedDict()
         self.properties['is_one_type_mol'] = all(len(c.molgraph_set()) == len(c.molconformers) for c in self.configs)
@@ -88,5 +88,5 @@ class ReadCif:
                     mol_disorder_info = 'sc disorder'
             else:
                 mol_disorder_info = 'no disorder'
-            disorderinfo[imol] = mol_disorder_info
+            disorderinfo[str(imol)] = mol_disorder_info
         return disorderinfo

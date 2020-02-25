@@ -4,7 +4,7 @@ from typing import List
 import numpy as np
 from pymatgen.core.sites import PeriodicSite
 from pymatgen.core.structure import Molecule
-from pymatgen.core.structure import Structure
+from pymatgen.core.structure import Structure, Lattice
 
 from ocelot.routines.pbc import PBCparser
 from ocelot.schema.conformer import ConformerDimer
@@ -13,25 +13,13 @@ from ocelot.schema.conformer import conformer_addhmol
 
 
 class Config:
-    zreal: int
-    unwrap_structure: Structure
-    mols: List[Molecule]
-    pstructure: Structure
 
-    def __init__(self, pstructure: Structure, occu=1.0, assign_siteids=False):
+    def __init__(self, molconformers: [MolConformer], unwrap_clean_pstructure: Structure, occu=1.0):
         """
         :param pstructure: Structure without disorder
         """
-        self.pstructure = deepcopy(pstructure)
-
-        if assign_siteids:
-            print('assign siteid when init a config')
-            for isite in range(len(self.pstructure)):
-                self.pstructure[isite].properties['siteid'] = isite
-        self.mols, self.unwrap_structure, self.psiteblocks = PBCparser.unwrap_and_squeeze(self.pstructure)
-        # self.mols, self.molconformers, self.unwrap_structure = PBCparser.squeeze(self.pstructure)
-
-        self.molconformers = [MolConformer.from_pmgmol(m) for m in self.mols]
+        self.pstructure = unwrap_clean_pstructure
+        self.molconformers = molconformers
 
         self.z = len(self.molconformers)
         self.z_nonsolvent = len([m for m in self.molconformers if not m.is_solvent])
@@ -39,15 +27,38 @@ class Config:
             self.hassolvent = True
         else:
             self.hassolvent = False
-        for i in range(self.z):
-            self.molconformers[i].conformer_properties = {
-                'index in the cell': i}  # this is just imol for sites in the mc
         self.occu = occu
-        # self.dimers_array, self.transv_fcs = self.get_dimers_array(2)
+
+    # def __init__(self, pstructure: Structure, occu=1.0, assign_siteids=False):
+    #     """
+    #     :param pstructure: Structure without disorder
+    #     """
+    #     self.pstructure = deepcopy(pstructure)
+    #
+    #     if assign_siteids:
+    #         print('assign siteid when init a config')
+    #         for isite in range(len(self.pstructure)):
+    #             self.pstructure[isite].properties['siteid'] = isite
+    #     self.mols, self.unwrap_structure, self.psiteblocks = PBCparser.unwrap_and_squeeze(self.pstructure)
+    #     # self.mols, self.molconformers, self.unwrap_structure = PBCparser.squeeze(self.pstructure)
+    #
+    #     self.molconformers = [MolConformer.from_pmgmol(m) for m in self.mols]
+    #
+    #     self.z = len(self.molconformers)
+    #     self.z_nonsolvent = len([m for m in self.molconformers if not m.is_solvent])
+    #     if self.z_nonsolvent < self.z:
+    #         self.hassolvent = True
+    #     else:
+    #         self.hassolvent = False
+    #     for i in range(self.z):
+    #         self.molconformers[i].conformer_properties = {
+    #             'index in the cell': i}  # this is just imol for sites in the mc
+    #     self.occu = occu
+    #     # self.dimers_array, self.transv_fcs = self.get_dimers_array(2)
 
     def __repr__(self):
         s = 'configuration with occu: {}\n'.format(self.occu)
-        for psite in self.unwrap_structure.sites:
+        for psite in self.pstructure.sites:
         # for psite in self.pstructure.sites:
             s += psite.__repr__()
             s += '\t'
@@ -69,8 +80,10 @@ class Config:
         pymatgen_structure, mols, mcs, z, dimers_dict_array, occu
         """
         d = {"@module": self.__class__.__module__, "@class": self.__class__.__name__,
-             'pymatgen_structure': self.pstructure.as_dict(), 'mols': [m.as_dict() for m in self.mols],
-             'mcs': [m.as_dict() for m in self.molconformers], 'z': self.z, 'occu': self.occu}
+             'clean_unwrap_structure': self.pstructure.as_dict(),
+             'molconformers': [m.as_dict() for m in self.molconformers],
+             'z': self.z,
+             'occu': self.occu}
 
         # dimers_array, transv_fcs = self.get_dimers_array(dimermaxfold, fast=True)
         # dimers_dictarray = np.empty((self.z, self.z, len(transv_fcs)), dtype=dict)
@@ -121,7 +134,7 @@ class Config:
             for j in range(self.z):
                 var_omol = self.molconformers[j]
                 for k in range(len(used_transv_fcs)):
-                    transv = self.unwrap_structure.lattice.get_cartesian_coords(used_transv_fcs[k])
+                    transv = self.pstructure.lattice.get_cartesian_coords(used_transv_fcs[k])
                     if fast:
                         var_omol_k = deepcopy(var_omol)
                         for h in range(len(var_omol_k)):
@@ -153,18 +166,30 @@ class Config:
         for b in terminated_backbone_hmols:
             backbone_sites += b.sites
 
-        boneonly_psites = [PeriodicSite(s.species_string, s.coords, self.unwrap_structure.lattice, to_unit_cell=True,
+        boneonly_psites = [PeriodicSite(s.species_string, s.coords, self.pstructure.lattice, to_unit_cell=True,
                                         coords_are_cartesian=True, properties=s.properties)
                            for s in backbone_sites]
         boneonly_pstructure = Structure.from_sites(boneonly_psites)
-        return Config(boneonly_pstructure), boneonly_pstructure, terminated_backbone_hmols
+        boneonly_molconformers = [MolConformer.from_pmgmol(m) for m in terminated_backbone_hmols]
+        return Config(boneonly_molconformers, boneonly_pstructure, occu=self.occu), boneonly_pstructure, terminated_backbone_hmols
+
+    @classmethod
+    def from_pstructure(cls, pstructure: Structure, occu=1.0, assign_siteids=False):
+        structure = deepcopy(pstructure)
+        if assign_siteids:
+            print('assign siteid when init a config')
+            for isite in range(structure):
+                structure[isite].properties['siteid'] = isite
+        mols, unwrap_structure, psiteblocks = PBCparser.unwrap_and_squeeze(structure)
+        molconformers = [MolConformer.from_pmgmol(m) for m in mols]
+        return cls(molconformers, unwrap_structure, occu)
 
     @classmethod
     def from_cifstring(cls, string):
         s = Structure.from_str(string, fmt='cif')
-        return cls(s)
+        return cls.from_pstructure(s)
 
     @classmethod
     def from_file(cls, filename):
         s = Structure.from_file(filename)
-        return cls(s)
+        return cls.from_pstructure(s)

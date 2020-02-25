@@ -447,7 +447,10 @@ class DisParser:  # chaos parser sounds cooler?
         d = OrderedDict()
         d['cifstring'] = self.cifstring
         d['cifdata'] = self.cifdata
-        d['data'] = self.data
+        data = {}
+        for k in self.data.keys():
+            data[str(k)] = self.data[k]
+        d['data'] = data
         d['was_fitted'] = self.was_fitted
         d['identifier'] = self.identifier
         d['disorder_class'] = self.classify()

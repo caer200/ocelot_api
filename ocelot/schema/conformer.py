@@ -1012,19 +1012,27 @@ def conformer_addh(c: BasicConformer, joints=None, original: BasicConformer = No
 
 def conformer_addhmol(c: BasicConformer, joints=None, original: BasicConformer = None):
     hsite_dict = conformer_addh(c, joints, original)
+
     sites = deepcopy(c.sites)
-    pks = [s.properties.keys() for s in sites]
-    pks.sort(key=lambda x:len(x), reverse=True)
-    original_site_keys = pks[0]
+    sites.sort(key=lambda x:len(x.properties.keys()), reverse=True)
+    original_properties = sites[0].properties
+    original_site_keys = original_properties.keys()
+    hydrogen_assign_keys = ['occu', 'disg', 'iasym', 'imol', 'icell']
+    warnings.warn("hydrogen site properties {} will be assigned based on {}".format(hydrogen_assign_keys, original_properties))
+
     hsites_to_be_added = []
     for k, v in hsite_dict.items():
         hsites_to_be_added += v
     for ihs in range(len(hsites_to_be_added)):
         for k in original_site_keys:
-            if k != 'siteid':
-                hsites_to_be_added[ihs].properties[k] = None
-            else:
+            if k in hydrogen_assign_keys:
+                hsites_to_be_added[ihs].properties[k] = original_properties[k]
+            elif k == 'siteid':
                 hsites_to_be_added[ihs].properties[k] = -(ihs+1)
+            elif k == 'label':
+                hsites_to_be_added[ihs].properties[k] = 'addedh'
+            else:
+                hsites_to_be_added[ihs].properties[k] = 'addh_null'
     sites += hsites_to_be_added
     return Molecule.from_sites(SiteidOperation(sites).sites)
 
