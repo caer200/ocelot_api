@@ -102,12 +102,12 @@ class Config:
 
         pymatgen_structure
         """
-        pstructure = Structure.from_dict(d['pymatgen_structure'])
+        pstructure = Structure.from_dict(d['clean_unwrap_structure'])
         try:
             occu = d['occu']
         except KeyError:
             occu = 1.0
-        return cls(pstructure, occu)
+        return cls.from_pstructure(pstructure, occu)
 
     def get_dimers_array(self, maxfold=2, fast=False, symm=False):
         """
