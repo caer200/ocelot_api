@@ -344,7 +344,15 @@ class MolGraph(BasicGraph):
         we assume subg1 \cap subg2 == empty and subg1 + subg2 == g
         """
         sg1 = nx.Graph()
-        sg2 = nx.Graph()
+        sg2 = nx.Graph()  # this is the graph of anything other than bone nodes
+        symbols = nx.get_node_attributes(g, 'symbol')
+        for node in g:
+            s = symbols[node]
+            if node in subg1_nodes:
+                sg1.add_node(node, symbol=s)
+            else:
+                sg2.add_node(node, symbol=s)
+
         joints_subg1_as_keys = {}
         joints_subg2_as_keys = {}
         for n, nbrs in g.adj.items():
