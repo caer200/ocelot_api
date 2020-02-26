@@ -338,6 +338,59 @@ class MolGraph(BasicGraph):
         return [[self.rings[iring] for iring in c] for c in
                 sorted(nx.connected_components(subgraph), key=len, reverse=True)]
 
+    @staticmethod
+    def get_joints_and_subgraph(subg1_nodes: [int], subg2_nodes: [int], g:Graph):
+        """
+        we assume subg1 \cap subg2 == empty and subg1 + subg2 == g
+        """
+        sg1 = nx.Graph()
+        sg2 = nx.Graph()
+        joints_subg1_as_keys = {}
+        joints_subg2_as_keys = {}
+        for n, nbrs in g.adj.items():
+            for nbr, d in nbrs.items():
+                if n in subg1_nodes and nbr in subg1_nodes:
+                    sg1.add_edge(n, nbr, **d)
+                elif n not in subg1_nodes and nbr not in subg1_nodes:
+                    sg2.add_edge(n, nbr, **d)
+                elif n in subg1_nodes and nbr not in subg1_nodes:
+                    if n not in joints_subg1_as_keys.keys():
+                        joints_subg1_as_keys[n] = [nbr]
+                    else:
+                        joints_subg1_as_keys[n].append(nbr)
+                elif n not in subg1_nodes and nbr in subg1_nodes:
+                    if n not in joints_subg2_as_keys.keys():
+                        joints_subg2_as_keys[n] = [nbr]
+                    else:
+                        joints_subg2_as_keys[n].append(nbr)
+
+        sg1.graph['joints'] = joints_subg1_as_keys
+
+        sg2_components = []
+        for c in sorted(nx.connected_components(sg2), key=len, reverse=True):
+            nodes = list(c)
+            joints_in_frag = {}
+            for j in joints_subg2_as_keys.keys():
+                if j in nodes:
+                    joints_in_frag[j] = joints_subg2_as_keys[j]
+            frag_graph = nx.Graph(joints=joints_in_frag)  # joints_in_frag[frag_node] is a list of bone joints
+            frag_graph.add_nodes_from((n, g.nodes[n]) for n in nodes)
+            frag_graph.add_edges_from(
+                (n, nbr, d) for n, nbrs in g.adj.items() if n in nodes for nbr, d in nbrs.items() if
+                nbr in nodes)
+            sg2_components.append(frag_graph)
+        return joints_subg1_as_keys, joints_subg2_as_keys, sg1, sg2_components
+
+    @staticmethod
+    def get_bone_and_frags_from_nxgraph(bone_graph, fragments, scheme=""):
+        gb = BackboneGraph(bone_graph, bone_graph.graph['joints'], partition_scheme=scheme)
+        scs = [SidechainGraph(frag_graph, frag_graph.graph['joints'], partition_scheme=scheme) for frag_graph in
+               fragments]
+        scs = sorted(scs, key=lambda x: len(x.graph), reverse=True)
+        return gb, scs
+
+
+
     def partition(self, bone_selection='lgfr', additional_ring_criteria=None):
         """
         parition the molecule into a backbone graph and a list of fragments (graphs)

@@ -8,7 +8,8 @@ import networkx as nx
 import numpy as np
 import rdkit.Chem as Chem
 from pymatgen.core.structure import Element
-from pymatgen.core.structure import Molecule, Site
+from pymatgen.core.structure import Molecule
+from pymatgen.core.structure import Site
 from pymatgen.io.xyz import XYZ
 from scipy.spatial.distance import cdist
 from scipy.spatial.distance import pdist
@@ -16,14 +17,18 @@ from scipy.spatial.distance import squareform
 from shapely.geometry import Polygon
 
 from ocelot.routines.conformerparser import ACParser
-from ocelot.routines.geometry import angle_btw, Fitter
+from ocelot.routines.geometry import Fitter
+from ocelot.routines.geometry import alpha_shape
+from ocelot.routines.geometry import angle_btw
 from ocelot.routines.geometry import coord_transform
-from ocelot.routines.geometry import get_proj_point2plane, alpha_shape
+from ocelot.routines.geometry import get_proj_point2plane
 from ocelot.routines.geometry import norm
 from ocelot.routines.geometry import rotate_along_axis
 from ocelot.routines.geometry import rotation_matrix
 from ocelot.routines.geometry import unify
-from ocelot.schema.graph import BasicGraph, MolGraph
+from ocelot.schema.graph import BasicGraph
+from ocelot.schema.graph import MolGraph
+from ocelot.schema.rdfunc import RdFunc
 
 _coordination_rule = {
     'H': 1,
@@ -1299,7 +1304,9 @@ class MolConformer(BasicConformer):
         else:
             self.is_solvent = False
 
+        # this is geometric bone
         self.backbone, self.sccs, self.backbone_graph, self.scgs = self.partition(coplane_cutoff=30.0)
+        self.chrombone, self.chromsccs, self.chrombone_graph, self.chromscgs = self.partition_chrom()
         if prop is None:
             self.conformer_properties = self._mol_conformer_properties
         else:
@@ -1307,6 +1314,42 @@ class MolConformer(BasicConformer):
 
     def calculate_conformer_properties(self):
         pass
+
+    def partition_chrom(self, withhalogen=True):
+        try:
+            rdmol, smiles, siteid2atomidx, atomidx2siteid = self.to_rdmol()
+        except:
+            raise ConformerOperationError('partition_chrom failed as self.can_rdmol == False')
+        if withhalogen:
+            cgs = RdFunc.get_conjugate_group(rdmol)
+        else:
+            cgs = RdFunc.get_conjugate_group_with_halogen(rdmol)
+        chromol, aid_to_newid_chromol = cgs[0]
+        aids_in_chromol = list(aid_to_newid_chromol.keys())
+        siteids_in_chromol = [atomidx2siteid[aid] for aid in aids_in_chromol]
+        siteids_not_in_chromol = [sid for sid in self.siteids if sid not in siteids_in_chromol]
+        molgraph = self.to_graph()
+        chromol_joints, other_joints, chromolsg, sg_components = MolGraph.get_joints_and_subgraph(
+            siteids_in_chromol, siteids_not_in_chromol, molgraph.graph)
+        bg, scgs = MolGraph.get_bone_and_frags_from_nxgraph(chromolsg, sg_components, "chrom")
+        chromolc = BoneConformer.from_siteids(
+            siteids_in_chromol, self.sites, copy=False, joints=chromol_joints, rings=None
+        )  # you need to make sure there is at least a ring here
+        sccs = []
+        for scg in scgs:
+            sc_joint_site_id = list(scg.graph.graph['joints'].keys())[0]
+            bc_joint_site_id = scg.graph.graph['joints'][sc_joint_site_id][0]
+            bc_joint_site = self.get_site_byid(bc_joint_site_id)
+            # print(bc_joint_site)
+            v_sc_position = bc_joint_site.coords - self.geoc
+            sc_position_angle = angle_btw(v_sc_position, chromolc.pfit_vp, 'degree')
+            scc = SidechainConformer.from_siteids(scg.graph.nodes, self.sites, copy=False,
+                                                  joints=scg.graph.graph['joints'],
+                                                  rings=None,
+                                                  conformer_properties={'sc_position_angle': sc_position_angle,
+                                                                        'bc_joint_siteid': bc_joint_site_id})
+            sccs.append(scc)
+        return chromolc, sccs, bg, scgs  # sccs <--> scgs bijection
 
     def partition(self, coplane_cutoff=40.0, scheme=None):
         molgraph = self.to_graph('siteid', 'molgraph')
@@ -1344,17 +1387,25 @@ class MolConformer(BasicConformer):
             sccs.append(scc)
         return bone_conformer, sccs, bg, scgs  # sccs <--> scgs bijection
 
-    def to_addhmol(self):
+    def to_addhmol(self, bonescheme='geo'):
         """
         add h and return pmg mol
 
         :return:
         """
-        backbone_hmol = conformer_addhmol(self.backbone, joints=self.backbone_graph.joints, original=self)
+        if bonescheme == 'geo':
+            backbone_hmol = conformer_addhmol(self.backbone, joints=self.backbone_graph.joints, original=self)
+            sccs = self.sccs
+            scgs = self.scgs
+        else:
+            backbone_hmol = conformer_addhmol(self.chrombone, joints=self.chrombone_graph.joints, original=self)
+            sccs = self.chromsccs
+            scgs = self.chromscgs
+
         schmols = []
-        for i in range(len(self.sccs)):
-            scc = self.sccs[i]
-            scg = self.scgs[i]
+        for i in range(len(sccs)):
+            scc = sccs[i]
+            scg = scgs[i]
             scch = conformer_addhmol(scc, scg.joints, self)
             schmols.append(scch)
         return backbone_hmol, schmols
