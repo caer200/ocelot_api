@@ -127,7 +127,7 @@ class BasicGraph:
     @classmethod
     def from_dict(cls, d):
         g = nx.from_dict_of_lists(d['graph_dict_of_lists'])
-        nx.set_node_attributes(g, d['graph_node_symbols'])
+        nx.set_node_attributes(g, d['graph_node_symbols'], name='symbol')
         return cls(g)
 
     def to_rdmol(self, sani=True, charge=0, charged_fragments=True, force_single=False, expliciths=True):
@@ -227,7 +227,7 @@ class FragmentGraph(BasicGraph):
     @classmethod
     def from_dict(cls, d):
         g = nx.from_dict_of_lists(d['graph_dict_of_lists'])
-        nx.set_node_attributes(g, d['graph_node_symbols'])
+        nx.set_node_attributes(g, d['graph_node_symbols'], name='symbol')
         return cls(g, d['joints'])
 
 
