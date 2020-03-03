@@ -20,7 +20,7 @@ class ReadCif:
     def __init__(self, cifstring):
         self.cifstring = cifstring
         self.dp = DisParser(self.cifstring)
-        dis_pstructure, dis_unwrap_str, dis_mols, config_infos = self.dp.to_configs(write_files=False)  # if True writes conf_x.cif, configs is a list of pmg Structure
+        dis_pstructure, dis_unwrap_str, dis_mols, config_infos = self.dp.to_configs(write_files=False, vanilla=True)  # if True writes conf_x.cif, configs is a list of pmg Structure
         self.disordered_pstructure = dis_unwrap_str
         self.disordered_pmgmols = dis_mols
         self.config_structures = []

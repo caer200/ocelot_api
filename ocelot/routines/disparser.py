@@ -438,10 +438,10 @@ class DisParser:  # chaos parser sounds cooler?
                 self.data[al].append(None)
                 self.data[al].append(None)
 
-    def dis0data_to_disunit_pairs(self):
-        psites = self.get_psites_from_data()
-        disu_pairs, inv_conf = DisUnit.get_disunit_pairs_from_asym(psites)
-        return disu_pairs, inv_conf
+    # def dis0data_to_disunit_pairs(self):
+    #     psites = self.get_psites_from_data()
+    #     disu_pairs, inv_conf = DisUnit.get_disunit_pairs_from_asym(psites)
+    #     return disu_pairs, inv_conf
 
     def as_dict(self):
         d = OrderedDict()
@@ -582,8 +582,8 @@ class DisParser:  # chaos parser sounds cooler?
             self.dis2_to_dis0()
         else:
             raise DisorderParserError('unknown classification!')
-        disunit_pairs, inv_conf = self.dis0data_to_disunit_pairs()
-        return disunit_pairs, inv_conf
+        # disunit_pairs, inv_conf = self.dis0data_to_disunit_pairs()
+        # return disunit_pairs, inv_conf
 
     def nodis_to_dis0(self):
         for al in self.labels:
@@ -653,7 +653,58 @@ class DisParser:  # chaos parser sounds cooler?
             ali2alj[ali] = alj
         return self.alijdict_to_disgs_and_update_data(ali2alj)
 
-    def to_configs(self, write_files=False, scaling_mat=(1, 1, 1), assign_siteids=True):
+    @staticmethod
+    def get_vanilla_configs(psites: [PeriodicSite]):
+        """
+        must have 'disg' in properties
+        """
+        disg_vs = []
+        for i in range(len(psites)):
+            disg = psites[i].properties['disg']
+            disg_vs.append(disg)
+        disg_vs = list(set(disg_vs))
+        disg_vs.sort()
+        if len(disg_vs) == 1:
+            return [Structure.from_sites(psites)]
+        disgs = []
+        inv = [s for s in psites if s.properties['disg'] == disg_vs[0]]
+        for disg in disg_vs[1:]:
+            disg_sites = []
+            for s in psites:
+                if s.properties['disg'] == disg:
+                    disg_sites.append(s)
+            disgs.append(Structure.from_sites(disg_sites + inv))
+        return disgs
+
+    @staticmethod
+    def get_site_location(pstructure: Structure, key='label'):
+        """
+        loc[key_related_to_a_site] = 'bone'/'sidechain'
+        must have 'imol' 'disg' 'siteid' and <key> assigned
+
+        :param pstructure: a clean structure
+        :param key:
+        :return:
+        """
+        from pymatgen.core.sites import Site
+        from ocelot.schema.conformer import MolConformer
+        res = {}
+        for i in range(len(pstructure)):
+            pstructure[i].properties['siteid'] = i
+        psites = deepcopy(pstructure.sites)
+        for imol, group in groupby(psites, key=lambda x: x.properties['imol']):
+            obc_sites = []
+            for ps in group:
+                obc_sites.append(Site(ps.species_string, ps.coords, properties=ps.properties))
+            molconformer = MolConformer.from_sites(obc_sites, siteids=[s.properties['siteid'] for s in obc_sites])
+            for sid in molconformer.siteids:
+                if sid in molconformer.backbone.siteids:
+                    res[molconformer.get_site_byid(sid).properties[key]] = 'bone'
+                else:
+                    res[molconformer.get_site_byid(sid).properties[key]] = 'sidechain'
+        return res
+
+    def to_configs(self, write_files=False, scaling_mat=(1, 1, 1), assign_siteids=True, vanilla=True):
         """
         return
             pstructure, pmg structure is the unit cell structure with all disordered sites
@@ -661,27 +712,37 @@ class DisParser:  # chaos parser sounds cooler?
             mols, a list of pmg mol with disordered sties
             confs, [[conf1, occu1], ...], conf1 is a clean structure
         """
-        disunit_pairs, inv_conf = self.parse()
-        cc = ConfigConstructor(disunit_pairs, inv_conf)
+        self.parse()  # edit self.data
 
-        psites = self.get_psites_from_data()  # assign fields: occu, disg, label
-
+        asym_psites = self.get_psites_from_data()  # assign fields: occu, disg, label
         raw_symmops = get_symmop(self.cifdata)
-        psites, symmops = apply_symmop(psites, raw_symmops)  # assign field: iasym
-
-
+        psites, symmops = apply_symmop(asym_psites, raw_symmops)  # assign field: iasym
         pstructure = Structure.from_sites(psites, to_unit_cell=True)
-
         # sc, n_unitcell = ConfigConstructor.build_supercell_full_disorder(pstructure, scaling_mat)
-        mols, unwrap_str, unwrap_pblock_list = PBCparser.unwrap(pstructure)  # assign field: imol
+        mols, unwrap_str, unwrap_pblock_list = PBCparser.unwrap_and_squeeze(pstructure)  # assign field: imol
+
         sc, n_unitcell = ConfigConstructor.build_supercell_full_disorder(unwrap_str, scaling_mat)
         if assign_siteids:
             print('siteid is assigned to supercell in dp.to_configs')
             for isite in range(len(sc)):
                 sc[isite].properties['siteid'] = isite
-        conf_ins = cc.gen_instructions(disunit_pairs, len(symmops), n_unitcell)
+
         iconf = 0
         confs = []
+        if vanilla:
+            conf_structures = self.get_vanilla_configs(sc.sites)
+            confs = [[c, 0.5] for c in conf_structures]
+            if write_files:
+                for conf in conf_structures:
+                    conf.to('cif', 'conf_{}.cif'.format(iconf))  # pymatgen somehow does not write disg field in the cif
+                    iconf += 1
+                pstructure.to('cif', 'confgen_ps.cif')
+                unwrap_str.to('cif', 'confgen_unwrap.cif')
+            return pstructure, unwrap_str, mols, sorted(confs, key=lambda x: x[1], reverse=True)
+
+        disunit_pairs, inv_conf = DisUnit.get_disunit_pairs_from_asym(asym_psites)
+        cc = ConfigConstructor(disunit_pairs, inv_conf)
+        conf_ins = cc.gen_instructions(disunit_pairs, len(symmops), n_unitcell)
         for confin in conf_ins:
             conf, conf_occu = ConfigConstructor.dissc_to_config(sc, disunit_pairs, confin)
             confs.append([conf, conf_occu])  # this molecule still contains disordered sites!

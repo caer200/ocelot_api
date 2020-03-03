@@ -12,6 +12,6 @@ if __name__ == '__main__':
     # for i in glob.glob('ALOVOO.cif'):  # dis-2
     # for i in glob.glob('tipge_conf0.cif'):    # nodis-0
         dp = DisParser.from_ciffile(i)
-        dp.to_configs(write_files=True)
+        dp.to_configs(write_files=True, vanilla=True)
 
 
