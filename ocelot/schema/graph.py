@@ -48,11 +48,16 @@ class BasicGraph:
         :return:
         """
         g: nx.Graph = self.graph
-        t = nx.triangles(g)
-        c = nx.number_of_cliques(g)
-        props = [(g.degree[v], t[v], c[v]) for v in g]
-        props.sort()
-        return hash(tuple(props))
+        pnGraph=pn.Graph(g.number_of_nodes());
+        edg=list(g.edges);
+        for E in edg:
+            pnGraph.connect_vertex(E[0],E[1]);
+        return hash(pn.certificate(pnGraph));
+        #t = nx.triangles(g)
+        #c = nx.number_of_cliques(g)
+        #props = [(g.degree[v], t[v], c[v]) for v in g]
+        #props.sort()
+        #return hash(tuple(props))
 
     def __repr__(self):
         outs = ["{}:".format(self.__class__.__name__)]
