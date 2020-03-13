@@ -1,8 +1,7 @@
 import itertools
 from collections import OrderedDict
 from operator import eq
-from rdkit import Chem
-from ocelot.schema.rdfunc import RdFunc
+
 import matplotlib.pyplot as plt
 import networkx as nx
 import networkx.algorithms.isomorphism as iso
@@ -10,8 +9,10 @@ import numpy as np
 from networkx import Graph
 from pymatgen.core.periodic_table import Element
 from pymatgen.vis.structure_vtk import EL_COLORS
+from rdkit import Chem
 
 from ocelot.routines.conformerparser import ACParser
+from ocelot.schema.rdfunc import RdFunc
 
 """
 a graph of integer nodes with a "symbol" attribute
@@ -68,6 +69,11 @@ class BasicGraph:
         props = [(dv[v], t[v], c[v]) for v in g]
         props.sort()
         return hash(tuple(props))
+        # pnGraph=pn.Graph(g.number_of_nodes());
+        # edg=list(g.edges);
+        # for E in edg:
+        #     pnGraph.connect_vertex(E[0],E[1]);
+        # return hash(pn.certificate(pnGraph));
 
     def __repr__(self):
         outs = ["{}:".format(self.__class__.__name__)]
