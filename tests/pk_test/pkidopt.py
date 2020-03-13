@@ -16,6 +16,7 @@ from ocelot.routines.geometry import norm
 from ocelot.schema.configuration import MolConformer
 from ocelot.schema.configuration import Molecule
 from ocelot.schema.configuration import Structure
+from ocelot.schema.conformer import BasicConformer, BoneConformer, RingConformer
 
 """
 one type of molecule in the unit cell
@@ -292,19 +293,38 @@ class PkId:
         return report
 
 
+def partition_basicconformer(conformer: BasicConformer):
+    molgraph = conformer.to_graph('siteid', 'MolGraph')
+    rings = []
+    for r in molgraph.lgfr:
+        ring = RingConformer.from_siteids(r, conformer.sites, copy=False)
+        rings.append(ring)
+    avgn1, avgn2 = RingConformer.get_avg_norms(rings)
+
+    def coplane_check(ring_siteids, tol=30):
+        ringconformer = RingConformer.from_siteids(ring_siteids, conformer.sites, False)
+        coplane = ringconformer.iscoplane_with_norm(avgn1, tol, 'degree')
+        return coplane
+    bg, scgs = molgraph.partition_to_bone_frags('lgcr', additional_criteria=coplane_check)
+    bone_conformer = BoneConformer.from_siteids(bg.graph.nodes, conformer.sites, copy=False, joints=bg.graph.graph['joints'], rings=None)
+    return bone_conformer
+
 def get_bone_structure_cheaper(config: Structure, mols: [Molecule]):
     """
-    cheaper method to get bone structure, relies on siteid prop assigned duing to_configs method in DP
+    cheaper method to get bone structure, relies on siteid prop assigned during to_configs method in DP
     """
     conf_ids = [s.properties['siteid'] for s in config]
     backboneid_in_config = []
     model_bones = []
     for mol in mols:
         clean_siteids = [s.properties['siteid'] for s in mol if s.properties['siteid'] in conf_ids]
-        clean_mc = MolConformer.from_siteids(clean_siteids, mol.sites)
-        b = clean_mc.backbone
+        basic_conformer = BasicConformer.from_siteids(clean_siteids, mol.sites)
+        b = partition_basicconformer(basic_conformer)
+        # clean_mc = MolConformer.from_siteids(clean_siteids, mol.sites)
+        # b = clean_mc.backbone
         model_bone = ModelBone(b.cart_coords, b.pfit_vp, b.pfit_vq, b.pfit_vo)
-        bone_ids = clean_mc.backbone.siteids
+        # bone_ids = clean_mc.backbone.siteids
+        bone_ids = b.siteids
         backboneid_in_config += bone_ids
         model_bones.append(model_bone)
     bc = Structure.from_sites([s for s in config if s.properties['siteid'] in backboneid_in_config])
@@ -340,16 +360,25 @@ def get_modeldimers_array(bones: [ModelBone], lattice: Lattice, maxfold=2):
 
 def pkid_ciffile(ciffile):
     dp = DisParser.from_ciffile(ciffile)
-    conf_infos = dp.to_configs(write_files=False)  # writes conf_x.cif
+    pstructure, unwrap_str, mols, conf_infos= dp.to_configs(write_files=False)  # writes conf_x.cif
     config = conf_infos[0][0]
-    mols = conf_infos[0][2]  # this molecule still contains disordered sites!
+
+    # mols still contains disordered sites!
+    import time
+    ts1 = time.time()
     bs, model_bones = get_bone_structure_cheaper(config, mols)
+    ts2 = time.time()
+    print('boneconfig', ts2 - ts1)
     pid = PkId(bs, model_bones)
     pdata = pid.identify_heuristic()
+    ts3 = time.time()
+    print('idheuristic', ts3-ts2)
     return pdata
 
 if __name__ == '__main__':
     import glob
+    # for cif in sorted(glob.glob('./tipge-bw.cif')):
+    # for cif in sorted(glob.glob('./tipge-ss.cif')):
     for cif in sorted(glob.glob('./tipge-*.cif')):
         print(cif)
         packingdata = pkid_ciffile(cif)

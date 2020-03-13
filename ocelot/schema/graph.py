@@ -1,7 +1,8 @@
 import itertools
 from collections import OrderedDict
 from operator import eq
-
+from rdkit import Chem
+from ocelot.schema.rdfunc import RdFunc
 import matplotlib.pyplot as plt
 import networkx as nx
 import networkx.algorithms.isomorphism as iso
@@ -27,6 +28,7 @@ N’ is a subset of N E’ is the subset of edges in E relating nodes in N’
 def to_fracrgb(t):
     return [x / 255 for x in t]
 
+class PartitionError(Exception): pass
 
 class GraphNotConnectedError(Exception):
     pass
@@ -36,21 +38,34 @@ class BasicGraph:
 
     def __init__(self, graph: nx.Graph):
         self.graph = graph
+        self.rings = nx.minimum_cycle_basis(self.graph)  # technically sssr
+        self.rings = sorted(self.rings, key=lambda x: len(x))
+        self.nrings = len(self.rings)
 
     def __len__(self):
         return len(self.graph.nodes)
 
+    # TODO find a better way to hash a graph schema
     def __hash__(self):
+        # return self.hash_nxgraph(self.graph)
+        return self.hash_via_smiles(self)
+
+    @staticmethod
+    def hash_via_smiles(mg):
+        smiles, rdmol, _, _ = mg.to_rdmol()
+        # return hash("{}: {}".format(mg.__class__.__name__, smiles))
+        return hash(smiles)
+
+    @staticmethod
+    def hash_nxgraph(g: nx.Graph):
         """
         see https://stackoverflow.com/questions/46999771/
         use with caution...
-
-        :return:
         """
-        g: nx.Graph = self.graph
         t = nx.triangles(g)
         c = nx.number_of_cliques(g)
-        props = [(g.degree[v], t[v], c[v]) for v in g]
+        dv = g.degree
+        props = [(dv[v], t[v], c[v]) for v in g]
         props.sort()
         return hash(tuple(props))
 
@@ -62,11 +77,14 @@ class BasicGraph:
 
     def __eq__(self, other):
         """
-        equality is measured based on graph isomorphism
+        equality is measured based on graph isomorphism if smiles hash failed
         """
-        g1 = self.graph
-        g2 = other.graph
-        return nx.is_isomorphic(g1, g2, node_match=iso.generic_node_match('symbol', None, eq))
+        try:
+            return hash(self) == hash(other)
+        except:
+            g1 = self.graph
+            g2 = other.graph
+            return nx.is_isomorphic(g1, g2, node_match=iso.generic_node_match('symbol', None, eq))
 
     def graph_similarity(self, other):
         """
@@ -91,6 +109,15 @@ class BasicGraph:
         a dict s.t. symbols[node] gives symbol
         """
         return nx.get_node_attributes(self.graph, 'symbol')
+
+    @classmethod
+    def from_smiles(cls, smiles:str):
+        m = Chem.MolFromSmiles(smiles)
+        if 'H' in smiles or 'h' in smiles:
+            hm = m
+        else:
+            hm = Chem.AddHs(m)
+        return cls.from_rdmol(hm)
 
     @classmethod
     def from_rdmol(cls, rdmol, atomidx2nodename=None):
@@ -130,7 +157,7 @@ class BasicGraph:
         nx.set_node_attributes(g, d['graph_node_symbols'], name='symbol')
         return cls(g)
 
-    def to_rdmol(self, sani=True, charge=0, charged_fragments=True, force_single=False, expliciths=True):
+    def to_rdmol(self, sani=True, charge=0, charged_fragments=False, force_single=False, expliciths=True):
         """
         convert to rdmol
 
@@ -145,6 +172,7 @@ class BasicGraph:
         nodes = sorted(list(self.graph.nodes(data=True)), key=lambda x: x[0])
         atomidx2nodename = {}  # d[atom idx in the new rdmol] = original graph node
         nodename2atomidx = {}
+
 
         atom_number_list = []
         for i in range(len(nodes)):
@@ -164,7 +192,14 @@ class BasicGraph:
                     new_ac[i, j] = 1
                     new_ac[j, i] = 1
 
-        ap = ACParser(sani=sani, ac=new_ac, atomnumberlist=atom_number_list, charge=charge)
+        apriori_radicals = {}
+        if hasattr(self, 'joints'):  # LBYL
+            for k in self.joints.keys():
+                apriori_radicals[nodename2atomidx[k]] = len(self.joints[k])
+        else:
+            apriori_radicals = None
+
+        ap = ACParser(sani=sani, ac=new_ac, atomnumberlist=atom_number_list, charge=charge, apriori_radicals=apriori_radicals)
         mol, smiles = ap.parse(charged_fragments=charged_fragments, force_single=force_single, expliciths=expliciths)
         return mol, smiles, atomidx2nodename, nodename2atomidx
 
@@ -212,9 +247,9 @@ class FragmentGraph(BasicGraph):
         self.joints = joints
 
         # we don't need ring graph in frag, that should be used in partition process
-        self.rings = nx.minimum_cycle_basis(self.graph)
-        self.rings = sorted(self.rings, key=lambda x: len(x))
-        self.nrings = len(self.rings)
+        # self.rings = nx.minimum_cycle_basis(self.graph)
+        # self.rings = sorted(self.rings, key=lambda x: len(x))
+        # self.nrings = len(self.rings)
 
     def as_dict(self):
         d = super().as_dict()
@@ -288,9 +323,9 @@ class MolGraph(BasicGraph):
         :param graph:
         """
         super().__init__(graph)
-        self.rings = nx.minimum_cycle_basis(self.graph)  # technically sssr
-        self.rings = sorted(self.rings, key=lambda x: len(x))
-        self.nrings = len(self.rings)
+        # self.rings = nx.minimum_cycle_basis(self.graph)  # technically sssr
+        # self.rings = sorted(self.rings, key=lambda x: len(x))
+        # self.nrings = len(self.rings)
 
         self.ring_graph = nx.Graph()
         for ij in itertools.combinations(range(self.nrings), 2):
@@ -397,24 +432,46 @@ class MolGraph(BasicGraph):
         scs = sorted(scs, key=lambda x: len(x.graph), reverse=True)
         return gb, scs
 
-
-
-    def partition(self, bone_selection='lgfr', additional_ring_criteria=None):
+    def partition(self, bone_selection='lgfr', additional_ring_criteria=None, with_halogen=True):
         """
         parition the molecule into a backbone graph and a list of fragments (graphs)
 
         :param bone_selection:
-        :param additional_ring_criteria: this should be a function to check whether a ring (a set of siteids) meets additional conditions
+        :param additional_ring_criteria:
+            this should be a function to check whether a ring (a set of siteids) meets additional conditions
+            this does nothing for chrom scheme
         :return:
         """
         if bone_selection == 'lgfr':
             if self.lgfr is None:
                 return None
             rings = self.lgfr
-        else:
+        elif bone_selection == 'lgcr':
             if self.lgcr is None:
                 return None
             rings = self.lgcr
+        elif bone_selection == 'chrom':
+            try:
+                mol, smiles, atomidx2nodename, nodename2atomidx = self.to_rdmol()
+            except:
+                raise PartitionError('to_rdmol failed in chrom partition!')
+            if with_halogen:
+                cgs = RdFunc.get_conjugate_group_with_halogen(mol)
+            else:
+                cgs = RdFunc.get_conjugate_group(mol)
+            try:
+                chromol, aid_to_newid_chromol = cgs[0]
+            except IndexError:
+                raise PartitionError('rdkit cannot find a chrom here!')
+            aids_in_chromol = list(aid_to_newid_chromol.keys())
+            nodes_in_chromol = [atomidx2nodename[aid] for aid in aids_in_chromol]
+            nodes_not_in_chromol = [sid for sid in self.graph if sid not in nodes_in_chromol]
+            chromol_joints, other_joints, chromolsg, sg_components = MolGraph.get_joints_and_subgraph(
+                nodes_in_chromol, nodes_not_in_chromol, self.graph)
+            return chromolsg, sg_components
+
+        else:
+            raise PartitionError('selection scheme not implemented: {}'.format(bone_selection))
 
         if additional_ring_criteria is None:
             bonerings = rings
@@ -470,7 +527,7 @@ class MolGraph(BasicGraph):
             fragments.append(frag_graph)
         return bone_graph, fragments
 
-    def partition_to_bone_frags(self, bone_selection='lgfr', additional_criteria=None):
+    def partition_to_bone_frags(self, bone_selection='lgfr', additional_criteria=None, with_halogen=True):
         """
         partition the molecule into backbone and a list of frags
 
@@ -480,9 +537,10 @@ class MolGraph(BasicGraph):
         :param bone_selection:
         :return:
         """
-        bone_graph, fragments = self.partition(bone_selection, additional_criteria)
-        gb = BackboneGraph(bone_graph, bone_graph.graph['joints'], partition_scheme=bone_selection)
-        scs = [SidechainGraph(frag_graph, frag_graph.graph['joints'], partition_scheme=bone_selection) for frag_graph in
-               fragments]
-        scs = sorted(scs, key=lambda x: len(x.graph), reverse=True)
+        bone_graph, fragments = self.partition(bone_selection, additional_criteria, with_halogen=with_halogen)
+        gb, scs = self.get_bone_and_frags_from_nxgraph(bone_graph, fragments, scheme=bone_selection)
+        # gb = BackboneGraph(bone_graph, bone_graph.graph['joints'], partition_scheme=bone_selection)
+        # scs = [SidechainGraph(frag_graph, frag_graph.graph['joints'], partition_scheme=bone_selection) for frag_graph in
+        #        fragments]
+        # scs = sorted(scs, key=lambda x: len(x.graph), reverse=True)
         return gb, scs

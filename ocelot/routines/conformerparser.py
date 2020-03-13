@@ -102,12 +102,14 @@ def pmgmol_to_rdmol(pmg_mol):
 
 class ACParser:
 
-    def __init__(self, ac:np.ndarray, charge, atomnumberlist, sani=True):
+    def __init__(self, ac:np.ndarray, charge, atomnumberlist, sani=True, apriori_radicals=None):
         """
         :var self.valences_list: a list of possible valence assignment, valences_list[i] is one possbile way to assign jth atom
         valence based on  valences_list[i][j].
         :var self.atomic_valence_electrons: atomic_valence_electrons[i] is the #_of_ve of ith atom
+        :var self.apriori_radicals: a dict to mark the atoms that can will have a lower valence in generating BO
         """
+        self.apriori_radicals = apriori_radicals
         self.AC = ac.astype(int)
         self.sani = sani
         self.atomic_numbers = atomnumberlist
@@ -136,10 +138,21 @@ class ACParser:
 
         # make a list of valences, e.g. for CO: [[4],[2,1]]
         valences_list_of_lists = []
+        iatom = 0
         for atomicNum, valence in zip(self.atomic_numbers, AC_valence):
             # valence can't be smaller number of neighbourgs
-            possible_valence = [x for x in atomic_valence[atomicNum] if x >= valence]
+            if self.apriori_radicals:
+                try:
+                    nradicals = self.apriori_radicals[iatom]
+                except KeyError:
+                    nradicals = 0
+                possible_valence = [x-nradicals for x in atomic_valence[atomicNum] if x >= valence]
+            else:
+                possible_valence = [x for x in atomic_valence[atomicNum] if x >= valence]
             valences_list_of_lists.append(possible_valence)
+            iatom += 1
+        # from pprint import pprint
+        # pprint(valences_list_of_lists)
 
         # convert [[4],[2,1]] to [[4,2],[4,1]]
         valences_list = list(itertools.product(*valences_list_of_lists))
@@ -388,7 +401,7 @@ class ACParser:
                 a.SetNumRadicalElectrons(abs(int(charge)))
         return mol
 
-    def parse(self, charged_fragments=True, force_single=False, expliciths=True):
+    def parse(self, charged_fragments=False, force_single=False, expliciths=True):
         BO = self.parse_bonds(charged_fragments)
         mol = self.init_rdmol()
         mol = self.addBO2mol(mol, BO, charged_fragments, force_single)

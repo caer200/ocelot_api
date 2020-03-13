@@ -1,7 +1,12 @@
-import math
+import warnings
 from copy import deepcopy
 
-from pymatgen.core.structure import Site, PeriodicSite, Molecule, Structure
+import numpy as np
+from pymatgen.core.structure import Lattice
+from pymatgen.core.structure import Molecule
+from pymatgen.core.structure import PeriodicSite
+from pymatgen.core.structure import Site
+from pymatgen.core.structure import Structure
 from pymatgen.util.coord import pbc_shortest_vectors
 
 from ocelot.schema.conformer import Element
@@ -16,7 +21,7 @@ method here should not rely on ocelot schema
 class PBCparser:
 
     @staticmethod
-    def get_dist_and_trans(lattice, fc1, fc2):
+    def get_dist_and_trans(lattice: Lattice, fc1, fc2):
         """
         get the shortest distance and corresponding translation vector between two frac coords
 
@@ -26,15 +31,22 @@ class PBCparser:
         :return:
         """
         v, d2 = pbc_shortest_vectors(lattice, fc1, fc2, return_d2=True)
-        fc = lattice.get_fractional_coords(v[0][0]) + fc1 - fc2
-        return math.sqrt(d2[0, 0]), fc
+        if len(np.array(fc1).shape) == 1:
+            fc = lattice.get_fractional_coords(v[0][0]) + fc1 - fc2
+        else:
+            fc = np.zeros((len(fc1), len(fc2), 3))
+            for i in range(len(fc1)):
+                for j in range(len(fc2)):
+                    fc_vector = np.dot(v[i][j], lattice.inv_matrix)
+                    fc[i][j] = fc_vector + fc1[i] - fc2[j]
+        return np.sqrt(d2), fc
 
     @staticmethod
-    def unwrap(pstructure):
+    def unwrap(pstructure: Structure):
         """
         unwrap the structure, extract isolated mols
 
-        this will create *new* psites to be returned, these psites will inherit properties and a new property
+        this will modify psites *in-place*, properties will be inherited and a new property
         'imol' will be written
         psite with imol=x is an element of both mols[x] and unwrap_pblock_list[x]
 
@@ -43,9 +55,23 @@ class PBCparser:
         :param pstructure: periodic structure obj from pymatgen
         :return: mols, unwrap_str_sorted, unwrap_pblock_list
         """
+
         psites = pstructure.sites
-        # for isite in range(len(psites)):
-        #     psites[isite].properties['siteid'] = isite
+        cutoff_matrix = np.zeros((len(psites), len(psites)))
+        for i in range(len(psites)):
+            for j in range(i + 1, len(psites)):
+                cutoff = Element(psites[i].species_string).atomic_radius + Element(
+                    psites[j].species_string).atomic_radius
+                cutoff *= 1.3
+                cutoff_matrix[i][j] = cutoff
+                cutoff_matrix[j][i] = cutoff
+
+        if all('iasym' in s.properties for s in psites):
+            sameiasym = True
+            warnings.warn('if a percolating step involves hydrogens, only percolate to sites with the same iasym')
+        else:
+            sameiasym = False
+
         pindices = range(len(psites))
         visited = []
         block_list = []
@@ -65,20 +91,26 @@ class PBCparser:
             while pointer != len(block):
                 outside = [idx for idx in pindices if idx not in block and idx not in visited]
                 for i in outside:
+                    si = psites[i]
+                    sj = psites[block[pointer]]
+                    if sameiasym and (si.species_string == 'H' or sj.species_string == 'H'):
+                        if si.properties['iasym'] != sj.properties['iasym']:
+                            continue
                     distance, fctrans = PBCparser.get_dist_and_trans(pstructure.lattice,
-                                                                     psites[block[pointer]]._frac_coords,
-                                                                     psites[i]._frac_coords, )
+                                                                     psites[block[pointer]].frac_coords,
+                                                                     psites[i].frac_coords, )
+                    fctrans = np.rint(fctrans)
 
-                    cutoff = Element(psites[block[pointer]].species_string).atomic_radius + Element(
-                        psites[i].species_string).atomic_radius
-                    cutoff *= 1.3
+                    cutoff = cutoff_matrix[block[pointer]][i]
                     if distance < cutoff:
                         block.append(i)
-                        psites[i] = PeriodicSite(psites[i].species_string, psites[i]._frac_coords + fctrans,
-                                                 pstructure.lattice, properties=deepcopy(psites[i].properties))
+                        psites[i]._frac_coords += fctrans
+                        # psites[i] = PeriodicSite(psites[i].species_string, psites[i].frac_coords + fctrans,
+                        #                          pstructure.lattice, properties=deepcopy(psites[i].properties))
                         unwrap_block.append(
-                            Site(psites[i].species_string, psites[i].coords, properties=deepcopy(psites[i].properties)))
-                        # unwrap.append(psites[i])
+                            # Site(psites[i].species_string, psites[i].coords, properties=deepcopy(psites[i].properties))
+                            Site(psites[i].species_string, psites[i].coords, properties=psites[i].properties)
+                        )
                         unwrap_pblock.append(psites[i])
                 visited.append(block[pointer])
                 pointer += 1
@@ -96,7 +128,7 @@ class PBCparser:
         mols = [Molecule.from_sites(sites) for sites in unwrap_block_list]
 
         # unwrap_structure = Structure.from_sites(sorted(unwrap, key=lambda x: x.species_string))
-        unwrap_structure = Structure.from_sites(unwrap)
+        unwrap_structure = Structure.from_sites(unwrap, to_unit_cell=False)
         return mols, unwrap_structure, unwrap_pblock_list
 
     @staticmethod

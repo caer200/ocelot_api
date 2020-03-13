@@ -1,133 +1,173 @@
-import itertools
-import math
-import re
-import warnings
 from collections import OrderedDict
-from copy import deepcopy
 from itertools import groupby
 
-import numpy as np
-from pymatgen.core.operations import SymmOp
+from pymatgen.core.sites import Site
 from pymatgen.core.structure import Lattice
-from pymatgen.core.structure import PeriodicSite
 from pymatgen.core.structure import Structure
 from pymatgen.core.structure import lattice_points_in_supercell
-from pymatgen.io.cif import CifFile
-from pymatgen.io.cif import _get_cod_data
-from pymatgen.io.cif import str2float
-from pymatgen.io.cif import sub_spgrp
-from pymatgen.symmetry.groups import SYMM_DATA
-from pymatgen.symmetry.groups import SpaceGroup
-from pymatgen.util.coord import pbc_shortest_vectors
 
+from ocelot.routines.disparser_functions import *
 from ocelot.routines.pbc import PBCparser
+from ocelot.schema.conformer import ConformerInitError
+from ocelot.schema.conformer import MolConformer
 
 """
-DisParser: parse cif file into a list of configurations with no disorder
+DisParser: prepare_data cif file into a list of disorder-free configurations
 
-this is used to parse disordered cif file to configurations of a supercell
+## notions and terms
 
-plz read 
-[CSD API convention](https://downloads.ccdc.cam.ac.uk/documentation/API/descriptive_docs/crystal.html#disorder) 
-first 
+- cifstring: 
+    the raw string of the cif file
+    
+- configuration: 
+    a disorder-free structure describing the crystal, 
+    it has an occupancy,
+    it could be a supercell
+    
+- unit_configuration: 
+    a configuration that is not a supercell
+    
+- asymmetric_unit: 
+    the atomic sites specified in cifstring, 
+    please notice that the real, crystallographic asymmetric unit may be a subset of asymmetric_unit defined here
 
-we assume the cif file contains following disorder-related fields
+- disordered_sites:
+    every atomic site with disorder
+
+- counterpart:
+    if atomic site X cannot co-exist with Y, Y is a counterpart of X and vice versa
+
+- disorder_group:
+    the largest subset of disordered_sites, 
+    the atomic sites in disorder_unit can co-exist,
+    *usually* there are two disorder_groups in a disordered cif file
+    
+- disorder_group_label: 
+    an atomic site may be assigned a string to indicate the disorder_group it belongs to 
+    defaults are ".", "1", "2".
+    
+- disorder_unit:
+    a subset of a disorder_group
+    each atomic site in the disorder_unit must share the same occupancy
+    the sites in disorder_unit must be chemically connected/related (subject to a cutoff).
+
+- disorder_portion:
+    a list of disorder_units, each of them belongs to a different disorder_group
+    in a certain configuration only one of the disorder_units will present to represent the disorder_portion
+
+## disorder represenstation
+
+- situation a: 
+
+    the cif file may contain the following disorder-related fields
+
     _atom_site_occupancy 
     _atom_site_disorder_group 
-if both of the two keys exist, then we can extract configuration from the cif file with explicit occupancies
-
-if at least one of above fields does not exist, it is still possible the cif file contains disorder, this depends on
-the the values of dict[_atom_site_label], btw, '_atom_site_label' may not exist when using jmol to write cif
-
-the values of dict[_atom_site_label] form a list of *unique* labels, a label can be considered as a concatenation of 
     
-    E (an element symbol) + I (an index) + T (the third tag)
+    if both of the two keys exist, then we can extract configuration from the cif file with explicit occupancies
+    if only **_atom_site_disorder_group** exists, **_atom_site_occupancy** will be set to 0.5 for disordered sites
     
-while CSD claims the alternative configurations should be labelled with a suffix question mark (?),
-this is certainly not true for e.g. ASIXEH
+- situation b:
 
-so here a summary of representing disorder in cif file
+    if not, it is still possible to prepare_data the cif file contains disorder, 
+    this depends on the the values of **_atom_site_label**, 
+    btw, '_atom_site_label' may not exist when using jmol to write cif
 
-    1. EI is unique for each site, sites of the alternative configuration are labeled by a non-word T
-        in this case you cannot get >1 alternative configurations, e.g. ALOVOO
+    the values of **_atom_site_label** form a list of *unique* labels, a label can be considered as a concatenation of 
+    
+    **E (an element symbol) + I (an index) + T (the third tag)**
+    
+    while CSD claims the alternative configurations should be labelled 
+    with a suffix question mark (?), this is certainly not true for e.g. ASIXEH
+    
+#### classifications of situation b. cif files (that I've seen)
+
+    1. EI is unique for each site, 
+        only two disorder_groups
+        sites of one disorder_group (the minor configuration) share the same T
+        e.g. ALOVOO
         
-    2. EI is not unique for each site, site with a non-word T is an alternative config for the site having the same EI, 
-        still you cannot get >1 alternative configurations e.g. x17059
+    2. EI is **not** unique for each site, 
+        only two disorder_groups
+        sites of one disorder_group (the minor configuration) share the same T
+        a disordered site has only one counterpart, and they share the same EI
+        e.g. x17059
     
-    3. EI is not unique for each site, there is no site with a non-word T. Sites sharing the same EI representing 
-        disorder, e.g. ASIXEH
+    3. EI is **not** unique for each site, 
+        there is no site with a non-word T 
+        Sites sharing the same EI representing disorder, 
+        e.g. ASIXEH
     
-    4. disordered sites are simply ignored in the cif file s.t. the molecule is not complete, e.g. ABEGET01
+    4. disordered sites are simply ignored in the cif file 
+        s.t. the molecule is not complete, 
+        e.g. ABEGET01
     
-    5. disordered sites are simply ignored in the cif file, but the molecule looks legit, e.g. AGAJUO
+    5. disordered sites are simply ignored in the cif file, 
+        but the molecule looks legit, 
+        e.g. AGAJUO
     
-    6. disordered sites are present in the cif file but not labeled at all, e.g. ANOPEA
+    6. disordered sites are present in the cif file 
+        but not labeled at all, e.g. ANOPEA
 
-in case 1. it is possible to get the occupancies via CSD API, not always tho.
+    notes: in case 1. it is possible to get the occupancies via CSD API, not always tho.
 
-I cannot find a way to process 3., 4., 5., 6. without checking deposition records or chemistry analysis, so this parser
-will ignore them. That is, there can be only one alternative configuration.
+I cannot find a way to process 3., 4., 5., 6. without checking deposition records 
+or chemistry analysis, so this parser will ignore them. 
+That is, there can be only one alternative configuration.
 
-I will deal with 1. by artificially set (average) _atom_site_occupancy and _atom_site_disorder_group based on special character 
-suffix, this should be done intentionally
+## convert b1/b2 to a.
+The idea is to find disorder_groups in b1 and b2, 
+then artificially set (average) **_atom_site_occupancy** and **_atom_site_disorder_group**, 
+this should be done intentionally.
 
-configuration will be written with keys:
-['_cell_length_a'],
-['_cell_length_b'],
-['_cell_length_c'],
-['_cell_angle_alpha'],
-['_cell_angle_beta'],
-['_cell_angle_gamma'],
-['_space_group_symop_operation_xyz'] or other symm labels
-['_atom_site_label'],
-['_atom_site_type_symbol'],
-['_atom_site_fract_x'],
-['_atom_site_fract_y'],
-['_atom_site_fract_z'],
+
+## parsing a.
+
+1. pairing/subgrouping disordered sites in an asymmetric unit:
+
+    i. for each disordered atomic site, 
+        find its counterpart if the other site is disordered and share the same EI
+        
+    ii. if i. failed at leaset once, find the nearest disordered site that share the same element
+
+2. find disorder units:
+
+    within one disorder_group, get connected components as disorder_units, 
+    then find their pairs to form disorder_portion
+
+3. config generation:
+    
+    - config_asymm = asymm_inv + asymm_disorder_portion1[0] + asymm_disorder_portion2[1] + ...
+    - config_cell = config_asymm1 + config_asymm2 + ... 
+    - config = config_cell1 + config_cell2 + ...
+    
+    the instruction for generating a configuration is a dictionary:
+    
+        conf_instruction[icell][iasymm][idisorder_portion] = j
+
+    configuration as a cif file will be written with keys:
+    ['_cell_length_a'],
+    ['_cell_length_b'],
+    ['_cell_length_c'],
+    ['_cell_angle_alpha'],
+    ['_cell_angle_beta'],
+    ['_cell_angle_gamma'],
+    ['_space_group_symop_operation_xyz'] or other symm labels
+    ['_atom_site_label'],
+    ['_atom_site_type_symbol'],
+    ['_atom_site_fract_x'],
+    ['_atom_site_fract_y'],
+    ['_atom_site_fract_z'],
+
+Ref:
+[CSD API convention](https://downloads.ccdc.cam.ac.uk/documentation/API/descriptive_docs/crystal.html#disorder)  
 
 """
 
-possible_symm_labels = [
-    "_symmetry_equiv_pos_as_xyz",
-    "_symmetry_equiv_pos_as_xyz_",
-    "_space_group_symop_operation_xyz",
-    "_space_group_symop_operation_xyz_",
-    "_symmetry_space_group_name_H-M",
-    "_symmetry_space_group_name_H_M",
-    "_symmetry_space_group_name_H-M_",
-    "_symmetry_space_group_name_H_M_",
-    "_space_group_name_Hall",
-    "_space_group_name_Hall_",
-    "_space_group_name_H-M_alt",
-    "_space_group_name_H-M_alt_",
-    "_symmetry_space_group_name_hall",
-    "_symmetry_space_group_name_hall_",
-    "_symmetry_space_group_name_h-m",
-    "_symmetry_space_group_name_h-m_",
-    "_space_group_IT_number",
-    "_space_group_IT_number_",
-    "_symmetry_Int_Tables_number",
-    "_symmetry_Int_Tables_number_"]
 
-latt_labels = [
-    '_cell_length_a', '_cell_length_b', '_cell_length_c', '_cell_angle_alpha', '_cell_angle_beta', '_cell_angle_gamma',
-]
+class DisorderParserError(Exception): pass
 
-chemistry_labels = [
-    '_cell_formula_units_Z', '_chemical_formula_moiety', '_chemical_formula_sum'
-]
 
-coord_labels = [
-    '_atom_site_label', '_atom_site_type_symbol', '_atom_site_fract_x', '_atom_site_fract_y',
-    '_atom_site_fract_z'
-]
-
-disorder_labels = [
-    '_atom_site_occupancy', '_atom_site_disorder_group',
-]
-
-space_groups = {sub_spgrp(k): k for k in SYMM_DATA['space_group_encoding'].keys()}
-space_groups.update({sub_spgrp(k): k for k in SYMM_DATA['space_group_encoding'].keys()})
 
 
 class AtomLabel:
@@ -142,13 +182,16 @@ class AtomLabel:
         self.element = re.findall(r"^[a-zA-Z]+", tmplabel)[0]
 
         tmplabel = tmplabel.lstrip(self.element)
-        self.index = re.findall(r"^\d+", tmplabel)[0]
+        try:
+            self.index = re.findall(r"^\d+", tmplabel)[0]
+        except IndexError:
+            self.index = "0"
 
         tmplabel = tmplabel.lstrip(str(self.index))
         self.tag = tmplabel
 
-        if len(self.tag) > 1:
-            raise AtomLabelError('tag for {} is {}, this is unlikely'.format(label, self.tag))
+        # if len(self.tag) > 1:
+        #     raise ValueError('tag for {} is {}, this is unlikely'.format(label, self.tag))
 
         self.index = int(self.index)
 
@@ -166,9 +209,13 @@ class AtomLabel:
     def __eq__(self, other):
         return self.label == other.label
 
-    @property
-    def is_tag_nonword(self):
-        return re.search(r"^\W$", self.tag)
+    @staticmethod
+    def get_labels_with_tag(tag, als):
+        sametag = []
+        for alj in als:
+            if tag == alj.tag:
+                sametag.append(alj)
+        return sametag
 
     def get_labels_with_same_ei(self, als):
         """
@@ -183,182 +230,184 @@ class AtomLabel:
                 sameei.append(alj)
         return sameei
 
+    @staticmethod
+    def get_psite_by_atomlable(psites: [PeriodicSite], al):
+        for s in psites:
+            if s.properties['label'] == str(al):
+                return s
+        raise ValueError('cannot find psite with atomlable {}'.format(str(al)))
 
-def get_pmg_dict(cifstring: str):
-    """
-    use pmg dict to parse cifstring, only deal with one structure per file
-
-    :param cifstring:
-    :return:
-    """
-    cifdata = CifFile.from_string(cifstring).data
-    idnetifiers = list(cifdata.keys())
-    if len(idnetifiers) > 1:
-        warnings.warn('W: find more than 1 structures in this cif file!')
-    elif len(idnetifiers) == 0:
-        warnings.warn('W: no structure found by pymatgen parser!')
-    identifier = idnetifiers[0]
-    pymatgen_dict = list(cifdata.items())[0][1].data
-
-    # jmol writes '_atom_site_type_symbol', but not '_atom_site_label'
-    if '_atom_site_label' not in pymatgen_dict.keys():
-        warnings.warn('W: _atom_site_label not found in parsed dict')
-        atom_site_label = []
-        symbols = pymatgen_dict['_atom_site_type_symbol']
-        for i in range(len(symbols)):
-            s = symbols[i]
-            atom_site_label.append('{}{}'.format(s, i))
-        pymatgen_dict['_atom_site_label'] = atom_site_label
-    return identifier, pymatgen_dict
+    @classmethod
+    def from_psite(cls, s: PeriodicSite):
+        return cls(s.properties['label'])
 
 
-def apply_symmop(psites, ops):
-    """
-    symmop and xyz in cif file:
+class AsymmUnit:
 
-    lets say xyz -- op1 --> x'y'z' and xyz -- op2 --> x!y!z! and
-    it is possible to have x'y'z' is_close x!y!z!
+    def __init__(self, psites: [PeriodicSite]):
+        """
+        an asymmetric unit with paired disorder units
 
-    this means one should take only x'y'z' or x!y!z!, aka op1 is equivalent to op2 due to the symmetry implicated by
-    xyz/the asymmectric unit, e.g. ALOVOO.cif -- Z=2, asymmectric unit given by cif is one molecule, but there're 4 ops
+        :param psites:
+        # :param supress_sidechain_disorder: can be a function takes a psite and returns bool,
+        #     if True the psite will always be considered as a non-disordered site
+        """
+        self.sites = psites
+        self.labels = [AtomLabel(s.properties['label']) for s in self.sites]
+        self.symbols = [l.element for l in self.labels]
+        self.composition = tuple(sorted(self.symbols))
 
-    so we need first check if the cif file behaves like this
+        # make sure occu and label and disg are present in prop
+        for s in self.sites:
+            for k in ['occu', 'label', 'disg']:
+                if k not in s.properties.keys():
+                    raise KeyError('{} is not in the properties of site {}!'.format(k, s))
 
-    """
-    op_xyzs = []
-    for op in ops:
-        n_xyzs = []
-        for ps in psites:
-            new_coord = op.operate(ps.frac_coords)
-            # new_coord = np.array([i - math.floor(i) for i in new_coord])
-            n_xyzs.append(new_coord)
-        op_xyzs.append(n_xyzs)
+        self.inv = []
+        self.disordered_sites = []
+        for ps in self.sites:
+            if ps.properties['disg'] == '.' or abs(ps.properties['occu'] - 1) < 1e-5:
+                self.inv.append(ps)
+            else:
+                self.disordered_sites.append(ps)
 
-    latt = psites[0].lattice
+        # group by disg
+        disordered_groups = [list(v) for l, v in
+                             groupby(sorted(self.disordered_sites, key=lambda x: x.properties['disg']),
+                                     lambda x: x.properties['disg'])]
 
-    def pbc_dist(fc1, fc2, lattice):
-        v, d2 = pbc_shortest_vectors(lattice, fc1, fc2, return_d2=True)
-        return math.sqrt(d2[0, 0])
+        self.disordered_groups = {}
+        # within one group, group again by connection
+        for i in range(len(disordered_groups)):
+            units = []
+            group = disordered_groups[i]
+            disg_label = group[0].properties['disg']
 
-    def pbc_distmat(fcl1, fcl2):
-        distmat = np.zeros((len(fcl1), len(fcl1)))
-        for i in range(len(fcl1)):
-            for j in range(i, len(fcl1)):
-                distmat[i][j] = pbc_dist(fcl1[i], fcl2[j], latt)
-                distmat[j][i] = distmat[i][j]
-        return distmat
+            block_list = find_connected_psites(group)
+            """
+            the problem here is it thinks a(a')-b-c(c')-d(d') has two pairs of disunit, as there is no disorder at b
+            if a pblock is not far away from another, they should be one pblock
+            """
+            connected_blocks = get_connected_pblock(block_list, cutoff=4.0)
+            for pblock in connected_blocks:
+                units.append(DisorderUnit(pblock, disg=disg_label))
+            self.disordered_groups[disg_label] = units
+        # pairing
+        self.disordered_portions = []
+        init_disg_label = sorted(list(self.disordered_groups.keys()))[0]
+        for u1 in self.disordered_groups[init_disg_label]:
+            portion = [u1]
+            for k in self.disordered_groups.keys():
+                if k != init_disg_label:
+                    u2 = DisorderUnit.find_counterpart(u1, self.disordered_groups[k])
+                    portion.append(u2)
+            self.disordered_portions.append(portion)
 
-    def two_xyzs_close(xyzs1, xyzs2, tol=1e-5):
-        dmat = pbc_distmat(xyzs1, xyzs2)
-        almost_zeros = dmat[(dmat < tol)]
-        if len(almost_zeros) > 0:
+    def infodict(self, is_sidechain=None):
+        au_labels = self.labels
+        au_inv_labels = [AtomLabel(ps.properties['label']) for ps in self.inv]
+        disordered_portions = []
+        if is_sidechain is None:
+            disordered_portions = [[u for u in portion] for portion in self.disordered_portions]
+        else:
+            for portion in self.disordered_portions:
+                p = []
+                for disorderunit in portion:
+                    if all(is_sidechain(l) for l in disorderunit.labels):
+                        au_inv_labels += disorderunit.labels
+                        break
+                    else:
+                        p.append(disorderunit)
+                if len(p) != 0:
+                    disordered_portions.append(p)
+        return au_labels, au_inv_labels, disordered_portions
+
+
+class DisorderUnit:
+    def __repr__(self):
+        return "DisorederUnit -- disg: {}\n".format(self.disg) + " ".join([str(l) for l in self.labels])
+
+    def __str__(self):
+        return self.__repr__()
+
+    def __eq__(self, other):
+        return set(self.labels) == set(other.labels)
+
+    def __len__(self):
+        return len(self.sites)
+
+    def __hash__(self):
+        return hash(set(self.labels))
+
+    def is_likely_counterpart(self, other):
+        if not isinstance(other, DisorderUnit):
+            return False
+        if self == other:
+            return False
+        if self.composition != other.composition:
+            return False
+        if set(self.eis) == set(other.eis):
             return True
-        return False
+        if abs(self.occu + other.occu - 1) < 1e-5:
+            return True
 
-    op_identities = np.zeros((len(ops), len(ops)), dtype=bool)
-    for i, j in itertools.combinations(range(len(ops)), 2):
-        ixyzs = op_xyzs[i]
-        jxyzs = op_xyzs[j]
-        if two_xyzs_close(ixyzs, jxyzs):
-            op_identities[i][j] = True
-            op_identities[j][i] = True
+    @staticmethod
+    def find_counterpart(u1, u2s):
+        """
 
-    groups = [[0]]
-    for i in range(len(ops)):
-        for ig in range(len(groups)):
-            if all(op_identities[i][j] for j in groups[ig]):
-                groups[ig].append(i)
-        if i not in [item for sublist in groups for item in sublist]:
-            groups.append([i])
-    unique_ops = [ops[g[0]] for g in groups]
+        :type u1: DisorderUnit
+        :type u2s: [DisorderUnit]
+        """
+        k = lambda x: np.linalg.norm(x.geoc - u1.geoc)
+        potential_u2 = sorted(u2s, key=k)
+        potential_u2 = [u2 for u2 in potential_u2 if u1.is_likely_counterpart(u2)]
+        try:
+            u2 = potential_u2[0]
+            if np.linalg.norm(u2.geoc - u1.geoc) > 1.5:
+                warnings.warn('at least one disunit is paired with another that is >1.5 A far away, unlikely')
+            return u2
+        except IndexError:
+            raise DisorderParserError('cannot find counterpart for DisorderUnit: {}'.format(u1))
 
-    new_psites = []
-    for ps in psites:
-        iasym = 0
-        for op in unique_ops:
-            new_coord = op.operate(ps.frac_coords)
-            new_coord = np.array([i - math.floor(i) for i in new_coord])
-            new_properties = deepcopy(ps.properties)
-            new_properties['iasym'] = iasym
-            new_ps = PeriodicSite(ps.species_string, new_coord, ps.lattice, properties=deepcopy(new_properties))
-            new_psites.append(new_ps)
-            iasym += 1
+    def __init__(self, psites: [PeriodicSite], disg: str):
+        """
+        a portion of an asymmetric unit representing one possibility
 
-    return new_psites, unique_ops
+        a pair of DisUnit is the basis of disorder, assuming maximal entropy
+        """
+        self.disg = disg
+        self.sites = psites
+        self.labels = [AtomLabel(s.properties['label']) for s in self.sites]
+        self.eis = [al.ei for al in self.labels]
+        self.symbols = [l.element for l in self.labels]
+        self.composition = tuple(sorted(self.symbols))
+        occus = [s.properties['occu'] for s in self.sites]
+        disgs = [s.properties['disg'] for s in self.sites]
+        if len(set(occus)) != 1:
+            raise DisorderParserError('occu is not uniform for {}'.format(str(self)))
+        if len(set(disgs)) != 1:
+            raise DisorderParserError('disg is not uniform for {}'.format(str(self)))
+        self.occu = occus[0]
+        self.disg = disgs[0]
 
-
-def braket2float(s):
-    try:
-        return float(s)
-    except ValueError:
-        if isinstance(s, str):
-            return str2float(s)
-        raise TypeError('cannot parse {} into float'.format(s))
-
-
-def get_psite_by_atomlable(psites, al):
-    for s in psites:
-        if s.properties['label'] == str(al):
-            return s
-    raise AtomLabelError('cannot find psite with atomlable {}'.format(str(al)))
-
-
-def get_psite_label(s):
-    return AtomLabel(s.properties['label'])
-
-
-def get_nearest_label(data: dict, ali: AtomLabel, neighbor_labels: [AtomLabel], lattice: Lattice, cutoff=1.5):
-    """
-    given a list of potential neighbouring AtomLable, get the one that is closest and has the same element
-
-    :param data:
-    :param ali:
-    :param neighbor_labels:
-    :param lattice:
-    :param cutoff:
-    :return:
-    """
-    ali_nbs_dictance = []
-    xi, yi, zi, symboli, occu, disgrp = data[ali]
-    fci = [xi, yi, zi]
-    for alj in neighbor_labels:
-        if alj == ali:
-            continue
-        xj, yj, zj, symbolj = data[alj][:4]
-        fcj = [xj, yj, zj]
-        if symboli != symbolj:
-            continue
-        v, d2 = pbc_shortest_vectors(lattice, fci, fcj, return_d2=True)
-        dij = math.sqrt(d2[0, 0])
-        ali_nbs_dictance.append([alj, dij])
-    if len(ali_nbs_dictance) == 0:
-        raise DisorderParserError(
-            'cannot find any same-symbol neighbors of label {}'.format(ali.label))
-    ali_nbs_dictance = sorted(ali_nbs_dictance, key=lambda x: x[1])
-    nnb, nnbdis = ali_nbs_dictance[0]
-    if nnbdis > cutoff:
-        raise DisorderParserError(
-            'cannot find any same-symbol neighbors of label {} within {}'.format(
-                ali.label, cutoff))
-    return nnb
-
-
-class CifFileError(Exception): pass
-
-
-class DisorderParserError(Exception): pass
-
-
-class AtomLabelError(Exception): pass
+    @property
+    def geoc(self):
+        """
+        in cart
+        """
+        c = np.zeros(3)
+        for s in self.sites:
+            c += s.coords
+        return c / len(self.sites)
 
 
 class DisParser:  # chaos parser sounds cooler?
 
-    labels: [AtomLabel]
-
     def __init__(self, cifstring: str):
         """
         this can only handle one alternative configuration for the asymmetric unit
+
+        1.
 
         one asymmetric unit == inv_conf + disg1 + disg2
 
@@ -389,36 +438,79 @@ class DisParser:  # chaos parser sounds cooler?
         for dis-1, dis-2, we fill the occu, disg fields in cifdata, so they can be coonverted to dis-0
 
         Attributes:
-            data[atomlabel] = [x, y, z, symbol, occu, disgrp]
+            data[atomlabel] = [x, y, z, symbol, occu, disgrp] this will be used to write config cif file
         """
+        # prepare_data into cifdata
         self.cifstring = cifstring
         self.identifier, self.cifdata = get_pmg_dict(self.cifstring)
+        self.cifdata['_atom_site_fract_x'] = [braket2float(x) for x in self.cifdata['_atom_site_fract_x']]
+        self.cifdata['_atom_site_fract_y'] = [braket2float(x) for x in self.cifdata['_atom_site_fract_y']]
+        self.cifdata['_atom_site_fract_z'] = [braket2float(x) for x in self.cifdata['_atom_site_fract_z']]
 
-        if '_atom_site_occupancy' in self.cifdata.keys() and '_atom_site_disorder_group' in self.cifdata.keys():
+        for i in range(len(self.cifdata['_atom_site_type_symbol'])):
+            if self.cifdata['_atom_site_type_symbol'][i] == 'D':
+                warnings.warn('D is considered as H in the ciffile _atom_site_type_symbol!')
+                self.cifdata['_atom_site_type_symbol'][i] = 'H'
+
+        # check cif file
+        try:
+            labels = self.cifdata['_atom_site_label']
+        except KeyError:
+            raise CifFileError('no _atom_site_label field in the cifstring!')
+        if len(labels) != len(set(labels)):
+            warnings.warn('duplicate labels found in the cifstring, reassign labels!')
+            for i in range(len(self.cifdata['_atom_site_label'])):
+                label = AtomLabel(self.cifdata['_atom_site_label'][i])
+                self.cifdata['_atom_site_label'][i] = label.element + str(i) + label.tag
+            # raise CifFileError('duplicate labels found in the cifstring!')
+
+        # "global" info
+        self.labels = [AtomLabel(lab) for lab in labels]
+        self.eis = [al.ei for al in self.labels]
+        self.tags = [al.tag for al in self.labels]
+        self.latparams = [self.cifdata[k] for k in latt_labels]
+        self.lattice = Lattice.from_parameters(*[braket2float(p) for p in self.latparams], True)
+
+        if '_atom_site_disorder_group' in self.cifdata.keys():
             self.was_fitted = True
+
+            # deal with e.g. k06071
+            for i in range(len(self.cifdata['_atom_site_disorder_group'])):
+                if self.cifdata['_atom_site_disorder_group'][i] != ".":
+                    dv = self.cifdata['_atom_site_disorder_group'][i]
+                    dv = abs(int(dv))
+                    self.cifdata['_atom_site_disorder_group'][i] = dv
+
+            disgs = self.cifdata['_atom_site_disorder_group']
+
+            disg_vals = list(set([disg for disg in disgs if disg != "."]))
+            disg_vals.sort()
+            for i in range(len(self.cifdata['_atom_site_disorder_group'])):
+                for j in range(len(disg_vals)):
+                    dv = disg_vals[j]
+                    if self.cifdata['_atom_site_disorder_group'][i] == dv:
+                        self.cifdata['_atom_site_disorder_group'][i] = str(j + 1)
+                        break
+            if '_atom_site_occupancy' not in self.cifdata.keys():
+                occus = []
+                for disg in self.cifdata['_atom_site_disorder_group']:
+                    if disg == '.':
+                        occus.append(1)
+                    else:
+                        if int(disg) & 1:
+                            occus.append(0.51)
+                        else:
+                            occus.append(0.49)
+                self.cifdata['_atom_site_occupancy'] = occus
         else:
             self.was_fitted = False
 
         if self.was_fitted:
             self.cifdata['_atom_site_occupancy'] = [braket2float(x) for x in self.cifdata['_atom_site_occupancy']]
-            self.cifdata['_atom_site_disorder_group'] = [braket2float(x) for x in
-                                                         self.cifdata['_atom_site_disorder_group']]
+            # self.cifdata['_atom_site_disorder_group'] = [braket2float(x) for x in
+            #                                              self.cifdata['_atom_site_disorder_group']]
 
-        self.cifdata['_atom_site_fract_x'] = [braket2float(x) for x in self.cifdata['_atom_site_fract_x']]
-        self.cifdata['_atom_site_fract_y'] = [braket2float(x) for x in self.cifdata['_atom_site_fract_y']]
-        self.cifdata['_atom_site_fract_z'] = [braket2float(x) for x in self.cifdata['_atom_site_fract_z']]
-        try:
-            labels = self.cifdata['_atom_site_label']
-        except KeyError:
-            raise CifFileError('no _atom_site_label field in the cifstring!')
-        self.labels = [AtomLabel(lab) for lab in labels]
-        self.eis = [al.ei for al in self.labels]
-        self.tags = [al.tag for al in self.labels]
-        if len(self.labels) != len(set(self.labels)):
-            raise CifFileError('duplicate labels found in the cifstring!')
-        self.latparams = [self.cifdata[k] for k in latt_labels]
-        self.lattice = Lattice.from_parameters(*[braket2float(p) for p in self.latparams], True)
-
+        # prepare self.data to be used in parsing
         data = map(list, zip(
             self.cifdata['_atom_site_fract_x'],
             self.cifdata['_atom_site_fract_y'],
@@ -438,29 +530,6 @@ class DisParser:  # chaos parser sounds cooler?
                 self.data[al].append(None)
                 self.data[al].append(None)
 
-    # def dis0data_to_disunit_pairs(self):
-    #     psites = self.get_psites_from_data()
-    #     disu_pairs, inv_conf = DisUnit.get_disunit_pairs_from_asym(psites)
-    #     return disu_pairs, inv_conf
-
-    def as_dict(self):
-        d = OrderedDict()
-        d['cifstring'] = self.cifstring
-        d['cifdata'] = self.cifdata
-        data = {}
-        for k in self.data.keys():
-            data[str(k)] = self.data[k]
-        d['data'] = data
-        d['was_fitted'] = self.was_fitted
-        d['identifier'] = self.identifier
-        d['disorder_class'] = self.classify()
-        return d
-
-    @classmethod
-    def from_dict(cls, d):
-        cifs = d['cifstring']
-        return cls(cifs)
-
     def get_psites_from_data(self):
         """
         get psites from self.data, each psite will be assigned properties with fields
@@ -479,14 +548,6 @@ class DisParser:  # chaos parser sounds cooler?
                                    lattice=self.lattice))
         return ps
 
-    @property
-    def labels_with_nonword_suffix(self):
-        return [l for l in self.labels if l.is_tag_nonword]
-
-    @property
-    def labels_with_word_or_no_suffix(self):
-        return [l for l in self.labels if not l.is_tag_nonword]
-
     @classmethod
     def from_ciffile(cls, fn):
         with open(fn, 'r') as f:
@@ -497,39 +558,133 @@ class DisParser:  # chaos parser sounds cooler?
         """
         one cif file belongs to one of the following categories:
 
-            nodis-0: no dup in self.eis, set(self.tags) is {""}
+            dis-alpha: was fitted with, at least, disorder group
 
-            dis-1:  set(self.tags) is ["", <non-word>, <word>, ...], EI<non-word> -- EI,
+            nodis-0: no dup in eis, one type of unique tag
 
-            note x17059.cif has hydrogens like H12A -- H12D, this can only be captured
-            by previously fitted disg and occu, in general there
-            should be a check on whether disgs identified by the parser are identical to previously fitted
+            dis-beta: dup in eis, EIx -- EIy, x or y can be empty, e.g. c17013.cif
 
-            dis-2:  set(self.tags) is ["", <non-word>, <word>, ...], EI<non-word> -- E'I' e.g. ALOVOO.cif
-
-            nodis-1: dup in self.eis, set(self.tags) is ["", <word>, ...], this could be a dis as in ASIXEH
+            dis-gamma: no dup in eis, EIx -- EJy, x or y can be empty, e.g. ALOVOO.cif
 
             weird: else
-        """
-        tag_set = set(self.tags)
-        if self.was_fitted:
-            return "dis-0"
 
-        elif tag_set == {""}:
+            note x17059.cif has hydrogens like H12A -- H12D, this can only be captured
+            by previously fitted disg and occu (dis-a), in general there
+            should be a check on whether disgs identified by the parser are identical to previously fitted
+        """
+        if self.was_fitted:
+            return "dis-alpha"
+
+        # we look at labels of non-hydrogen sites
+        labels = [l for l in self.labels if l.element != 'H']
+        tags = [l.tag for l in labels]
+        eis = [l.ei for l in labels]
+        unique_tags = list(set(tags))
+        unique_eis = list(set(eis))
+
+        if len(unique_tags) == 1 and len(unique_eis) == len(eis):
+            for al in self.labels:
+                self.data[al][4] = 1
+                self.data[al][5] = '.'
             return "nodis-0"
-        else:
-            len_nonword_tagset = len(set([l.tag for l in self.labels if l.is_tag_nonword]))
-            if len_nonword_tagset == 1:
-                if all(len(al.get_labels_with_same_ei(self.labels)) == 0 for al in self.labels_with_nonword_suffix):
-                    return 'dis-2'
-                if all(len(al.get_labels_with_same_ei(self.labels)) == 1 for al in self.labels_with_nonword_suffix):
-                    return 'dis-1'
-                else:
-                    return 'weird'
-            elif len_nonword_tagset > 1:
-                raise DisorderParserError('more than one possible nonword suffix')
+
+        u_tags = list(set(self.tags))
+        u_nonalphabet_nonempty_tags = [t for t in u_tags if not re.search(r"[a-zA-Z]", t) and t != ""]
+        if len(u_nonalphabet_nonempty_tags) == 1:
+            minor_tag = u_nonalphabet_nonempty_tags[0]
+            minor_als = AtomLabel.get_labels_with_tag(minor_tag, self.labels)
+            disg2 = []
+            disg1 = []
+            classification = ""
+            # try pairing based on ei, EIx -- EIy
+            for minor_al in minor_als:
+                potential_aljs = [l for l in self.labels if l.ei == minor_al.ei and l != minor_al]
+                if len(potential_aljs) == 0:
+                    classification = "dis-gamma"
+                    break
+                potential_aljs.sort(key=lambda x: x.tag)
+                alj = potential_aljs[0]
+                disg1.append(alj)
+                disg2.append(minor_al)
+            if classification == "":
+                classification = "dis-beta"
             else:
-                return 'nodis-1'
+                # EIx -- EJy
+                disg2 = []
+                disg1 = []
+                cutoff = 2.5
+                warnings.warn(
+                    'W: trying to prepare_data disorder in dis-gamma with cutoff {}, this is unreliable!'.format(
+                        cutoff))
+                major_als = [l for l in self.labels if l not in minor_als]
+                assigned_major = []
+                for minor_al in minor_als:
+                    alj = self.get_nearest_label(minor_al, [l for l in major_als if l not in assigned_major],
+                                                 self.lattice, cutoff)
+                    assigned_major.append(alj)
+                    disg1.append(alj)
+                    disg2.append(minor_al)
+                classification = "dis-gamma"
+            inv = [l for l in self.labels if l not in disg1 + disg2]
+            for al in inv:
+                self.data[al][4] = 1
+                self.data[al][5] = '.'
+            for al in disg1:
+                self.data[al][4] = 0.51
+                self.data[al][5] = '1'
+            for al in disg2:
+                self.data[al][4] = 0.49
+                self.data[al][5] = '2'
+            return classification
+
+        if len(unique_tags) > 0 and len(eis) != len(unique_eis):
+            # try pairing based on ei, EIx -- EIy
+            for ei in self.eis:
+                als = [l for l in self.labels if l.ei == ei]
+                if len(als) == 1:
+                    al = als[0]
+                    self.data[al][4] = 1
+                    self.data[al][5] = '.'
+                else:
+                    als.sort(key=lambda x: x.tag)
+                    ali = als[0]
+                    alj = als[1]
+                    self.data[ali][4] = 0.51
+                    self.data[ali][5] = '1'
+                    self.data[alj][4] = 0.49
+                    self.data[alj][5] = '2'
+            return "dis-beta"
+
+        raise NotImplementedError("this structure is classified as weird, better to check ciffile")
+
+    def get_nearest_label(self, ali: AtomLabel, neighbor_labels: [AtomLabel], lattice: Lattice, cutoff=2.5):
+        """
+        given a list of potential neighbouring AtomLable, get the one that is closest and has the same element
+        """
+        data = self.data
+        ali_nbs_dictance = []
+        xi, yi, zi, symboli, occu, disgrp = data[ali]
+        fci = [xi, yi, zi]
+        for alj in neighbor_labels:
+            if alj == ali:
+                continue
+            xj, yj, zj, symbolj = data[alj][:4]
+            fcj = [xj, yj, zj]
+            if symboli != symbolj:
+                continue
+            v, d2 = pbc_shortest_vectors(lattice, fci, fcj, return_d2=True)
+            dij = math.sqrt(d2[0, 0])
+            ali_nbs_dictance.append([alj, dij])
+        if len(ali_nbs_dictance) == 0:
+            raise ValueError(
+                'cannot find any same-symbol neighbors of label {}'.format(ali.label))
+        ali_nbs_dictance = sorted(ali_nbs_dictance, key=lambda x: x[1])
+        nnb, nnbdis = ali_nbs_dictance[0]
+        if nnbdis > cutoff:
+            raise ValueError(
+                'cannot find any same-symbol neighbors of label {} within {}'.format(
+                    ali.label, cutoff))
+        return nnb
 
     @staticmethod
     def data2cifdata(data, cifdata):
@@ -564,94 +719,11 @@ class DisParser:  # chaos parser sounds cooler?
         newdata['_atom_site_disorder_group'] = idisgs
         return newdata
 
-    def parse(self):
+    def prepare_data(self):
         classification = self.classify()
         print('{} thinks this cif file belongs to class {}'.format(self.__class__.__name__, classification))
-        if classification in ['nodis-1', 'nodis-0']:
-            self.nodis_to_dis0()
-        elif classification == 'weird':
-            raise CifFileError('classified as weird, check your cif input please')
-
-        elif classification == 'dis-0':
-            pass
-
-        elif classification == 'dis-1':
-            self.dis1_to_dis0()
-
-        elif classification == 'dis-2':
-            self.dis2_to_dis0()
-        else:
-            raise DisorderParserError('unknown classification!')
-        # disunit_pairs, inv_conf = self.dis0data_to_disunit_pairs()
-        # return disunit_pairs, inv_conf
-
-    def nodis_to_dis0(self):
-        for al in self.labels:
-            self.data[al][4] = 1
-            self.data[al][5] = '.'
-
-    def alijdict_to_disgs_and_update_data(self, ali2alj: dict):
-        inv_conf = []
-        disg_a = []  # alj, ends with word/empty suffix
-        disg_b = []  # ali, ends with non-word suffix
-        for al in self.labels:
-            if al in ali2alj.keys():
-                disg_b.append(al)
-                self.data[al][4] = 0.49
-                self.data[al][5] = '2'
-            elif al in ali2alj.values():
-                disg_a.append(al)
-                self.data[al][4] = 0.51
-                self.data[al][5] = '1'
-            else:
-                inv_conf.append(al)
-                if not self.was_fitted:
-                    self.data[al][4] = 1
-                    self.data[al][5] = '.'
-        al_b2a = ali2alj
-        al_a2b = {v: k for k, v in ali2alj.items()}
-
-        return al_a2b, al_b2a, disg_a, disg_b, inv_conf
-
-    def dis1_to_dis0(self):
-        """
-        C20 -- C20?
-
-        dis-1:  set(self.tags) is ["", <non-word>, <word>, ...], EI<non-word> -- EI,
-        """
-        ali2alj = OrderedDict()
-        for ali in self.labels_with_nonword_suffix:
-            potential_matches = self.labels_with_word_or_no_suffix
-            possible_alj = ali.get_labels_with_same_ei(potential_matches)
-            if len(possible_alj) != 1:
-                raise DisorderParserError('possible match for {} is not 1'.format(ali))
-            alj = possible_alj[0]
-            ali2alj[ali] = alj
-
-        return self.alijdict_to_disgs_and_update_data(ali2alj)
-
-    def dis2_to_dis0(self, cutoff=1.5):
-        """
-        c20 <--> c16?
-
-        dis-2:  set(self.tags) is ["", <non-word>, <word>, ...], EI<non-word> -- E'I' e.g. ALOVOO.cif
-
-        will write default occu and disg to self.data
-
-        this is rather unreliable, user should be warned
-        for each label with <non-word> tag, find nearest label (within the cutoff) as a counterpart
-        exception includes AGUHUG.cif (H -- OH disorder)
-
-        """
-        warnings.warn('W: trying to parse disorder in dis-2 with cutoff {}, this is unreliable!'.format(cutoff))
-        ali2alj = OrderedDict()
-        for ali in self.labels_with_nonword_suffix:
-            potential_matches = self.labels_with_word_or_no_suffix
-            alj = get_nearest_label(self.data, ali, [l for l in potential_matches if
-                                                     l not in ali2alj.keys() and l not in ali2alj.values()],
-                                    self.lattice, cutoff)
-            ali2alj[ali] = alj
-        return self.alijdict_to_disgs_and_update_data(ali2alj)
+        # from pprint import pprint
+        # pprint(self.data)
 
     @staticmethod
     def get_vanilla_configs(psites: [PeriodicSite]):
@@ -677,34 +749,35 @@ class DisParser:  # chaos parser sounds cooler?
         return disgs
 
     @staticmethod
-    def get_site_location(pstructure: Structure, key='label'):
+    def get_site_location_by_key(psites: [PeriodicSite], key='label'):
         """
-        loc[key_related_to_a_site] = 'bone'/'sidechain'
+        loc[key] = 'bone'/'sidechain'
         must have 'imol' 'disg' 'siteid' and <key> assigned
-
-        :param pstructure: a clean structure
-        :param key:
-        :return:
         """
-        from pymatgen.core.sites import Site
-        from ocelot.schema.conformer import MolConformer
         res = {}
-        for i in range(len(pstructure)):
-            pstructure[i].properties['siteid'] = i
-        psites = deepcopy(pstructure.sites)
-        for imol, group in groupby(psites, key=lambda x: x.properties['imol']):
+        k = lambda x: x.properties['imol']
+        psites.sort(key=k)
+        for imol, group in groupby(psites, key=k):
             obc_sites = []
             for ps in group:
                 obc_sites.append(Site(ps.species_string, ps.coords, properties=ps.properties))
-            molconformer = MolConformer.from_sites(obc_sites, siteids=[s.properties['siteid'] for s in obc_sites])
+            try:
+                molconformer = MolConformer.from_sites(obc_sites, siteids=[s.properties['siteid'] for s in obc_sites])
+            except ConformerInitError:
+                raise DisorderParserError('cannot init legit conformer to identify site location')
             for sid in molconformer.siteids:
-                if sid in molconformer.backbone.siteids:
-                    res[molconformer.get_site_byid(sid).properties[key]] = 'bone'
+                site = molconformer.get_site_byid(sid)
+                if molconformer.backbone is None:
+                    res[site.properties[key]] = 'sidechain'
                 else:
-                    res[molconformer.get_site_byid(sid).properties[key]] = 'sidechain'
+                    if sid in molconformer.backbone.siteids:
+                        res[site.properties[key]] = 'bone'
+                    else:
+                        res[site.properties[key]] = 'sidechain'
         return res
 
-    def to_configs(self, write_files=False, scaling_mat=(1, 1, 1), assign_siteids=True, vanilla=True):
+    def to_configs(self, write_files=False, scaling_mat=(1, 1, 1), assign_siteids=True, vanilla=True,
+                   supressdisorder=True):
         """
         return
             pstructure, pmg structure is the unit cell structure with all disordered sites
@@ -712,311 +785,111 @@ class DisParser:  # chaos parser sounds cooler?
             mols, a list of pmg mol with disordered sties
             confs, [[conf1, occu1], ...], conf1 is a clean structure
         """
-        self.parse()  # edit self.data
-
+        self.prepare_data()  # edit self.data
         asym_psites = self.get_psites_from_data()  # assign fields: occu, disg, label
         raw_symmops = get_symmop(self.cifdata)
+
         psites, symmops = apply_symmop(asym_psites, raw_symmops)  # assign field: iasym
         pstructure = Structure.from_sites(psites, to_unit_cell=True)
+        if write_files:
+            pstructure.to('cif', 'dp_wrapcell.cif')
+
+        # assign siteids here if unit cell
+        if np.prod(scaling_mat) == 1.0 and assign_siteids:
+            print('siteid is assigned to unitcell in dp.to_configs')
+            for isite in range(len(pstructure)):
+                pstructure[isite].properties['siteid'] = isite
+
         # sc, n_unitcell = ConfigConstructor.build_supercell_full_disorder(pstructure, scaling_mat)
         mols, unwrap_str, unwrap_pblock_list = PBCparser.unwrap_and_squeeze(pstructure)  # assign field: imol
 
-        sc, n_unitcell = ConfigConstructor.build_supercell_full_disorder(unwrap_str, scaling_mat)
-        if assign_siteids:
-            print('siteid is assigned to supercell in dp.to_configs')
+        if write_files:
+            unwrap_str.to('cif', 'dp_unwrapunit.cif')
+
+        sc, n_unitcell = ConfigConstructor.build_supercell_full_disorder(unwrap_str, scaling_mat)  # assign field: icell
+
+        if write_files:
+            sc.to('cif', 'dp_supercell.cif')
+
+        if np.prod(scaling_mat) != 1.0 and assign_siteids:
+            warnings.warn(
+                'siteid is assigned to supercell in dp.to_configs, notice in this case, sites in mols, unwrap_str, unwrap_pblock_list mols do not have siteids!'
+            )
             for isite in range(len(sc)):
                 sc[isite].properties['siteid'] = isite
 
-        iconf = 0
-        confs = []
         if vanilla:
+            iconf = 0
             conf_structures = self.get_vanilla_configs(sc.sites)
+            # # it is possible to have the situation where unwrapping disordered sites lead to super-large molecule
+            # # e.g. x15029, this can be dealt with unwrpa again, I do not think this is common tho.
+            # # if use this you may want to reassign imol field
+            # for c in conf_structures:
+            #     _, struct, _ = PBCparser.unwrap(c)
+            #     unwrap_again.append(struct)
+            # confs = [[c, 0.5] for c in conf_structures]
             confs = [[c, 0.5] for c in conf_structures]
             if write_files:
                 for conf in conf_structures:
-                    conf.to('cif', 'conf_{}.cif'.format(iconf))  # pymatgen somehow does not write disg field in the cif
+                    conf.to('cif',
+                            'vconf_{}.cif'.format(iconf))  # pymatgen somehow does not write disg field in the cif
                     iconf += 1
-                pstructure.to('cif', 'confgen_ps.cif')
-                unwrap_str.to('cif', 'confgen_unwrap.cif')
+            if len(set(c.composition for c in conf_structures)) > 1:
+                warnings.warn('different compositions in confs! better use vconf_0!')
+                # raise DisorderParserError('different compositions in confs!')
             return pstructure, unwrap_str, mols, sorted(confs, key=lambda x: x[1], reverse=True)
 
-        disunit_pairs, inv_conf = DisUnit.get_disunit_pairs_from_asym(asym_psites)
-        cc = ConfigConstructor(disunit_pairs, inv_conf)
-        conf_ins = cc.gen_instructions(disunit_pairs, len(symmops), n_unitcell)
+        if supressdisorder:
+            conf_structures = self.get_vanilla_configs(sc.sites)
+            locbysitelabel = {}
+            for conf in conf_structures:
+                try:
+                    loc_conf = self.get_site_location_by_key(conf.sites, 'label')
+                except DisorderParserError:
+                    warnings.warn('cannot get site location, supressdisorder is disabled')
+                    loc_conf = {}
+                for k in loc_conf:
+                    locbysitelabel[k] = loc_conf[k]
+
+            def is_sidechain(label: AtomLabel):
+                if locbysitelabel[str(label)] == 'sidechain':
+                    return True
+                return False
+        else:
+            is_sidechain = None
+
+        iconf = 0
+        confs = []
+        conf_structures = []
+        au = AsymmUnit(asym_psites)
+        au_labels, au_inv_labels, disordered_portions = au.infodict(is_sidechain)
+        inv_labels = [l.label for l in au_inv_labels]
+        conf_ins = ConfigConstructor.gen_instructions(disordered_portions, len(symmops), n_unitcell)
         for confin in conf_ins:
-            conf, conf_occu = ConfigConstructor.dissc_to_config(sc, disunit_pairs, confin)
-            confs.append([conf, conf_occu])  # this molecule still contains disordered sites!
+            conf, conf_occu = ConfigConstructor.dissc_to_config(sc, inv_labels, disordered_portions, confin)
+            confs.append([conf, conf_occu])
+            conf_structures.append(conf)
             if write_files:
                 conf.to('cif', 'conf_{}.cif'.format(iconf))  # pymatgen somehow does not write disg field in the cif
             iconf += 1
-        if write_files:
-            pstructure.to('cif', 'confgen_ps.cif')
-            # unwrap_str_sorted.to('cif', 'confgen_unwrap.cif')
+        if len(set(c.composition for c in conf_structures)) > 1:
+            warnings.warn('different compositions in confs! better use vconf_0!')
+            # raise DisorderParserError('different compositions in confs!')
         return pstructure, unwrap_str, mols, sorted(confs, key=lambda x: x[1], reverse=True)
-
-
-def get_symmop(data):
-    symops = []
-    for symmetry_label in ["_symmetry_equiv_pos_as_xyz",
-                           "_symmetry_equiv_pos_as_xyz_",
-                           "_space_group_symop_operation_xyz",
-                           "_space_group_symop_operation_xyz_"]:
-        if data.get(symmetry_label):
-            xyz = data.get(symmetry_label)
-            if isinstance(xyz, str):
-                msg = "A 1-line symmetry op P1 CIF is detected!"
-                warnings.warn(msg)
-                xyz = [xyz]
-            try:
-                symops = [SymmOp.from_xyz_string(s)
-                          for s in xyz]
-                break
-            except ValueError:
-                continue
-    if not symops:
-        # Try to parse symbol
-        for symmetry_label in ["_symmetry_space_group_name_H-M",
-                               "_symmetry_space_group_name_H_M",
-                               "_symmetry_space_group_name_H-M_",
-                               "_symmetry_space_group_name_H_M_",
-                               "_space_group_name_Hall",
-                               "_space_group_name_Hall_",
-                               "_space_group_name_H-M_alt",
-                               "_space_group_name_H-M_alt_",
-                               "_symmetry_space_group_name_hall",
-                               "_symmetry_space_group_name_hall_",
-                               "_symmetry_space_group_name_h-m",
-                               "_symmetry_space_group_name_h-m_"]:
-            sg = data.get(symmetry_label)
-
-            if sg:
-                sg = sub_spgrp(sg)
-                try:
-                    spg = space_groups.get(sg)
-                    if spg:
-                        symops = SpaceGroup(spg).symmetry_ops
-                        msg = "No _symmetry_equiv_pos_as_xyz type key found. " \
-                              "Spacegroup from %s used." % symmetry_label
-                        warnings.warn(msg)
-                        break
-                except ValueError:
-                    # Ignore any errors
-                    pass
-
-                try:
-                    for d in _get_cod_data():
-                        if sg == re.sub(r"\s+", "",
-                                        d["hermann_mauguin"]):
-                            xyz = d["symops"]
-                            symops = [SymmOp.from_xyz_string(s)
-                                      for s in xyz]
-                            msg = "No _symmetry_equiv_pos_as_xyz type key found. " \
-                                  "Spacegroup from %s used." % symmetry_label
-                            warnings.warn(msg)
-                            break
-                except Exception:
-                    continue
-
-                if symops:
-                    break
-    if not symops:
-        # Try to parse International number
-        for symmetry_label in ["_space_group_IT_number",
-                               "_space_group_IT_number_",
-                               "_symmetry_Int_Tables_number",
-                               "_symmetry_Int_Tables_number_"]:
-            if data.get(symmetry_label):
-                try:
-                    i = int(braket2float(data.get(symmetry_label)))
-                    symops = SpaceGroup.from_int_number(i).symmetry_ops
-                    break
-                except ValueError:
-                    continue
-
-    if not symops:
-        msg = "No _symmetry_equiv_pos_as_xyz type key found. " \
-              "Defaulting to P1."
-        warnings.warn(msg)
-        symops = [SymmOp.from_xyz_string(s) for s in ['x', 'y', 'z']]
-
-    return symops
-
-
-class DisUnitError(Exception): pass
-
-
-class DisUnit:
-    def __repr__(self):
-        return " ".join([str(l) for l in self.labels])
-
-    def __str__(self):
-        return self.__repr__()
-
-    def __eq__(self, other):
-        return set(self.labels) == set(other.labels)
-
-    def __hash__(self):
-        return hash(set(self.labels))
-
-    def __init__(self, psites: [PeriodicSite]):
-        """
-        a portion of an asymmetric unit representing one possibility
-
-        a pair of DisUnit is the basis of disorder, assuming maximal entropy
-        """
-        self.sites = psites
-        self.labels = [AtomLabel(s.properties['label']) for s in self.sites]
-        occus = [s.properties['occu'] for s in self.sites]
-        disgs = [s.properties['disg'] for s in self.sites]
-        self.occu = occus[0]
-        self.disg = disgs[0]
-        self.symbols = [l.element for l in self.labels]
-        self.composition = tuple(sorted(self.symbols))
-        if len(set(occus)) != 1:
-            raise DisUnitError('occu is not uniform for {}'.format(str(self)))
-        if len(set(disgs)) != 1:
-            raise DisUnitError('disg is not uniform for {}'.format(str(self)))
-
-    @property
-    def geoc(self):
-        c = np.zeros(3)
-        for s in self.sites:
-            c += s.coords
-        return c / len(self.sites)
-
-    @staticmethod
-    def get_disunit_pairs_from_asym(psites):
-        """
-        get a list of xor disunit pairs
-
-        :param psites:
-        :return: [[ua, ua'], [ub, ub'], ...]
-        """
-        units, inv_conf = DisUnit.partition_asymmetric_unit(psites)
-        pairs = []
-        assigned = []
-        for i in range(len(units)):
-            if i not in assigned:
-                u1 = units[i]
-                potential_u2 = []
-                for j in range(i + 1, len(units)):
-                    if j not in assigned:
-                        u2 = units[j]
-                        if abs(u1.occu + u2.occu - 1) < 1e-5 and u1.composition == u2.composition:
-                            potential_u2.append([u2, np.linalg.norm(u2.geoc - u1.geoc), j])
-                potential_u2.sort(key=lambda x: x[1])
-                u2_real, u2_dist, u2_j = potential_u2[0]
-                if u2_dist > 1.5:
-                    warnings.warn('at least one disunit is paired with another that is >1.5 A far away, unlikely')
-                    # raise DisUnitError('at least one disunit is paired with another that is >1.5 A far away, highly unlikely')
-                pairs.append([u1, u2_real])
-                assigned += [i, u2_j]
-        return pairs, inv_conf
-
-    @staticmethod
-    def partition_asymmetric_unit(psites):
-        """
-        all disorder units in a flat list within in one asym unit
-
-        :param psites:
-        :return:
-        """
-        inv_conf = []
-        disordered_sites = []
-        for ps in psites:
-            if abs(ps.properties['occu'] - 1) > 1e-3:
-                disordered_sites.append(ps)
-            else:
-                inv_conf.append(ps)
-        # first group by occu
-        group_by_occu = [list(v) for l, v in groupby(sorted(disordered_sites, key=lambda x: x.properties['occu']),
-                                                     lambda x: x.properties['occu'])]
-        # within one group, group again by connection
-        units = []
-        for i in range(len(group_by_occu)):
-            group = group_by_occu[i]
-            mols, unwrap_str_sorted, unwrap_pblock_list = PBCparser.unwrap(Structure.from_sites(group))
-            """
-            the problem here is it thinks a(a')-b-c(c')-d(d') has two pairs of disunit, as there is no disorder at b
-            if a pblock is not far away from another, they should be one pblock
-            """
-            connected_blocks = DisUnit.get_connected_pblock(unwrap_pblock_list)
-            for pblock in connected_blocks:
-                units.append(DisUnit(pblock))
-        return units, inv_conf
-
-    @staticmethod
-    def get_connected_pblock(pblocks, cutoff=4.0):
-        from scipy.spatial.distance import cdist
-        import networkx as nx
-
-        def get_coords(pb: [PeriodicSite]):
-            coords = np.zeros((len(pb), 3))
-            for i in range(len(pb)):
-                coords[i] = pb[i].coords
-            return coords
-
-        def get_shortest_distance_between_blocks(pb1, pb2):
-            pb1coords = get_coords(pb1)
-            pb2coords = get_coords(pb2)
-            distmat = cdist(pb1coords, pb2coords)
-            minid = np.unravel_index(np.argmin(distmat, axis=None), distmat.shape)
-            return distmat[minid]
-
-        def get_block_graph(distmat, cutoff):
-            g = nx.Graph()
-            for i in range(len(distmat)):
-                g.add_node(i)
-                for j in range(i + 1, len(distmat)):
-                    g.add_node(j)
-                    if distmat[i][j] < cutoff:
-                        g.add_edge(i, j)
-            return g
-
-        distmat_pblocks = np.zeros((len(pblocks), len(pblocks)))
-        for i in range(len(pblocks)):
-            for j in range(i + 1, len(pblocks)):
-                distmat_pblocks[i][j] = get_shortest_distance_between_blocks(pblocks[i], pblocks[j])
-                distmat_pblocks[j][i] = distmat_pblocks[i][j]
-        block_graph = get_block_graph(distmat_pblocks, cutoff)
-        connected_block_ids = nx.connected_components(block_graph)  # [[1,3], [2, 4, 5], ...]
-        merged_blocks = []
-        for ids in connected_block_ids:
-            merged_block = []
-            for i in ids:
-                merged_block += pblocks[i]
-            merged_blocks.append(merged_block)
-        return merged_blocks
 
 
 class ConfigConstructor:
 
-    def __init__(self, inv_conf: [PeriodicSite], disunit_pairs):
-        self.inv_conf = inv_conf
-        self.disunit_pairs = disunit_pairs
-
     @staticmethod
-    def gen_instructions(disunit_pairs, n_asym, n_cell):
+    def gen_instructions(asym_portions, n_asym, n_cell):
         """
         get all possible instructions, notice this is exponentially scaled
 
-        # of configs = 2^len(self.disunitpairs)^n_asym^n_cell where 2 comes from pairwise disordered occupancies
-
-        return a list of instruction to build a config
-
-        instruction is a nested tuple, instruction[icell][iasym][ipair] gives idis,
-        that is, instruction[1][2][3] == 4 means in the 2nd unitcell (icell=1),
-        the 3rd asymm unit (iasym=2),
-        the 4th disorder portion (ipair=3),
-        the 5th disorder unit (disunit_pairs[3][4], idis=4) is going to present
-
-        :param disunit_pairs:
-        :param n_asym:
-        :param n_cell:
+        # of configs = 2^n_port*n_asym*n_cell where 2 comes from pairwise disordered occupancies
         """
         pair_size = []
-        for ipair in range(len(disunit_pairs)):
-            pair_size.append(len(disunit_pairs[ipair]))  # should always be 2
+        for ipair in range(len(asym_portions)):
+            pair_size.append(len(asym_portions[ipair]))  # should always be 2
         dis_ins_combinations = itertools.product(*[list(range(n)) for n in pair_size])
         results = itertools.product(dis_ins_combinations, repeat=n_asym)
         results = list(itertools.product(results, repeat=n_cell))
@@ -1052,33 +925,29 @@ class ConfigConstructor:
         return Structure.from_sites(new_sites, charge=new_charge), len(c_lat)
 
     @staticmethod
-    def dissc_to_config(sc, disunit_pairs, instruction):
+    def dissc_to_config(sc: Structure, inv_labels: [str], disportions, instruction):
         """
         take instructions to generate a certain config from super cell
-
-        :param Structure sc: supercell structure
-        :param disunit_pairs:
-        :param instruction:
-        :return:
         """
         pool = []
         config_occu = 1
         for icell in range(len(instruction)):
             for iasym in range(len(instruction[icell])):
-                for ipair in range(len(instruction[icell][iasym])):
-                    idis = instruction[icell][iasym][ipair]
-                    disu = disunit_pairs[ipair][idis]
+                for iport in range(len(instruction[icell][iasym])):
+                    idis = instruction[icell][iasym][iport]
+                    disu = disportions[iport][idis]
                     config_occu *= disu.occu
                     for label in disu.labels:
                         pool.append((label.label, iasym, icell))
         conf_sites = []
         for ps in sc.sites:
-            if abs(ps.properties['occu'] - 1) < 1e-3:
+            prop = ps.properties
+            if prop['label'] in inv_labels:
                 conf_sites.append(ps)
             else:
-                plabel = ps.properties['label']
-                piasym = ps.properties['iasym']
-                picell = ps.properties['icell']
+                plabel = prop['label']
+                piasym = prop['iasym']
+                picell = prop['icell']
                 if (plabel, piasym, picell) in pool:
                     conf_sites.append(ps)
         return Structure.from_sites(conf_sites), config_occu

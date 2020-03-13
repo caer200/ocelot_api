@@ -1,5 +1,6 @@
 from copy import deepcopy
-from typing import List
+import warnings
+from itertools import groupby
 
 import numpy as np
 from pymatgen.core.sites import PeriodicSite
@@ -8,13 +9,15 @@ from pymatgen.core.structure import Structure, Lattice
 
 from ocelot.routines.pbc import PBCparser
 from ocelot.schema.conformer import ConformerDimer
-from ocelot.schema.conformer import MolConformer
+from ocelot.schema.conformer import MolConformer, ConformerInitError
 from ocelot.schema.conformer import conformer_addhmol
 
 
 class Config:
 
-    def __init__(self, molconformers: [MolConformer], unwrap_clean_pstructure: Structure, occu=1.0):
+    molconformers: [MolConformer]
+
+    def __init__(self, molconformers, unwrap_clean_pstructure: Structure, occu=1.0):
         """
         :param pstructure: Structure without disorder
         """
@@ -166,7 +169,7 @@ class Config:
         for b in terminated_backbone_hmols:
             backbone_sites += b.sites
 
-        boneonly_psites = [PeriodicSite(s.species_string, s.coords, self.pstructure.lattice, to_unit_cell=True,
+        boneonly_psites = [PeriodicSite(s.species_string, s.coords, self.pstructure.lattice, to_unit_cell=False,
                                         coords_are_cartesian=True, properties=s.properties)
                            for s in backbone_sites]
         boneonly_pstructure = Structure.from_sites(boneonly_psites)
@@ -181,8 +184,33 @@ class Config:
             for isite in range(structure):
                 structure[isite].properties['siteid'] = isite
         mols, unwrap_structure, psiteblocks = PBCparser.unwrap_and_squeeze(structure)
-        molconformers = [MolConformer.from_pmgmol(m) for m in mols]
+        molconformers = []
+        for m in mols:
+            try:
+                mc = MolConformer.from_pmgmol(m)
+                molconformers.append(mc)
+            except ConformerInitError:
+                warnings.warn('conformer init failed for one molecule in the cell')
         return cls(molconformers, unwrap_structure, occu)
+
+    @classmethod
+    def from_labeled_clean_pstructure(cls, pstructure: Structure, occu=1.0):
+        unwrap_structure = deepcopy(pstructure)
+        psites = list(unwrap_structure.sites)
+        k = lambda x: x.properties['imol']
+        psites.sort(key=k)
+        mols = []
+        for imol, group in groupby(psites, key=k):
+            mols.append(Molecule.from_sites(list(group)))
+        molconformers = []
+        for m in mols:
+            try:
+                mc = MolConformer.from_pmgmol(m)
+                molconformers.append(mc)
+            except ConformerInitError:
+                warnings.warn('conformer init failed for one molecule in the cell')
+        return cls(molconformers, unwrap_structure, occu)
+
 
     @classmethod
     def from_cifstring(cls, string):

@@ -54,17 +54,25 @@ def fd_reci_2ndder(y, x, x0_index, step=1, accuracy='high'):
         warnings.warn('W: too few points for finite diff at accuracy = ' + accuracy)
         return np.inf
     summ = 0.0
+    used_ys = []
     if x0_index == 0 or x0_index == 1 or x0_index == 2:  # forward fd
         for k in range(len(cfb)):
             summ += cfb[k] * y[k * step]
+            used_ys.append(y[k * step])
     elif x0_index == len(x) - 1 or x0_index == len(x) - 2 or x0_index == len(x) - 3:
         for k in range(len(cfb)):
             summ += cfb[k] * y[-1 + (-1 * k * step)]
+            used_ys.append(y[-1 + (-1 * k * step)])
     elif (x0_index + 2 * step) in range(len(x)) and (x0_index - 2 * step) in range(len(x)):
         for k in range(len(cc)):
             summ += cc[k] * y[int(round(x0_index + k * step - ((len(cc) - 1) / 2) * step))]
+            used_ys.append(y[int(round(x0_index + k * step - ((len(cc) - 1) / 2) * step))])
     else:
         warnings.warn('W: center fd failed as this kpt is too close to seg boundary')
         return np.inf
     der2 = summ / ((x[0] - x[step]) ** 2)
-    return 1.0 / der2
+    # print(used_ys)
+    try:
+        return 1.0 / der2
+    except ZeroDivisionError:
+        return np.inf

@@ -3,7 +3,7 @@ from collections import OrderedDict
 
 from ocelot.schema.configuration import Config
 from ocelot.routines.disparser import DisParser
-from ocelot.schema.conformer import MolConformer
+from ocelot.schema.conformer import MolConformer, ConformerInitError
 from ocelot.routines.pbc import Site
 
 """
@@ -32,29 +32,32 @@ class ReadCif:
         self.configs = []
         for i in range(len(self.config_structures)):
             structure = self.config_structures[i]
-            self.configs.append(Config.from_pstructure(structure, occu=self.occus[i], assign_siteids=False))
+            self.configs.append(Config.from_labeled_clean_pstructure(structure, occu=self.occus[i]))
 
         self.properties = OrderedDict()
         self.properties['is_one_type_mol'] = all(len(c.molgraph_set()) == len(c.molconformers) for c in self.configs)
         self.properties['is_all_mol_legit'] = all(c.molconformers_all_legit() for c in self.configs)
-        self.properties['where_is_disorder'] = self.where_is_disorder()
+        self.properties['where_is_disorder'] = self.where_is_disorder(self.config_structures[0])
 
-    def as_dict(self):
-        d = OrderedDict()
-        d['cifstring'] = self.cifstring
-        d['clean_pstructures'] = [s.as_dict() for s in self.config_structures]
-        d['occus'] = self.occus
-        d['disordered_pmgmols'] = [m.as_dict() for m in self.disordered_pmgmols]
-        d['disordered_pstructure'] = self.disordered_pstructure.as_dict()
-        d['disparser'] = self.dp.as_dict()
-        d['configs'] = [c.as_dict() for c in self.configs]
-        d['properties'] = self.properties
-        return d
+    def __eq__(self, other):
+        return self.disordered_pstructure == other.disordered_pstructure
 
-    @classmethod
-    def from_dict(cls, d):
-        cifstring = d['cifstring']
-        return cls(cifstring)
+    # def as_dict(self):
+    #     d = OrderedDict()
+    #     d['cifstring'] = self.cifstring
+    #     d['clean_pstructures'] = [s.as_dict() for s in self.config_structures]
+    #     d['occus'] = self.occus
+    #     d['disordered_pmgmols'] = [m.as_dict() for m in self.disordered_pmgmols]
+    #     d['disordered_pstructure'] = self.disordered_pstructure.as_dict()
+    #     d['disparser'] = self.dp.as_dict()
+    #     d['configs'] = [c.as_dict() for c in self.configs]
+    #     d['properties'] = self.properties
+    #     return d
+    #
+    # @classmethod
+    # def from_dict(cls, d):
+    #     cifstring = d['cifstring']
+    #     return cls(cifstring)
 
 
     @classmethod
@@ -63,11 +66,12 @@ class ReadCif:
             s = f.read()
         return cls(s)
 
-    def where_is_disorder(self):
+    @staticmethod
+    def where_is_disorder(config_structure):
         """
         data[imol] = MolConformer with disorder info in conformer_properties
         """
-        c = self.config_structures[0]
+        c = config_structure
         dic = {}
         k = lambda x: x.properties['imol']
         psites = sorted(c.sites, key=k)
@@ -80,7 +84,11 @@ class ReadCif:
                 if abs(ps.properties['occu'] - 1.0) > 1e-3:
                     disordered_siteid.append(ps.properties['siteid'])
                 obc_sites.append(Site(ps.species_string, ps.coords, properties=ps.properties))
-            molconformer = MolConformer.from_sites(obc_sites, siteids=[s.properties['siteid'] for s in obc_sites])
+            try:
+                molconformer = MolConformer.from_sites(obc_sites, siteids=[s.properties['siteid'] for s in obc_sites])
+            except ConformerInitError:
+                disorderinfo[imol] = 'not sure'
+                continue
             if len(disordered_siteid) > 0:
                 if set(molconformer.backbone.siteids).intersection(set(disordered_siteid)):
                     mol_disorder_info = 'bone disorder'
@@ -88,5 +96,5 @@ class ReadCif:
                     mol_disorder_info = 'sc disorder'
             else:
                 mol_disorder_info = 'no disorder'
-            disorderinfo[str(imol)] = mol_disorder_info
+            disorderinfo[imol] = mol_disorder_info
         return disorderinfo

@@ -1,6 +1,7 @@
 import itertools
 import warnings
 from copy import deepcopy
+from rdkit.Chem import AllChem, rdMolAlign, rdShapeHelpers
 
 import matplotlib.patches as patches
 import matplotlib.pyplot as plt
@@ -27,7 +28,7 @@ from ocelot.routines.geometry import rotate_along_axis
 from ocelot.routines.geometry import rotation_matrix
 from ocelot.routines.geometry import unify
 from ocelot.schema.graph import BasicGraph
-from ocelot.schema.graph import MolGraph
+from ocelot.schema.graph import MolGraph, FragmentGraph, SidechainGraph, BackboneGraph
 from ocelot.schema.rdfunc import RdFunc
 
 _coordination_rule = {
@@ -235,13 +236,29 @@ class BasicConformer(SiteidOperation):
                 raise SiteidError('siteids are not legit!')
 
     def __eq__(self, other):
-        # using center should be enough for msites in a mol
+        # using center should be enough for sites in a mol
         if self.pmgmol == other.pmgmol:
             return 1
         return 0
 
     def __ne__(self, other):
         return not self.__eq__(other)
+
+    def compare(self, other):
+        """
+        get similarity based on rmsd, return 0 if two different molecules
+        """
+        if len(self) != len(other):
+            return np.inf
+        if set(self.atomic_numbers) != set(other.atomic_numbers):
+            return np.inf
+        rdmol1, smiles1, siteid2atomidx, atomidx2siteid = self.to_rdmol()
+        rdmol2, smiles2, siteid2atomidx, atomidx2siteid = other.to_rdmol()
+        if smiles1 != smiles2:
+            return np.inf
+        rdmol1 = Chem.RemoveHs(rdmol1)
+        rdmol2 = Chem.RemoveHs(rdmol2)
+        return rdMolAlign.GetBestRMS(rdmol1, rdmol2)
 
     @property
     def pmgmol(self):
@@ -545,7 +562,13 @@ class BasicConformer(SiteidOperation):
         self.checkstatus('all assigned', 'unique ids')
         distmat = self.distmat
         siteid_to_disti = self.siteid2index
-        mat = np.zeros((max(self.siteids) + 10, max(self.siteids) + 10), dtype=bool)
+        mat = {}
+        for ii in self.siteids:
+            mat[ii] = {}
+            for jj in self.siteids:
+                mat[ii][jj] = False
+            # print(self.siteids)
+        # mat = np.zeros((max(self.siteids) + 10, max(self.siteids) + 10), dtype=bool)
         for sidi in self.siteids:
             i = siteid_to_disti[sidi]
             istring = self[i].species_string
@@ -565,7 +588,7 @@ class BasicConformer(SiteidOperation):
                     mat[sidj][sidi] = 1
         return mat
 
-    def to_graph(self, nodename='siteid', graphtype='molgraph'):
+    def to_graph(self, nodename='siteid', graphtype='MolGraph'):
         """
         get a Graph, default siteid --> nodename
 
@@ -583,11 +606,11 @@ class BasicConformer(SiteidOperation):
                     else:
                         if bondmat_by_siteid[s.properties['siteid']][ss.properties['siteid']]:
                             g.add_edge(s.properties['siteid'], ss.properties['siteid'])
-        if graphtype == 'molgraph':
+        if graphtype == 'MolGraph':
             return MolGraph(g)
         return BasicGraph(g)
 
-    def to_rdmol(self, charge=0, sani=True, charged_fragments=True, force_single=False, expliciths=True):
+    def to_rdmol(self, charge=0, sani=True, charged_fragments=False, force_single=False, expliciths=True):
         """
         generate a rdmol obj with current conformer
 
@@ -606,13 +629,20 @@ class BasicConformer(SiteidOperation):
         coordmat = self.cart_coords
         for i in range(len(self)):
             conf.SetAtomPosition(i, (coordmat[i][0], coordmat[i][1], coordmat[i][2]))
+
+        if hasattr(self, 'joints'):  # LBYL
+            apriori_radicals = {}
+            for k in self.joints.keys():
+                apriori_radicals[siteid2atomidx[k]] = len(self.joints[k])
+        else:
+            apriori_radicals = None
         ac = self.bondmat
-        ap = ACParser(ac, charge, self.atomic_numbers, sani=sani)
+        ap = ACParser(ac, charge, self.atomic_numbers, sani=sani, apriori_radicals=apriori_radicals)
         rdmol, smiles = ap.parse(charged_fragments=charged_fragments, force_single=force_single, expliciths=expliciths)
         rdmol.AddConformer(conf)
         return rdmol, smiles, siteid2atomidx, atomidx2siteid
 
-    def to_file(self, fmt, filename):
+    def to(self, fmt, filename):
         self.pmgmol.to(fmt, filename)
 
     @classmethod
@@ -707,17 +737,21 @@ def get_rings_from_conformer(conformer: BasicConformer, scheme='all'):
     :return:a list of :class:`RingConformer`
     """
     conformer.checkstatus('all assigned', 'unique ids')
-    molgraph = conformer.to_graph('siteid', 'molgraph')
+    molgraph = conformer.to_graph('siteid', 'MolGraph')
     rings = []
     if scheme == 'all':
         for r in molgraph.rings:
             ring = RingConformer.from_siteids(r, conformer.sites, copy=False)
             rings.append(ring)
     elif scheme == 'lgfr':
+        if molgraph.lgfr is None:
+            raise ConformerOperationError('there is no lgfr of this conformer!')
         for r in molgraph.lgfr:
             ring = RingConformer.from_siteids(r, conformer.sites, copy=False)
             rings.append(ring)
     elif scheme == 'lgcr':
+        if molgraph.lgcr is None:
+            raise ConformerOperationError('there is no lgfr of this conformer!')
         for r in molgraph.lgcr:
             ring = RingConformer.from_siteids(r, conformer.sites, copy=False)
             rings.append(ring)
@@ -1305,8 +1339,17 @@ class MolConformer(BasicConformer):
             self.is_solvent = False
 
         # this is geometric bone
-        self.backbone, self.sccs, self.backbone_graph, self.scgs = self.partition(coplane_cutoff=30.0)
-        self.chrombone, self.chromsccs, self.chrombone_graph, self.chromscgs = self.partition_chrom()
+        try:
+            self.backbone, self.sccs, self.backbone_graph, self.scgs = self.partition(scheme='lgcr', coplane_cutoff=30.0)
+        except ConformerOperationError:
+            self.backbone, self.sccs, self.backbone_graph, self.scgs = [None] * 4
+            warnings.warn('cannot geo-partition this molconformer!')
+        try:
+            # self.chrombone, self.chromsccs, self.chrombone_graph, self.chromscgs = self.partition_chrom(sc)
+            self.chrombone, self.chromsccs, self.chrombone_graph, self.chromscgs = self.partition(scheme='chrom')
+        except ConformerOperationError:
+            self.chrombone, self.chromsccs, self.chrombone_graph, self.chromscgs = [None] * 4
+            warnings.warn('cannot chrom-partition this molconformer!')
         if prop is None:
             self.conformer_properties = self._mol_conformer_properties
         else:
@@ -1315,45 +1358,51 @@ class MolConformer(BasicConformer):
     def calculate_conformer_properties(self):
         pass
 
-    def partition_chrom(self, withhalogen=True):
-        try:
-            rdmol, smiles, siteid2atomidx, atomidx2siteid = self.to_rdmol()
-        except:
-            raise ConformerOperationError('partition_chrom failed as self.can_rdmol == False')
-        if withhalogen:
-            cgs = RdFunc.get_conjugate_group(rdmol)
-        else:
-            cgs = RdFunc.get_conjugate_group_with_halogen(rdmol)
-        chromol, aid_to_newid_chromol = cgs[0]
-        aids_in_chromol = list(aid_to_newid_chromol.keys())
-        siteids_in_chromol = [atomidx2siteid[aid] for aid in aids_in_chromol]
-        siteids_not_in_chromol = [sid for sid in self.siteids if sid not in siteids_in_chromol]
-        molgraph = self.to_graph()
-        chromol_joints, other_joints, chromolsg, sg_components = MolGraph.get_joints_and_subgraph(
-            siteids_in_chromol, siteids_not_in_chromol, molgraph.graph)
-        bg, scgs = MolGraph.get_bone_and_frags_from_nxgraph(chromolsg, sg_components, "chrom")
-        chromolc = BoneConformer.from_siteids(
-            siteids_in_chromol, self.sites, copy=False, joints=chromol_joints, rings=None
-        )  # you need to make sure there is at least a ring here
-        sccs = []
-        for scg in scgs:
-            sc_joint_site_id = list(scg.graph.graph['joints'].keys())[0]
-            bc_joint_site_id = scg.graph.graph['joints'][sc_joint_site_id][0]
-            bc_joint_site = self.get_site_byid(bc_joint_site_id)
-            # print(bc_joint_site)
-            v_sc_position = bc_joint_site.coords - self.geoc
-            sc_position_angle = angle_btw(v_sc_position, chromolc.pfit_vp, 'degree')
-            scc = SidechainConformer.from_siteids(scg.graph.nodes, self.sites, copy=False,
-                                                  joints=scg.graph.graph['joints'],
-                                                  rings=None,
-                                                  conformer_properties={'sc_position_angle': sc_position_angle,
-                                                                        'bc_joint_siteid': bc_joint_site_id})
-            sccs.append(scc)
-        return chromolc, sccs, bg, scgs  # sccs <--> scgs bijection
+    # def partition_chrom(self, withhalogen=True):
+    #     try:
+    #         rdmol, smiles, siteid2atomidx, atomidx2siteid = self.to_rdmol()
+    #     except:
+    #         raise ConformerOperationError('partition_chrom failed as self.can_rdmol == False')
+    #     if withhalogen:
+    #         cgs = RdFunc.get_conjugate_group(rdmol)
+    #     else:
+    #         cgs = RdFunc.get_conjugate_group_with_halogen(rdmol)
+    #     try:
+    #         chromol, aid_to_newid_chromol = cgs[0]
+    #     except IndexError:
+    #         raise ConformerOperationError('rdkit cannot find a chrom here!')
+    #     aids_in_chromol = list(aid_to_newid_chromol.keys())
+    #     siteids_in_chromol = [atomidx2siteid[aid] for aid in aids_in_chromol]
+    #     siteids_not_in_chromol = [sid for sid in self.siteids if sid not in siteids_in_chromol]
+    #     molgraph = self.to_graph()
+    #     chromol_joints, other_joints, chromolsg, sg_components = MolGraph.get_joints_and_subgraph(
+    #         siteids_in_chromol, siteids_not_in_chromol, molgraph.graph)
+    #     bg, scgs = MolGraph.get_bone_and_frags_from_nxgraph(chromolsg, sg_components, "chrom")
+    #     chromolc = BoneConformer.from_siteids(
+    #         siteids_in_chromol, self.sites, copy=False, joints=chromol_joints, rings=None
+    #     )  # you need to make sure there is at least a ring here
+    #     sccs = []
+    #     for scg in scgs:
+    #         sc_joint_site_id = list(scg.graph.graph['joints'].keys())[0]
+    #         bc_joint_site_id = scg.graph.graph['joints'][sc_joint_site_id][0]
+    #         bc_joint_site = self.get_site_byid(bc_joint_site_id)
+    #         # print(bc_joint_site)
+    #         v_sc_position = bc_joint_site.coords - self.geoc
+    #         sc_position_angle = angle_btw(v_sc_position, chromolc.pfit_vp, 'degree')
+    #         scc = SidechainConformer.from_siteids(scg.graph.nodes, self.sites, copy=False,
+    #                                               joints=scg.graph.graph['joints'],
+    #                                               rings=None,
+    #                                               conformer_properties={'sc_position_angle': sc_position_angle,
+    #                                                                     'bc_joint_siteid': bc_joint_site_id})
+    #         sccs.append(scc)
+    #     return chromolc, sccs, bg, scgs  # sccs <--> scgs bijection
 
-    def partition(self, coplane_cutoff=40.0, scheme=None):
-        molgraph = self.to_graph('siteid', 'molgraph')
-        lgfr = get_rings_from_conformer(self, 'lgfr')
+    def partition(self, coplane_cutoff=None, scheme=None, with_halogen=True):
+        molgraph = self.to_graph('siteid', 'MolGraph')
+        try:
+            lgfr = get_rings_from_conformer(self, 'lgfr')
+        except ConformerOperationError:
+            raise ConformerOperationError('cannot get lgfr!')
         avgn1, avgn2 = RingConformer.get_avg_norms(lgfr)
 
         def coplane_check(ring_siteids, tol=coplane_cutoff):
@@ -1361,11 +1410,10 @@ class MolConformer(BasicConformer):
             coplane = ringconformer.iscoplane_with_norm(avgn1, tol, 'degree')
             return coplane
 
-        if scheme is None and isinstance(coplane_cutoff, float):
-
-            bg, scgs = molgraph.partition_to_bone_frags('lgcr', additional_criteria=coplane_check)
+        if isinstance(coplane_cutoff, float):
+            bg, scgs = molgraph.partition_to_bone_frags(scheme, additional_criteria=coplane_check, with_halogen=with_halogen)
         else:
-            bg, scgs = molgraph.partition_to_bone_frags(scheme)
+            bg, scgs = molgraph.partition_to_bone_frags(scheme, with_halogen=with_halogen)
 
         bone_conformer = BoneConformer.from_siteids(
             bg.graph.nodes, self.sites, copy=False, joints=bg.graph.graph['joints'], rings=None
@@ -1397,10 +1445,12 @@ class MolConformer(BasicConformer):
             backbone_hmol = conformer_addhmol(self.backbone, joints=self.backbone_graph.joints, original=self)
             sccs = self.sccs
             scgs = self.scgs
-        else:
+        elif bonescheme == 'chrom':
             backbone_hmol = conformer_addhmol(self.chrombone, joints=self.chrombone_graph.joints, original=self)
             sccs = self.chromsccs
             scgs = self.chromscgs
+        else:
+            raise NotImplementedError('addh for {} not implemented'.format(bonescheme))
 
         schmols = []
         for i in range(len(sccs)):
@@ -1556,7 +1606,7 @@ class ConformerDimer:
         distmat = cdist(self.conformer_ref.backbone.cart_coords, self.conformer_var.backbone.cart_coords)
         return np.min(distmat)
 
-    def plt_bone_overlap(self, algo='concave', output='bone_overlap.eps'):
+    def plt_bone_overlap(self, algo='convex', output='bone_overlap.eps'):
         """
         plot a 2d graph of how backbones overlap
 
@@ -1676,7 +1726,7 @@ class ConformerDimer:
 
 
 class DimerCollection:
-    def __init__(self, dimers):
+    def __init__(self, dimers: [ConformerDimer]):
         """
         just a list of dimers, they should share the same ref_mol
         """
@@ -1688,8 +1738,9 @@ class DimerCollection:
         """
         sites = []
 
+        d: ConformerDimer
         for d in self.dimers:
-            sites += d.sites
+            sites += d.conformer_var.sites
         if lalabel:
             sites += [Site('La', ss.coords, properties=ss.properties) for ss in self.dimers[0].conformer_ref.sites]
 

@@ -11,11 +11,9 @@ it looks like in there the reciprocal lattice basis was calculated following the
 dropped in the deltas in fd, we're going to stick to 1/A (crystallographer convention)
 
 choose stepsize:
-say we are calculating em at G
-first find all linesegments that include G, e.g. G-X G-Y G-Z
-now use the one with smallest line_em, e.g. G-X
-then calculate length of G-X say it is l_gx
-the initial stepsize should be l_gx/2 (for st3) or l_gx/4 (for st5)
+if we know the lowest line effective mass was obtained at a point along GX, this point can be G or X
+calculate the length of G-X say it is l_gx
+the initial stepsize should be l_gx/4 (for st3) or l_gx/8 (for st5)
 then scan downwards till converge, stepsize for scan can be 10% of init stepsize, e.g. 0.04, 0.036, 0.032...
 """
 
