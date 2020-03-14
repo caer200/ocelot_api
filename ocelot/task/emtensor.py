@@ -120,7 +120,7 @@ class EmTensor:
             f.write("%d\n" % len(self.st))
             f.write("Reciprocal\n")
             for kpt in kpts:
-                f.write("{:.6f} {:.6f} {:.6f}\n".format(*kpt))
+                f.write("{:.6f} {:.6f} {:.6f}  1.01\n".format(*kpt))
 
     @classmethod
     def from_vasprun(cls, kcoord, iband, stepsize, file, channel="up", st=3):
