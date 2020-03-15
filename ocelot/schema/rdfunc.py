@@ -274,3 +274,26 @@ class RdFunc:
             aid = a.GetIdx()
             aids.append(aid)
         return aids
+
+    @staticmethod
+    def mol2xyz_by_confid(molecule: Mol, prefix='rdmol', confid=0, comment_line=''):
+        natoms = molecule.GetNumAtoms()
+        filename = "{}_{}.xyz".format(prefix, confid)
+        s = "{}\n{}\n".format(natoms, comment_line)
+        for i in range(natoms):
+            position = molecule.GetConformer(confid).GetAtomPosition(i)
+            symbol = molecule.GetAtomWithIdx(i).GetSymbol()
+            s += "{}\t{:.6} {:.6} {:.6}\n".format(symbol, position.x, position.y, position.z)
+        with open(filename, 'w') as f:
+            f.write(s)
+
+    @staticmethod
+    def conf2xyz(conf: Chem.Conformer, outputname, atom_list:list, comment_line=''):
+        natoms = conf.GetNumAtoms()
+        s = "{}\n{}\n".format(natoms, comment_line)
+        for i in range(natoms):
+            position = conf.GetAtomPosition(i)
+            symbol = atom_list[i]
+            s += "{}\t{:.6} {:.6} {:.6}\n".format(symbol, position.x, position.y, position.z)
+        with open(outputname, 'w') as f:
+            f.write(s)
