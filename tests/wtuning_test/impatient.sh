@@ -2,7 +2,7 @@
 
 while true
 do 
-squeue -u smgo234
+squeue -u qai222
 echo '-------------------------------------------------------------------------------'
-sleep 30
+sleep 10
 done
