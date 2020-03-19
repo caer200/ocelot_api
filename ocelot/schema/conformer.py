@@ -1193,6 +1193,12 @@ class FragConformer(BasicConformer):
         bc = BasicConformer.from_dict(d)
         return cls.from_basic(bc, True, prop, rings, joints)
 
+    def as_dict(self):
+        d = super().as_dict()
+        d['joints'] = self.joints
+        d['conformer_properties'] = self.conformer_properties
+        return d
+
     @classmethod
     def from_pmgmol(cls, m: Molecule, validate_proximity=True, siteidcheck=('all assigned', 'unique ids'), siteids=None,
                     conformer_properties=None, rings=None, joints=None, ):
@@ -1284,12 +1290,12 @@ class BoneConformer(FragConformer):
         projs = [np.dot(s.coords - ref, self.pfit_vo) for s in self]
         return max(projs) - min(projs)
 
-    def as_dict(self):
-        d = super().as_dict()
-        d['rings'] = [r.as_dict() for r in self.rings]
-        d['joints'] = self.joints
-        d['conformer_properties'] = self.conformer_properties
-        return d
+    # def as_dict(self):
+    #     d = super().as_dict()
+    #     d['rings'] = [r.as_dict() for r in self.rings]
+    #     d['joints'] = self.joints
+    #     d['conformer_properties'] = self.conformer_properties
+    #     return d
 
 
 class SidechainConformer(FragConformer):
@@ -1353,6 +1359,15 @@ class MolConformer(BasicConformer):
             self.conformer_properties = self._mol_conformer_properties
         else:
             self.conformer_properties = prop
+
+    def as_dict(self):
+        d = super().as_dict()
+        d['geobone'] = self.backbone.as_dict()
+        d['chrombone'] = self.chrombone.as_dict()
+        d['geo_scs'] = [sc.as_dict() for sc in self.sccs]
+        d['chrom_scs'] = [sc.as_dict() for sc in self.chromsccs]
+        d['conformer_properties'] = self.conformer_properties
+        return d
 
     def calculate_conformer_properties(self):
         pass
