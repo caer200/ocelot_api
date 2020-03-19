@@ -261,24 +261,55 @@ class ZindoJob:
         whereami = os.getcwd()
         os.chdir(wdir)
 
-        dimer_inps = zj.write_dimer(jobname)
+        dimer_inps = zj.write_dimer("{}/{}".format(wdir, jobname))
         dimerinp, ainp, dinp = dimer_inps
-        aout, dout, dimerout = ['A.out', 'D.out', 'dimer.out']
+        aout, dout, dimerout = ["{}/{}".format(wdir, f) for f in ['A.out', 'D.out', 'dimer.out']]
         env = dict(os.environ)
         try:
             ldlibpath = env['LD_LIBRARY_PATH']
         except KeyError:
             ldlibpath = ''
         env['LD_LIBRARY_PATH'] = '{}:'.format(zindolib) + ldlibpath
-        p = subprocess.Popen("{} < {} > {}".format(zindobin, ainp, aout), shell=True, env=env)
+
+        ainpf = open(ainp, 'r')
+        aoutf = open(aout, 'w')
+        aerrf = open(aout+'err', 'w')
+        p = subprocess.Popen([zindobin], stdin=ainpf, stdout=aoutf, stderr=aerrf, shell=True, env=env)
         p.wait()
-        movefile('mo.out', 'mo_A.out')
-        p = subprocess.Popen("{} < {} > {}".format(zindobin, dinp, dout), shell=True, env=env)
+        movefile('{}/mo.out'.format(wdir), '{}/mo_A.out'.format(wdir))
+        ainpf.close()
+        aoutf.close()
+        aerrf.close()
+
+        dinpf = open(dinp, 'r')
+        doutf = open(dout, 'w')
+        derrf = open(dout+'err', 'w')
+        p = subprocess.Popen([zindobin], stdin=dinpf, stdout=doutf, stderr=derrf, shell=True, env=env)
         p.wait()
-        movefile('mo.out', 'mo_D.out')
-        p = subprocess.Popen("{} < {} > {}".format(zindoctbin, dimerinp, dimerout), shell=True, env=env)
+        movefile('{}/mo.out'.format(wdir), '{}/mo_D.out'.format(wdir))
+        dinpf.close()
+        doutf.close()
+        derrf.close()
+
+        dimerinpf = open(dimerinp, 'r')
+        dimeroutf = open(dimerout, 'w')
+        dimererrf = open(dimerout+'err', 'w')
+        p = subprocess.Popen([zindoctbin], stdin=dimerinpf, stdout=dimeroutf, stderr=dimererrf, shell=True, env=env)
         p.wait()
         data, nmo_a, nmo_d = zj.parse_tmo('tmo.dat')
+        dimerinpf.close()
+        dimeroutf.close()
+        dimererrf.close()
+
+        # p = subprocess.Popen("{} < {} > {}".format(zindobin, ainp, aout), shell=True, env=env)
+        # p.wait()
+        # movefile('mo.out', 'mo_A.out')
+        # p = subprocess.Popen("{} < {} > {}".format(zindobin, dinp, dout), shell=True, env=env)
+        # p.wait()
+        # movefile('mo.out', 'mo_D.out')
+        # p = subprocess.Popen("{} < {} > {}".format(zindoctbin, dimerinp, dimerout), shell=True, env=env)
+        # p.wait()
+        # data, nmo_a, nmo_d = zj.parse_tmo('tmo.dat')
 
         os.chdir(whereami)
         return data, nmo_a, nmo_d

@@ -12,5 +12,6 @@ mol_A = Molecule.from_file('a.xyz')
 mol_D = Molecule.from_file('d.xyz')
 
 data = ZindoJob.dimer_run('test', './', ZINDOBIN, ZINDOCTBIN, ZINDOLIB, mol_A, mol_D)
-print(data[23][23])
+print(data)
+# print(data[23][23])
 

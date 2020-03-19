@@ -2,11 +2,13 @@ import json
 import os
 
 import numpy as np
+from joblib import Parallel
+from joblib import delayed
 
 from ocelot.schema.conformer import DimerCollection
-from ocelot.task.zindo import ZindoJob, conver2zindo
+from ocelot.task.zindo import ZindoJob
+from ocelot.task.zindo import conver2zindo
 
-# TODO parallel zindo calculations
 """
 for a certain crystal config, get perocalation pathway
 """
@@ -29,11 +31,12 @@ class IJK:
 
 class Hop:
 
-    def __init__(self, config, zindobin, zindoctbin, zindolib, wdir):
-        self.workdir = wdir
+    def __init__(self, config, zindobin=None, zindoctbin=None, zindolib=None, wdir=os.getcwd(), gaussbin=None):
+        self.workdir = wdir  # make sure this is an absolute path
         self.zindobin = zindobin
         self.zindoctbin = zindoctbin
         self.zindolib = zindolib
+        self.gaussbin = gaussbin
         self.config = config
         self.dimer_array, self.tranv_fcs = self.config.get_dimers_array(maxfold=2, fast=True, symm=False)
 
@@ -112,42 +115,103 @@ class Hop:
                 dimercolls[i].append(d)
         return dimercolls
 
-    def run_zindo(self, alldimers, workdir):
+    def run(self, alldimers, calculator='zindo', njobs=None):
         """
-        Run zindo for all the dimers provided and calculate electronic coupling.
-        xzy files are written for each of the dimer in the respective folder. xyz file for the dimers is also written.
+        you should screen alldimers based on geodist before this run
 
         :param alldimers:
-        :param workdir: working directory to run zindo
-        :return: data[dimer.label] = [hhcoupling, llcoupling, xyzstring]
+        :param calculator:
+        :param njobs:
+        :return:
         """
-        data = {}
+        print('calculator was set to {}'.format(calculator))
         dimercolls = self.group_dimers(alldimers)
+        workload = []
         for i in dimercolls.keys():
             dimers = dimercolls[i]
             dimercoll = DimerCollection(dimers)
-            dimercoll.to_xyz('{}/dimercoll_{}.xyz'.format(workdir, i))
+            dimercoll.to_xyz('{}/dimercoll_{}.xyz'.format(self.workdir, i))
             for idimer in range(len(dimers)):
                 lab = dimers[idimer].label
-                subwdir = '{}/dimers/{}'.format(workdir, lab)
-                os.system('mkdir -p {}'.format(subwdir))
-
+                subwdir = '{}/dimers/{}'.format(self.workdir, lab)
+                if calculator != 'geodist':
+                    os.system('mkdir -p {}'.format(subwdir))
                 mol_A = conver2zindo(dimers[idimer].conformer_ref.pmgmol)
                 mol_D = conver2zindo(dimers[idimer].conformer_var.pmgmol)
-                coupling_data, nmo_a, nmo_d = ZindoJob.dimer_run(lab,
-                                                                 subwdir,
-                                                                 self.zindobin,
-                                                                 self.zindoctbin,
-                                                                 self.zindolib,
-                                                                 mol_A, mol_D)
-                hhti = ZindoJob.get_hh_coupling(coupling_data, nmo_a, nmo_d)
-                llti = ZindoJob.get_ll_coupling(coupling_data, nmo_a, nmo_d)
-                data[lab] = [hhti, llti, dimers[idimer].to_xyzstring()]
-                dimers[idimer].to_xyz('{}/{}.xyz'.format(subwdir, lab))
-        with open('{}/hopdata1.json'.format(workdir), 'w') as f:
+                xyzstring = dimers[idimer].to_xyzstring()
+                unit_job = (lab, subwdir, mol_A, mol_D, xyzstring)
+                workload.append(unit_job)
+        # run unit jobs
+        print('workload has {} unit jobs'.format(len(workload)))
+        if calculator == 'zindo':
+            if not isinstance(njobs, int):
+                njobs = min(os.cpu_count(), len(workload))
+            work_results = Parallel(njobs)(delayed(self.zindo_cal)(uj) for uj in workload)
+            # total 16 benzene
+            # 1 16.880834579467773
+            # 2 14.692869424819946
+            # 4 17.32540798187256
+            # total 3 tipgebw
+            # 1 88.71285700798035
+            # 3 34.4242103099823
+        elif calculator == 'geodist':
+            # since alldimers should already have been screened based on geodist, calculator will just return inf
+            work_results = [[uj[0], np.inf, np.inf, uj[4]] for uj in workload]
+        else:
+            raise NotImplementedError('{} is not a valid calculator!'.format(calculator))
+        data = {}
+        for result in work_results:
+            lab, hhti, llti, xyzstring = result
+            data[lab] = [hhti, llti, xyzstring]
+        with open('{}/hopdata1.json'.format(self.workdir), 'w') as f:
             json.dump(data, f)
         return data
 
+    def zindo_cal(self, unitjob):
+        lab, subwdir, mol_A, mol_D, xyzstring = unitjob
+        coupling_data, nmo_a, nmo_d = ZindoJob.dimer_run(lab, subwdir, self.zindobin, self.zindoctbin, self.zindolib,
+                                                         mol_A, mol_D)
+        hhti = ZindoJob.get_hh_coupling(coupling_data, nmo_a, nmo_d)
+        llti = ZindoJob.get_ll_coupling(coupling_data, nmo_a, nmo_d)
+        return [lab, hhti, llti, xyzstring]
+
+    #
+    # def run_zindo(self, alldimers, workdir):
+    #     """
+    #     Run zindo for all the dimers provided and calculate electronic coupling.
+    #     xzy files are written for each of the dimer in the respective folder. xyz file for the dimers is also written.
+    #
+    #     :param alldimers:
+    #     :param workdir: working directory to run zindo
+    #     :return: data[dimer.label] = [hhcoupling, llcoupling, xyzstring]
+    #     """
+    #     data = {}
+    #     dimercolls = self.group_dimers(alldimers)
+    #     for i in dimercolls.keys():
+    #         dimers = dimercolls[i]
+    #         dimercoll = DimerCollection(dimers)
+    #         dimercoll.to_xyz('{}/dimercoll_{}.xyz'.format(workdir, i))
+    #         for idimer in range(len(dimers)):
+    #             lab = dimers[idimer].label
+    #             subwdir = '{}/dimers/{}'.format(workdir, lab)
+    #             os.system('mkdir -p {}'.format(subwdir))
+    #
+    #             mol_A = conver2zindo(dimers[idimer].conformer_ref.pmgmol)
+    #             mol_D = conver2zindo(dimers[idimer].conformer_var.pmgmol)
+    #             coupling_data, nmo_a, nmo_d = ZindoJob.dimer_run(lab,
+    #                                                              subwdir,
+    #                                                              self.zindobin,
+    #                                                              self.zindoctbin,
+    #                                                              self.zindolib,
+    #                                                              mol_A, mol_D)
+    #             hhti = ZindoJob.get_hh_coupling(coupling_data, nmo_a, nmo_d)
+    #             llti = ZindoJob.get_ll_coupling(coupling_data, nmo_a, nmo_d)
+    #             data[lab] = [hhti, llti, dimers[idimer].to_xyzstring()]
+    #             dimers[idimer].to_xyz('{}/{}.xyz'.format(subwdir, lab))
+    #     with open('{}/hopdata1.json'.format(workdir), 'w') as f:
+    #         json.dump(data, f)
+    #     return data
+    #
     @staticmethod
     def applysym_to_coupling_data(data, dimer_array, workdir):
         leni, lenj, lenk = dimer_array.shape
@@ -262,7 +326,8 @@ class Hop:
     def get_hopping_network_s1(self):
         dimers_to_be_used = self.screen_dimers(self.dimer_array, close=True, unique=True)
         # this gives 'hopdata1.json'
-        hopdata = self.run_zindo(dimers_to_be_used, self.workdir)
+        # hopdata = self.run_zindo(dimers_to_be_used, self.workdir)
+        hopdata = self.run(dimers_to_be_used, 'zindo')
         # this gives 'symdata2.json'
         symdata = self.applysym_to_coupling_data(hopdata, self.dimer_array, self.workdir)
         # this gives 'supercelldata3.json'
