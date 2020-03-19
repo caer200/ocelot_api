@@ -407,8 +407,6 @@ class DisParser:  # chaos parser sounds cooler?
         """
         this can only handle one alternative configuration for the asymmetric unit
 
-        1.
-
         one asymmetric unit == inv_conf + disg1 + disg2
 
         disg1 = disunit_a + disunit_b + ...
@@ -441,6 +439,7 @@ class DisParser:  # chaos parser sounds cooler?
             data[atomlabel] = [x, y, z, symbol, occu, disgrp] this will be used to write config cif file
         """
         # prepare_data into cifdata
+        self.classification = None
         self.cifstring = cifstring
         self.identifier, self.cifdata = get_pmg_dict(self.cifstring)
         self.cifdata['_atom_site_fract_x'] = [braket2float(x) for x in self.cifdata['_atom_site_fract_x']]
@@ -720,8 +719,8 @@ class DisParser:  # chaos parser sounds cooler?
         return newdata
 
     def prepare_data(self):
-        classification = self.classify()
-        print('{} thinks this cif file belongs to class {}'.format(self.__class__.__name__, classification))
+        self.classification = self.classify()
+        print('{} thinks this cif file belongs to class {}'.format(self.__class__.__name__, self.classification))
         # from pprint import pprint
         # pprint(self.data)
 
@@ -828,7 +827,12 @@ class DisParser:  # chaos parser sounds cooler?
             #     _, struct, _ = PBCparser.unwrap(c)
             #     unwrap_again.append(struct)
             # confs = [[c, 0.5] for c in conf_structures]
-            confs = [[c, 0.5] for c in conf_structures]
+            def get_average_occu(structure:Structure):
+                try:
+                    return np.mean([s.properties['occu'] for s in structure.sites])
+                except KeyError:
+                    return 0.5
+            confs = [[c, get_average_occu(c)] for c in conf_structures]
             if write_files:
                 for conf in conf_structures:
                     conf.to('cif',

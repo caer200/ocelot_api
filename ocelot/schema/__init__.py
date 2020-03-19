@@ -1,3 +1,6 @@
+from .graph import MolGraph, BackboneGraph, SidechainGraph, BasicGraph, FragmentGraph
+from .conformer import MolConformer, SidechainConformer, BoneConformer
+from .configuration import Config
 """
 this contains the schema for dealing with conjugate organics, molecules and beyond
 
@@ -9,7 +12,7 @@ Molecule:
     format: smiles, smarts, inchi
     atom index: atomidx
 
-Conformation:
+Conformer:
     Dimer --> OrganicMolecule, Backbone, SideGroup, Ring --> BasicConformer
     format: xyz
     atom index: siteid
@@ -19,9 +22,7 @@ Configuration:
     format: cif, poscar
     atom index: siteid
 
-graph <--> molecule <--> conformation <--> configuration
-
-
+graph <--> molecule <--> conformer <--> configuration
 
 
 #TODO Granular Schema

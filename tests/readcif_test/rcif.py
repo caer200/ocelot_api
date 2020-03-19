@@ -1,9 +1,12 @@
 from ocelot.task.readcif import *
+from pprint import pprint
 import glob
 for cif in glob.glob('tipge-*.cif'):
     print('working on {}'.format(cif))
-    rc = ReadCif.from_ciffile(cif)
-    print(rc.properties)
+    rc = ReadCif.from_ciffile(cif,source='community')
+    pprint(rc.results)
+    rc.read()
+    pprint(rc.results)
     # print(rc.configs[0])
     # data = rc.where_is_disorder()
     # print(cif)

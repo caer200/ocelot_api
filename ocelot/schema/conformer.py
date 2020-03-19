@@ -1,7 +1,6 @@
 import itertools
 import warnings
 from copy import deepcopy
-from rdkit.Chem import AllChem, rdMolAlign, rdShapeHelpers
 
 import matplotlib.patches as patches
 import matplotlib.pyplot as plt
@@ -12,6 +11,7 @@ from pymatgen.core.structure import Element
 from pymatgen.core.structure import Molecule
 from pymatgen.core.structure import Site
 from pymatgen.io.xyz import XYZ
+from rdkit.Chem import rdMolAlign
 from scipy.spatial.distance import cdist
 from scipy.spatial.distance import pdist
 from scipy.spatial.distance import squareform
@@ -28,8 +28,7 @@ from ocelot.routines.geometry import rotate_along_axis
 from ocelot.routines.geometry import rotation_matrix
 from ocelot.routines.geometry import unify
 from ocelot.schema.graph import BasicGraph
-from ocelot.schema.graph import MolGraph, FragmentGraph, SidechainGraph, BackboneGraph
-from ocelot.schema.rdfunc import RdFunc
+from ocelot.schema.graph import MolGraph
 
 _coordination_rule = {
     'H': 1,
@@ -246,7 +245,7 @@ class BasicConformer(SiteidOperation):
 
     def compare(self, other):
         """
-        get similarity based on rmsd, return 0 if two different molecules
+        get similarity based on rmsd, return inf if two different molecules
         """
         if len(self) != len(other):
             return np.inf

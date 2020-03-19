@@ -17,30 +17,46 @@ ReadCif implements a set of checkers/functions as the first step of reading cif 
 
 class ReadCif:
 
-    def __init__(self, cifstring):
+    def __init__(self, cifstring, source, identifier=None):
         self.cifstring = cifstring
+        self.source = source
         self.dp = DisParser(self.cifstring)
+        if identifier is None:
+            self.identifier = self.dp.identifier
+        else:
+            self.identifier = identifier
+        self.lattice = self.dp.lattice
+        self.was_fitted = self.dp.was_fitted
+        self.disorder_class = self.dp.classification
+        self.results = OrderedDict()
+
+    def read(self):
         dis_pstructure, dis_unwrap_str, dis_mols, config_infos = self.dp.to_configs(write_files=False, vanilla=True)  # if True writes conf_x.cif, configs is a list of pmg Structure
-        self.disordered_pstructure = dis_unwrap_str
-        self.disordered_pmgmols = dis_mols
-        self.config_structures = []
-        self.occus = []
+        self.disorder_class = self.dp.classification
+        self.results['disordered_pstructure'] = dis_unwrap_str
+        self.results['disordered_pmgmols'] = dis_mols
+
+        config_structures = []
+        config_occupancies = []
         for item in config_infos:
-            self.config_structures.append(item[0])
-            self.occus.append(item[1])
+            config_structures.append(item[0])
+            config_occupancies.append(item[1])
 
-        self.configs = []
-        for i in range(len(self.config_structures)):
-            structure = self.config_structures[i]
-            self.configs.append(Config.from_labeled_clean_pstructure(structure, occu=self.occus[i]))
+        self.results['config_sturcutures'] = config_structures
+        self.results['config_occupancies'] = config_occupancies
 
-        self.properties = OrderedDict()
-        self.properties['is_one_type_mol'] = all(len(c.molgraph_set()) == len(c.molconformers) for c in self.configs)
-        self.properties['is_all_mol_legit'] = all(c.molconformers_all_legit() for c in self.configs)
-        self.properties['where_is_disorder'] = self.where_is_disorder(self.config_structures[0])
 
-    def __eq__(self, other):
-        return self.disordered_pstructure == other.disordered_pstructure
+        configs = []
+        for i in range(len(config_structures)):
+            structure = config_structures[i]
+            configs.append(Config.from_labeled_clean_pstructure(structure, occu=config_occupancies[i]))
+        self.results['configuraions'] = configs
+
+        # these are checked against to configs[0]
+        self.results['n_unique_molecule'] = len(configs[0].molgraph_set())
+        self.results['n_molconformers'] = len(configs[0].molconformers)
+        self.results['all_molconformers_legit'] = configs[0].molconformers_all_legit()
+        self.results['disorder_location'] = self.where_is_disorder(config_structures[0])
 
     # def as_dict(self):
     #     d = OrderedDict()
@@ -61,15 +77,15 @@ class ReadCif:
 
 
     @classmethod
-    def from_ciffile(cls, ciffile):
+    def from_ciffile(cls, ciffile, source, identifier=None):
         with open(ciffile, 'r') as f:
             s = f.read()
-        return cls(s)
+        return cls(s, source, identifier)
 
     @staticmethod
     def where_is_disorder(config_structure):
         """
-        data[imol] = MolConformer with disorder info in conformer_properties
+        data[imol] = disorder info in conformer_properties
         """
         c = config_structure
         dic = {}

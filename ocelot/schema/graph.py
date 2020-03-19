@@ -215,6 +215,8 @@ class BasicGraph:
         d['@class'] = self.__class__.__name__
         d['graph_dict_of_lists'] = nx.to_dict_of_lists(self.graph)
         d['graph_node_symbols'] = OrderedDict(self.symbols)
+        # d['rings'] = self.rings
+        # d['nrings'] = self.nrings
         return d
 
     def draw(self, output, dpi=600):
@@ -260,8 +262,6 @@ class FragmentGraph(BasicGraph):
     def as_dict(self):
         d = super().as_dict()
         d['joints'] = self.joints
-        d['rings'] = self.rings
-        d['nrings'] = self.nrings
         d['partition_scheme'] = self.partition_scheme
         return d
 
@@ -275,11 +275,11 @@ class FragmentGraph(BasicGraph):
 class BackboneGraph(FragmentGraph):
     def __init__(self, graph, joints, partition_scheme='lgcr'):
         super().__init__(graph, joints, partition_scheme)
-        self.ringfp = set([len(r) for r in self.rings])
+        # self.ringfp = set([len(r) for r in self.rings])
 
     def as_dict(self):
         d = super().as_dict()
-        d['ringfp'] = self.ringfp
+        # d['ringfp'] = self.ringfp
         return d
 
 
@@ -315,7 +315,7 @@ class SidechainGraph(FragmentGraph):
 
     def as_dict(self):
         d = super().as_dict()
-        d['hasring'] = self.hasring
+        # d['hasring'] = self.hasring
         d['rankmap'] = self.rankmap
         return d
 

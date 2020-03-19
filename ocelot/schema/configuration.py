@@ -1,20 +1,20 @@
-from copy import deepcopy
 import warnings
+from copy import deepcopy
 from itertools import groupby
 
 import numpy as np
 from pymatgen.core.sites import PeriodicSite
 from pymatgen.core.structure import Molecule
-from pymatgen.core.structure import Structure, Lattice
+from pymatgen.core.structure import Structure
 
 from ocelot.routines.pbc import PBCparser
 from ocelot.schema.conformer import ConformerDimer
-from ocelot.schema.conformer import MolConformer, ConformerInitError
+from ocelot.schema.conformer import ConformerInitError
+from ocelot.schema.conformer import MolConformer
 from ocelot.schema.conformer import conformer_addhmol
 
 
 class Config:
-
     molconformers: [MolConformer]
 
     def __init__(self, molconformers, unwrap_clean_pstructure: Structure, occu=1.0):
@@ -23,6 +23,13 @@ class Config:
         """
         self.pstructure = unwrap_clean_pstructure
         self.molconformers = molconformers
+        for i in range(len(self.molconformers)):
+            try:
+                imols = list(set([s.properties['imol'] for s in self.molconformers[i]]))
+                if len(imols) == 1:
+                    self.molconformers[i].conformer_properties['imol'] = imols[0]
+            except KeyError:
+                continue
 
         self.z = len(self.molconformers)
         self.z_nonsolvent = len([m for m in self.molconformers if not m.is_solvent])

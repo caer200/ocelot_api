@@ -64,8 +64,8 @@ class ConfGen:
     def from_smiles(cls, smiles: str, mingen=50, maxgen=300):
         if 'h' not in smiles.lower():
             raise ConfGenError('no h in the smiles!')
-        m = Chem.MolFromSmiles(smiles)
-        return cls(m, mingen, maxgen)
+        m = Chem.MolFromSmiles(smiles, sanitize=False)
+        return cls(m, mingen=mingen, maxgen=maxgen)
 
     @staticmethod
     def ideal_conf_num(some_molecule: Chem.Mol, min=50, max=300):

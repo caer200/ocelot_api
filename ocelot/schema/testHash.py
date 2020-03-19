@@ -1,7 +1,7 @@
 import itertools
 from collections import OrderedDict
 from operator import eq
-import pynauty  as pn
+import pynauty as pn
 import matplotlib.pyplot as plt
 import networkx as nx
 import networkx.algorithms.isomorphism as iso
