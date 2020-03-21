@@ -113,4 +113,5 @@ class ReadCif:
             else:
                 mol_disorder_info = 'no disorder'
             disorderinfo[imol] = mol_disorder_info
+        disorderinfo = dict((str(k), v) for k, v in disorderinfo.items())
         return disorderinfo

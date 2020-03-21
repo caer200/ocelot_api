@@ -1188,14 +1188,14 @@ class FragConformer(BasicConformer):
     @classmethod
     def from_dict(cls, d: dict):
         rings = [RingConformer.from_dict(rd) for rd in d['rings']]
-        joints = d['joints']
+        joints = dict((int(k), int(v)) for k, v in d['joints'].items())
         prop = d['conformer_properties']
         bc = BasicConformer.from_dict(d)
         return cls.from_basic(bc, True, prop, rings, joints)
 
     def as_dict(self):
         d = super().as_dict()
-        d['joints'] = self.joints
+        d['joints'] = dict((str(k), str(v)) for k, v in self.joints.items())
         d['conformer_properties'] = self.conformer_properties
         return d
 
