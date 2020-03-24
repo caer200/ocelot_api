@@ -379,7 +379,10 @@ if __name__ == '__main__':
     import glob
     # for cif in sorted(glob.glob('./tipge-bw.cif')):
     # for cif in sorted(glob.glob('./tipge-ss.cif')):
-    for cif in sorted(glob.glob('./tipge-*.cif')):
+    # for cif in sorted(glob.glob('./tipge-*.cif')):
+    from pprint import pprint
+    for cif in sorted(glob.glob('./k*.cif')):
         print(cif)
         packingdata = pkid_ciffile(cif)
         print(packingdata[0]['packing'])
+        pprint(packingdata)
