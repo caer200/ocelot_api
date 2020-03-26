@@ -7,6 +7,7 @@ import shapely.geometry as geometry
 from scipy.spatial import Delaunay
 from shapely.ops import cascaded_union, polygonize
 
+class GeometryError(Exception): pass
 
 def norm(v):
     l = 0
@@ -303,7 +304,7 @@ class Fitter:
         :return: vector, ptsmean, error
         """
         if len(pts) < 2:
-            sys.exit('less than 2 pts to fit a line!')
+            raise GeometryError('less than 2 pts to fit a line!')
         ptsmean = np.mean(pts, axis=0)
         u, s, vt = np.linalg.svd(pts - ptsmean)
         vector = unify(vt[0])

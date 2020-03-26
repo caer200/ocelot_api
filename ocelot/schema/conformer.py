@@ -12,6 +12,7 @@ from pymatgen.core.structure import Molecule
 from pymatgen.core.structure import Site
 from pymatgen.io.xyz import XYZ
 from rdkit.Chem import rdMolAlign
+from rdkit.Chem import Descriptors
 from scipy.spatial.distance import cdist
 from scipy.spatial.distance import pdist
 from scipy.spatial.distance import squareform
@@ -27,7 +28,7 @@ from ocelot.routines.geometry import norm
 from ocelot.routines.geometry import rotate_along_axis
 from ocelot.routines.geometry import rotation_matrix
 from ocelot.routines.geometry import unify
-from ocelot.schema.graph import BasicGraph
+from ocelot.schema.graph import BasicGraph, SideJointError
 from ocelot.schema.graph import MolGraph
 
 _coordination_rule = {
@@ -233,6 +234,10 @@ class BasicConformer(SiteidOperation):
                     self[i].properties['siteid'] = siteids[i]
             else:
                 raise SiteidError('siteids are not legit!')
+
+    @property
+    def composition(self):
+        return self.pmgmol.composition
 
     def __eq__(self, other):
         # using center should be enough for sites in a mol
@@ -609,7 +614,22 @@ class BasicConformer(SiteidOperation):
             return MolGraph(g)
         return BasicGraph(g)
 
-    def to_rdmol(self, charge=0, sani=True, charged_fragments=False, force_single=False, expliciths=True):
+    def is_missing_hydrogen(self):
+        try:
+            rdmol, smiles, siteid2atomidx, atomidx2siteid = self.to_rdmol()  # hydrogens are explicitly added
+        except:
+            warnings.warn('to_rdmol failed for this conformer! we believe it misses hydrogen')
+            return True
+        # to_rdmol is quite sensitive to AC, if AC is wrong and charged_frag=False then nradical will be quite large
+        nradical = Descriptors.NumRadicalElectrons(rdmol)
+        if nradical != 0:
+            return True
+        rdmolh = Chem.AddHs(rdmol)
+        if len(rdmol.GetAtoms()) != len(rdmolh.GetAtoms()):
+            return True
+        return False
+
+    def to_rdmol(self, charge=0, sani=True, charged_fragments=None, force_single=False, expliciths=True):
         """
         generate a rdmol obj with current conformer
 
@@ -637,7 +657,14 @@ class BasicConformer(SiteidOperation):
             apriori_radicals = None
         ac = self.bondmat
         ap = ACParser(ac, charge, self.atomic_numbers, sani=sani, apriori_radicals=apriori_radicals)
-        rdmol, smiles = ap.parse(charged_fragments=charged_fragments, force_single=force_single, expliciths=expliciths)
+        if charged_fragments is None:
+            try:
+                rdmol, smiles = ap.parse(charged_fragments=False, force_single=force_single, expliciths=expliciths)
+            except Chem.rdchem.AtomValenceException:
+                warnings.warn('AP parser cannot use radical scheme, trying to use charged frag')
+                rdmol, smiles = ap.parse(charged_fragments=True, force_single=force_single, expliciths=expliciths)
+        else:
+            rdmol, smiles = ap.parse(charged_fragments=charged_fragments, force_single=force_single, expliciths=expliciths)
         rdmol.AddConformer(conf)
         return rdmol, smiles, siteid2atomidx, atomidx2siteid
 
@@ -1242,8 +1269,8 @@ class BoneConformer(FragConformer):
             #     self.__setattr__(k, v)
 
     def calculate_conformer_properties(self):
-        if len(self.rings) == 1:
-            warnings.warn('W: you are init backbone with one ring! fitting params will be set to defaults')
+        if len(self.rings) == 1 or len(self.rings) == 0:
+            warnings.warn('W: you are init backbone with one or no ring! fitting params will be set to defaults')
             site_to_geoc = [s.coords - self.geoc for s in self]
             lfit_vp = sorted(site_to_geoc, key=lambda x: norm(x))[-1]
             lfit_vp = unify(lfit_vp)
@@ -1362,10 +1389,19 @@ class MolConformer(BasicConformer):
 
     def as_dict(self):
         d = super().as_dict()
-        d['geobone'] = self.backbone.as_dict()
-        d['chrombone'] = self.chrombone.as_dict()
-        d['geo_scs'] = [sc.as_dict() for sc in self.sccs]
-        d['chrom_scs'] = [sc.as_dict() for sc in self.chromsccs]
+        try:
+            d['geobone'] = self.backbone.as_dict()
+            d['geo_scs'] = [sc.as_dict() for sc in self.sccs]
+        except AttributeError:
+            d['geobone'] = None
+            d['geo_scs'] = None
+
+        try:
+            d['chrombone'] = self.chrombone.as_dict()
+            d['chrom_scs'] = [sc.as_dict() for sc in self.chromsccs]
+        except AttributeError:
+            d['chrombone'] = None
+            d['chrom_scs'] = None
         d['conformer_properties'] = self.conformer_properties
         return d
 
@@ -1424,10 +1460,13 @@ class MolConformer(BasicConformer):
             coplane = ringconformer.iscoplane_with_norm(avgn1, tol, 'degree')
             return coplane
 
-        if isinstance(coplane_cutoff, float):
-            bg, scgs = molgraph.partition_to_bone_frags(scheme, additional_criteria=coplane_check, with_halogen=with_halogen)
-        else:
-            bg, scgs = molgraph.partition_to_bone_frags(scheme, with_halogen=with_halogen)
+        try:
+            if isinstance(coplane_cutoff, float):
+                bg, scgs = molgraph.partition_to_bone_frags(scheme, additional_criteria=coplane_check, with_halogen=with_halogen)
+            else:
+                bg, scgs = molgraph.partition_to_bone_frags(scheme, with_halogen=with_halogen)
+        except:
+            raise ConformerOperationError('cannot partition with {}!'.format(scheme))
 
         bone_conformer = BoneConformer.from_siteids(
             bg.graph.nodes, self.sites, copy=False, joints=bg.graph.graph['joints'], rings=None

@@ -4,12 +4,10 @@ from copy import deepcopy
 import numpy as np
 from pymatgen.core.structure import Lattice
 from pymatgen.core.structure import Molecule
-from pymatgen.core.structure import PeriodicSite
+from pymatgen.core.structure import PeriodicSite, Element
 from pymatgen.core.structure import Site
 from pymatgen.core.structure import Structure
 from pymatgen.util.coord import pbc_shortest_vectors
-
-from ocelot.schema.conformer import Element
 
 """
 PBCparser: get unwrapped structure and mols

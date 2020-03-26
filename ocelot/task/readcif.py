@@ -1,8 +1,10 @@
 from itertools import groupby
 from collections import OrderedDict
-
+import warnings
+from pymatgen.core.structure import Composition
+from pymatgen.core.composition import CompositionError
 from ocelot.schema.configuration import Config
-from ocelot.routines.disparser import DisParser
+from ocelot.routines.disparser import DisParser, CifFileError
 from ocelot.schema.conformer import MolConformer, ConformerInitError
 from ocelot.routines.pbc import Site
 
@@ -12,6 +14,7 @@ ReadCif implements a set of checkers/functions as the first step of reading cif 
 2. is the molecule legit? (can it be parsed to rdmol)
 3. where is the disorder --> bone or side group or no
 4. get all configurations (during which molconformers for each config will be obtained)
+5. is there any hydrogen missing?
 """
 
 
@@ -47,16 +50,66 @@ class ReadCif:
 
 
         configs = []
+        missh = []
         for i in range(len(config_structures)):
             structure = config_structures[i]
-            configs.append(Config.from_labeled_clean_pstructure(structure, occu=config_occupancies[i]))
-        self.results['configuraions'] = configs
+            conf = Config.from_labeled_clean_pstructure(structure, occu=config_occupancies[i])
+            config_missingh = False
+            for conformer in conf.molconformers:
+                if conformer.is_missing_hydrogen():
+                    config_missingh = True
+                    break
+            if config_missingh:
+                conf.pstructure.to('cif', '{}_mhconf_{}.cif'.format(self.identifier, i))
+                warnings.warn('missing hydrogens in {}_mhconf_{}.cif'.format(self.identifier, i))
+            configs.append(conf)
+            missh.append(config_missingh)
+        self.results['configurations'] = configs
+        self.results['missingh'] = missh
 
         # these are checked against to configs[0]
-        self.results['n_unique_molecule'] = len(configs[0].molgraph_set())
-        self.results['n_molconformers'] = len(configs[0].molconformers)
-        self.results['all_molconformers_legit'] = configs[0].molconformers_all_legit()
-        self.results['disorder_location'] = self.where_is_disorder(config_structures[0])
+        check_config = configs[0]
+        try:
+            self.results['n_unique_molecule'] = len(check_config.molgraph_set())
+            self.results['n_molconformers'] = len(check_config.molconformers)
+            self.results['all_molconformers_legit'] = check_config.molconformers_all_legit()
+            self.results['disorder_location'] = self.where_is_disorder(check_config.pstructure)
+        except:
+            warnings.warn('there are problems in readcif.results, some fileds will be missing!')
+        
+        try:
+            comp = Composition(self.dp.cifdata['_chemical_formula_sum'])
+            self.results['cif_sum_composition'] = comp
+            if not all(self.results['cif_sum_composition'] == mc.composition for mc in check_config.molconformers):
+                self.results['sum_composition_match'] = False
+                print('cif_sum_composition: {}'.format(self.results['cif_sum_composition']))
+                for mc in check_config.molconformers:
+                    print('mc composition: {}'.format(mc.composition))
+                warnings.warn('moiety sum composition does not match that specified in cif file!')
+            else:
+                self.results['sum_composition_match'] = True
+        except (KeyError, CompositionError) as e:
+            self.results['cif_sum_composition'] = None
+            self.results['sum_composition_match'] = None
+
+        try:
+            comp_str = self.dp.cifdata['_chemical_formula_moiety']
+            comps = [Composition(s) for s in comp_str.split(',')]
+            comps = sorted(comps, key=lambda x:len(x), reverse=True)
+            if len(comps) > 1:
+                warnings.warn('more than 1 moiety from cif file! only the largest one is checked!')
+            self.results['cif_moiety_composition'] = comps[0]
+            if not all(self.results['cif_moiety_composition'] == mc.composition for mc in check_config.molconformers):
+                self.results['moiety_composition_match'] = False
+                print('cif_moiety_composition: {}'.format(self.results['cif_moiety_composition']))
+                for mc in check_config.molconformers:
+                    print('mc composition: {}'.format(mc.composition))
+                warnings.warn('moiety composition does not match that specified in cif file!')
+            else:
+                self.results['moiety_composition_match'] = True
+        except (KeyError, CompositionError) as e:
+            self.results['cif_moiety_composition'] = None
+            self.results['moiety_composition_match'] = None
 
     # def as_dict(self):
     #     d = OrderedDict()
@@ -104,6 +157,9 @@ class ReadCif:
                 molconformer = MolConformer.from_sites(obc_sites, siteids=[s.properties['siteid'] for s in obc_sites])
             except ConformerInitError:
                 disorderinfo[imol] = 'not sure'
+                continue
+            if molconformer.backbone is None:
+                disorderinfo[imol] = 'sc disorder'
                 continue
             if len(disordered_siteid) > 0:
                 if set(molconformer.backbone.siteids).intersection(set(disordered_siteid)):

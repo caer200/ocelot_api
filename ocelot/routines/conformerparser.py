@@ -1,6 +1,7 @@
 import copy
 import itertools
 import re
+import warnings
 from collections import defaultdict
 
 import networkx as nx
@@ -95,7 +96,11 @@ def pmgmol_to_rdmol(pmg_mol):
                 mat[i][j] = 1
                 mat[j][i] = 1
     ap = ACParser(mat, charge, m.atomic_numbers, sani=True)
-    rdmol, smiles = ap.parse(charged_fragments=False, force_single=False, expliciths=True)
+    try:
+        rdmol, smiles = ap.parse(charged_fragments=False, force_single=False, expliciths=True)
+    except Chem.rdchem.AtomValenceException:
+        warnings.warn('AP parser cannot use radical scheme, trying to use charged frag')
+        rdmol, smiles = ap.parse(charged_fragments=True, force_single=False, expliciths=True)
     rdmol.AddConformer(conf)
     return rdmol, smiles
 

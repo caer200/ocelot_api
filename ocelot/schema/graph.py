@@ -1,4 +1,5 @@
 import itertools
+import warnings
 from collections import OrderedDict
 from operator import eq
 
@@ -48,8 +49,8 @@ class BasicGraph:
 
     # TODO find a better way to hash a graph schema
     def __hash__(self):
-        # return self.hash_nxgraph(self.graph)
-        return self.hash_via_smiles(self)
+        return self.hash_nxgraph(self.graph)
+        # return self.hash_via_smiles(self)
 
     @staticmethod
     def hash_via_smiles(mg):
@@ -65,8 +66,9 @@ class BasicGraph:
         """
         t = nx.triangles(g)
         c = nx.number_of_cliques(g)
+        ele = nx.get_node_attributes(g, 'symbol')
         dv = g.degree
-        props = [(dv[v], t[v], c[v]) for v in g]
+        props = [(dv[v], t[v], c[v], ele[v]) for v in g]
         props.sort()
         return hash(tuple(props))
         # pnGraph=pn.Graph(g.number_of_nodes());
@@ -163,9 +165,10 @@ class BasicGraph:
         nx.set_node_attributes(g, d['graph_node_symbols'], name='symbol')
         return cls(g)
 
-    def to_rdmol(self, sani=True, charge=0, charged_fragments=False, force_single=False, expliciths=True):
+    def to_rdmol(self, sani=True, charge=0, charged_fragments=None, force_single=False, expliciths=True):
         """
-        convert to rdmol
+        convert to rdmol, it will first try to convert to a radical, if failed b/c of rdkit valence rules,
+        it will try to convert to charged fragment
 
         :param sani: switch to call default sanitizer of rdkit
         :param int charge: molecule charge
@@ -206,7 +209,14 @@ class BasicGraph:
             apriori_radicals = None
 
         ap = ACParser(sani=sani, ac=new_ac, atomnumberlist=atom_number_list, charge=charge, apriori_radicals=apriori_radicals)
-        mol, smiles = ap.parse(charged_fragments=charged_fragments, force_single=force_single, expliciths=expliciths)
+        if charged_fragments is None:
+            try:
+                mol, smiles = ap.parse(charged_fragments=False, force_single=force_single, expliciths=expliciths)
+            except Chem.rdchem.AtomValenceException:
+                warnings.warn('AP parser cannot use radical scheme, trying to use charged frag')
+                mol, smiles = ap.parse(charged_fragments=True, force_single=force_single, expliciths=expliciths)
+        else:
+            mol, smiles = ap.parse(charged_fragments=charged_fragments, force_single=force_single, expliciths=expliciths)
         return mol, smiles, atomidx2nodename, nodename2atomidx
 
     def as_dict(self):
@@ -300,7 +310,11 @@ class SidechainGraph(FragmentGraph):
         """
         super().__init__(graph, joints, partition_scheme)
         if len(self.joints.keys()) > 1:
-            raise SideJointError('sidechain has more than one side joint... impossible!')
+            # in general, sc from chrom partition should not be used
+            warnings.warn('sidechain has more than one side joint... this could happen when using chrom partition')
+            # raise SideJointError('sidechain has more than one side joint... impossible!')
+        if len(self.joints.keys()) == 0:
+            raise SideJointError('sidechain has no side joint, the molceule may not be a connected graph')
         sc_joint = list(self.joints.keys())[0]
         self.rankmap = {}
         for node in self.graph:

@@ -76,7 +76,7 @@ class DBCrystal(DBschema):
         self.id = self.getid()  # source + identifier  # e.g. 'csd_ASFNC'
 
     def getid(self):
-        return self.source + '_' + self.identifier
+        return "{}_{}".format(self.source, self.identifier)
 
     def __hash__(self):
         f = ','.join(['{:.4}'] * 9)
@@ -97,7 +97,7 @@ class DBConfiguration(DBschema):
             z: int = None,
             occupancy: float = None,
             backbone_structure: Structure = None,
-            crystal: DBCrystal._id = None,
+            crystal: str = None,
             config_index: int = None,
             is_major: bool = None,
             packing_data: dict = None,
@@ -226,3 +226,8 @@ class DBChromophoreConformer(DBschema):
 
     def __hash__(self):
         return self.id
+
+# dc = DBCrystal()
+# dc.lattice = Lattice.from_parameters(1, 2, 3, 40, 50, 60)
+# from pprint import pprint
+# pprint(dc.as_dict())
