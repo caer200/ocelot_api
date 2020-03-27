@@ -5,6 +5,14 @@ import re
 import shutil
 
 
+def stringkey(d: dict):
+    return dict((str(k), v) for k, v in d.items())
+
+
+def intkey(d: dict):
+    return dict((int(k), v) for k, v in d.items())
+
+
 def write_obj(obj, fname):
     """
     write an object into binary with pickle

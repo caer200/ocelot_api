@@ -2,7 +2,7 @@ import itertools
 import warnings
 from collections import OrderedDict
 from operator import eq
-
+from ocelot.routines.fileop import stringkey, intkey
 import matplotlib.pyplot as plt
 import networkx as nx
 import networkx.algorithms.isomorphism as iso
@@ -158,8 +158,8 @@ class BasicGraph:
 
     @classmethod
     def from_dict(cls, d: dict):
-        g = nx.from_dict_of_lists(d['graph_dict_of_lists'])
-        nx.set_node_attributes(g, d['graph_node_symbols'], name='symbol')
+        g = nx.from_dict_of_lists(intkey(d['graph_dict_of_lists']))
+        nx.set_node_attributes(g, intkey(d['graph_node_symbols']), name='symbol')
         return cls(g)
 
     def to_rdmol(self, sani=True, charge=0, charged_fragments=None, force_single=False, expliciths=True):
@@ -220,8 +220,8 @@ class BasicGraph:
         d = OrderedDict()
         d['@module'] = self.__class__.__module__
         d['@class'] = self.__class__.__name__
-        d['graph_dict_of_lists'] = nx.to_dict_of_lists(self.graph)
-        d['graph_node_symbols'] = OrderedDict(self.symbols)
+        d['graph_node_symbols'] = stringkey(self.symbols)
+        d['graph_dict_of_lists'] = stringkey(nx.to_dict_of_lists(self.graph))
         # d['rings'] = self.rings
         # d['nrings'] = self.nrings
         return d
@@ -270,15 +270,15 @@ class FragmentGraph(BasicGraph):
 
     def as_dict(self):
         d = super().as_dict()
-        d['joints'] = self.joints
+        d['joints'] = stringkey(self.joints)
         d['partition_scheme'] = self.partition_scheme
         return d
 
     @classmethod
     def from_dict(cls, d: dict):
-        g = nx.from_dict_of_lists(d['graph_dict_of_lists'])
-        nx.set_node_attributes(g, d['graph_node_symbols'], name='symbol')
-        return cls(g, d['joints'], d['partition_scheme'])
+        g = nx.from_dict_of_lists(intkey(d['graph_dict_of_lists']))
+        nx.set_node_attributes(g, intkey(d['graph_node_symbols']), name='symbol')
+        return cls(g, intkey(d['joints']), d['partition_scheme'])
 
 
 class BackboneGraph(FragmentGraph):  # is this necessary?
@@ -325,7 +325,7 @@ class SidechainGraph(FragmentGraph):
     def as_dict(self):
         d = super().as_dict()
         # d['hasring'] = self.hasring
-        d['rankmap'] = self.rankmap
+        d['rankmap'] = stringkey(self.rankmap)
         return d
 
 

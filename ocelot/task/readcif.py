@@ -4,6 +4,7 @@ from collections import OrderedDict
 from pymatgen.core.composition import CompositionError
 from pymatgen.core.structure import Composition
 
+from ocelot.routines.fileop import stringkey
 from ocelot.routines.disparser import DisParser
 from ocelot.schema.configuration import Config
 from ocelot.schema.conformer import MolConformer
@@ -159,5 +160,5 @@ class ReadCif:
                     disorderinfo[imol] = 'bone disorder'
                 else:
                     disorderinfo[imol] = 'sc disorder'
-        disorderinfo = dict((str(k), v) for k, v in disorderinfo.items())
+        disorderinfo = stringkey(disorderinfo)
         return disorderinfo

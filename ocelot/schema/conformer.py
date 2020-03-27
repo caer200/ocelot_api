@@ -2,7 +2,7 @@ import itertools
 import warnings
 from copy import deepcopy
 from typing import List
-
+from ocelot.routines.fileop import stringkey, intkey
 import matplotlib.patches as patches
 import matplotlib.pyplot as plt
 import networkx as nx
@@ -1289,8 +1289,8 @@ class MolConformer(BasicConformer):
         d = super().as_dict()
         d['rdmol'] = RdFunc.mol_as_json(self.rdmol)
         d['smiles'] = self.smiles
-        d['siteid2atomidx'] = dict((str(k), str(v)) for k, v in self.siteid2atomidx.items())
-        d['atomidx2siteid'] = dict((str(k), str(v)) for k, v in self.atomidx2siteid.items())
+        d['siteid2atomidx'] = stringkey(self.siteid2atomidx)
+        d['atomidx2siteid'] = stringkey(self.atomidx2siteid)
         d['graph'] = self.graph.as_dict()
         d['rings'] = [r.as_dict() for r in self.rings]
         d['coplane_cutoff'] = self.coplane_cutoff
@@ -1326,8 +1326,8 @@ class MolConformer(BasicConformer):
         graph = MolGraph.from_dict(d['graph'])
         rdmol = RdFunc.mol_from_json(d['rdmol'])
         smiles = d['smiles']
-        siteid2atomidx = dict((int(k), int(v)) for k, v in d['siteid2atomidx'])
-        atomidx2siteid = dict((int(k), int(v)) for k, v in d['atomidx2siteid'])
+        siteid2atomidx = intkey(d['siteid2atomidx'])
+        atomidx2siteid = intkey(d['atomidx2siteid'])
         coplane_cutoff = d['coplane_cutoff']
         backbone = BoneConformer.from_dict(d['backbone'])
         sccs = [SidechainConformer.from_dict(scd) for scd in d['sccs']]
