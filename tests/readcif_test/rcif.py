@@ -1,7 +1,8 @@
 from ocelot.task.readcif import *
 from pprint import pprint
 import glob
-for cif in glob.glob('tipge-*.cif'):
+for cif in glob.glob('x15347.cif'):
+# for cif in glob.glob('tipge-*.cif'):
     print('working on {}'.format(cif))
     rc = ReadCif.from_ciffile(cif,source='community')
     pprint(rc.results)
