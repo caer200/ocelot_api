@@ -1,6 +1,3 @@
-from .graph import MolGraph, BackboneGraph, SidechainGraph, BasicGraph, FragmentGraph
-from .conformer import MolConformer, SidechainConformer, BoneConformer
-from .configuration import Config
 """
 this contains the schema for dealing with conjugate organics, molecules and beyond
 

@@ -25,5 +25,5 @@ def test(ciffile, wdir):
     pprint(network_ll)
 
 wdir = os.getcwd()
-# test('ben.cif', '{}/ben'.format(wdir))
-test('gebw.cif', '{}/gebw'.format(wdir))
+test('ben.cif', '{}/ben'.format(wdir))
+# test('gebw.cif', '{}/gebw'.format(wdir))

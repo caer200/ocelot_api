@@ -1,6 +1,5 @@
 """
 config init from clean (disorder-free) structure
-
 """
 import glob
 import os
@@ -33,8 +32,8 @@ def testb():
         dimers[0][0][1].plt_bone_overlap('concave', output='{}_001concave.eps'.format(name))
 
 os.chdir('./iconfs')
-# testa()
-testb()
+testa()
+# testb()
 os.chdir('../')
 
 

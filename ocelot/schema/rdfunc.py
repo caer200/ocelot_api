@@ -4,6 +4,8 @@ from rdkit.Chem import AllChem
 from rdkit.Chem import Descriptors
 from rdkit.Chem import Descriptors3D as D3d
 from rdkit.Chem.Fingerprints import FingerprintMols
+from rdkit.Chem.rdMolInterchange import JSONToMols
+from rdkit.Chem.rdMolInterchange import MolToJSON
 
 """
 commonly used rdkit functions
@@ -288,7 +290,7 @@ class RdFunc:
             f.write(s)
 
     @staticmethod
-    def conf2xyz(conf: Chem.Conformer, outputname, atom_list:list, comment_line=''):
+    def conf2xyz(conf: Chem.Conformer, outputname, atom_list: list, comment_line=''):
         natoms = conf.GetNumAtoms()
         s = "{}\n{}\n".format(natoms, comment_line)
         for i in range(natoms):
@@ -297,3 +299,12 @@ class RdFunc:
             s += "{}\t{:.6} {:.6} {:.6}\n".format(symbol, position.x, position.y, position.z)
         with open(outputname, 'w') as f:
             f.write(s)
+
+    @staticmethod
+    def mol_as_json(rdmol: Mol):
+        json = MolToJSON(rdmol)
+        return json
+
+    @staticmethod
+    def mol_from_json(s: str):
+        return JSONToMols(s)[0]

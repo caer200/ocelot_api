@@ -9,7 +9,7 @@ from pymatgen.core.structure import Structure
 
 from ocelot.routines.pbc import PBCparser
 from ocelot.schema.conformer import ConformerDimer
-from ocelot.schema.conformer import ConformerInitError
+from ocelot.schema.conformer import ConformerError
 from ocelot.schema.conformer import MolConformer
 from ocelot.schema.conformer import conformer_addhmol
 
@@ -19,7 +19,7 @@ class Config:
 
     def __init__(self, molconformers, unwrap_clean_pstructure: Structure, occu=1.0):
         """
-        :param pstructure: Structure without disorder
+        :param unwrap_clean_pstructure: Structure without disorder
         """
         self.pstructure = unwrap_clean_pstructure
         self.molconformers = molconformers
@@ -29,6 +29,7 @@ class Config:
                 if len(imols) == 1:
                     self.molconformers[i].conformer_properties['imol'] = imols[0]
             except KeyError:
+                warnings.warn('imol field was not assigned!')
                 continue
 
         self.z = len(self.molconformers)
@@ -80,7 +81,7 @@ class Config:
         return all(mc.can_rdmol for mc in self.molconformers)
 
     def molgraph_set(self):
-        molgraphs = [mc.to_graph() for mc in self.molconformers]
+        molgraphs = [mc.graph for mc in self.molconformers]
         return set(molgraphs)
 
     def as_dict(self, dimermaxfold=2):
@@ -188,7 +189,7 @@ class Config:
         structure = deepcopy(pstructure)
         if assign_siteids:
             print('assign siteid when init a config')
-            for isite in range(structure):
+            for isite in range(len(structure)):
                 structure[isite].properties['siteid'] = isite
         mols, unwrap_structure, psiteblocks = PBCparser.unwrap_and_squeeze(structure)
         molconformers = []
@@ -196,7 +197,7 @@ class Config:
             try:
                 mc = MolConformer.from_pmgmol(m)
                 molconformers.append(mc)
-            except ConformerInitError:
+            except ConformerError:
                 warnings.warn('conformer init failed for one molecule in the cell')
         return cls(molconformers, unwrap_structure, occu)
 
@@ -214,7 +215,7 @@ class Config:
             try:
                 mc = MolConformer.from_pmgmol(m)
                 molconformers.append(mc)
-            except ConformerInitError:
+            except ConformerError:
                 warnings.warn('conformer init failed for one molecule in the cell')
         return cls(molconformers, unwrap_structure, occu)
 
@@ -225,6 +226,6 @@ class Config:
         return cls.from_pstructure(s)
 
     @classmethod
-    def from_file(cls, filename):
+    def from_file(cls, filename, assign_siteids=True):
         s = Structure.from_file(filename)
-        return cls.from_pstructure(s)
+        return cls.from_pstructure(s, assign_siteids=assign_siteids)

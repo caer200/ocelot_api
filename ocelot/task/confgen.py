@@ -132,6 +132,7 @@ class ConfGen:
         """
         conformer in m should be assigned consecutive ids with delta=1
 
+        :param energies:
         :param m:
         :param max_conformers:
         :param rmsd_threshold:
@@ -252,6 +253,7 @@ class ConfGen:
         """
         conformer in m should be assigned consecutive ids with delta=1
 
+        :param energies:
         :param m:
         :param rmsd_threshold:
         :return:

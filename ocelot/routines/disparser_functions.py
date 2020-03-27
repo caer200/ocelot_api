@@ -7,6 +7,7 @@ from copy import deepcopy
 import networkx as nx
 import numpy as np
 from pymatgen.core.operations import SymmOp
+from pymatgen.core.periodic_table import Element
 from pymatgen.core.structure import PeriodicSite
 from pymatgen.io.cif import CifFile
 from pymatgen.io.cif import _get_cod_data
@@ -18,7 +19,7 @@ from pymatgen.util.coord import pbc_shortest_vectors
 from scipy.spatial.distance import cdist
 
 from ocelot.routines.pbc import PBCparser
-from ocelot.schema.conformer import Element
+
 
 class CifFileError(Exception): pass
 

@@ -306,7 +306,7 @@ def partition_basicconformer(conformer: BasicConformer):
         coplane = ringconformer.iscoplane_with_norm(avgn1, tol, 'degree')
         return coplane
     bg, scgs = molgraph.partition_to_bone_frags('lgcr', additional_criteria=coplane_check)
-    bone_conformer = BoneConformer.from_siteids(bg.graph.nodes, conformer.sites, copy=False, joints=bg.graph.graph['joints'], rings=None)
+    bone_conformer = BoneConformer.from_siteids(bg.graph.nodes, conformer.sites, graph=bg, copy=False)
     return bone_conformer
 
 def get_bone_structure_cheaper(config: Structure, mols: [Molecule]):

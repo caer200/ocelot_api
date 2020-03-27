@@ -1,18 +1,18 @@
 import itertools
 import warnings
 from copy import deepcopy
+from typing import List
 
 import matplotlib.patches as patches
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
 import rdkit.Chem as Chem
-from pymatgen.core.structure import Element
 from pymatgen.core.structure import Molecule
 from pymatgen.core.structure import Site
 from pymatgen.io.xyz import XYZ
-from rdkit.Chem import rdMolAlign
 from rdkit.Chem import Descriptors
+from rdkit.Chem import rdMolAlign
 from scipy.spatial.distance import cdist
 from scipy.spatial.distance import pdist
 from scipy.spatial.distance import squareform
@@ -28,8 +28,13 @@ from ocelot.routines.geometry import norm
 from ocelot.routines.geometry import rotate_along_axis
 from ocelot.routines.geometry import rotation_matrix
 from ocelot.routines.geometry import unify
-from ocelot.schema.graph import BasicGraph, SideJointError
+from ocelot.routines.pbc import AtomicRadius
+from ocelot.schema.graph import BackboneGraph
+from ocelot.schema.graph import BasicGraph
+from ocelot.schema.graph import FragmentGraph
 from ocelot.schema.graph import MolGraph
+from ocelot.schema.graph import SidechainGraph
+from ocelot.schema.rdfunc import RdFunc
 
 _coordination_rule = {
     'H': 1,
@@ -59,25 +64,11 @@ _coordination_rule = {
 }
 
 
-class ConformerOperationError(Exception):
+class ConformerError(Exception):
     pass
-
-
-class ConformerInitError(Exception):
-    pass
-
 
 class SiteidError(Exception):
     pass
-
-
-class DisorderError(Exception):
-    pass
-
-
-class BondInitError(Exception):
-    pass
-
 
 _rdmol_sani = True
 _rdmol_force_single = False
@@ -96,55 +87,68 @@ class SiteidOperation:
     def __iter__(self):
         return self.sites.__iter__()
 
-    def __init__(self, sites):
+    def __init__(self, sites: [Site]):
         self.sites = sites
 
-        allkeys = ['siteid']
-        for s in self.sites:
-            allkeys += list(s.properties.keys())
-        allkeys = list(set(allkeys))
+        # allkeys = ['siteid']
+        # for s in self.sites:
+        #     allkeys += list(s.properties.keys())
+        # allkeys = list(set(allkeys))
+        #
+        # for i in range(len(self)):
+        #     k = 'siteid'
+        #     # for k in allkeys:
+        #     try:
+        #         self[i].properties[k]
+        #     except KeyError:
+        #         self[i].properties[k] = None
 
-        for i in range(len(self)):
-            for k in allkeys:
-                try:
-                    self[i].properties[k]
-                except KeyError:
-                    self[i].properties[k] = None
+    @property
+    def sdict(self):
+        d = {}
+        for s in self.sites:
+            d[s.properties['siteid']] = s
+        return d
 
     @property
     def siteids(self):
-        return [s.properties['siteid'] for s in self]
+        try:
+            return [s.properties['siteid'] for s in self]
+        except KeyError:
+            raise SiteidError('at least one site does not have siteid field!')
 
-    def get_site_byid(self, siteid, multimatch=False):
+    def get_site_byid(self, siteid):
         """
         :param int siteid:
-        :param bool multimatch: if Ture, return a list, otherwise a site
         :return: (a list of) msite obj
         """
-        if multimatch:
-            sites_matches = []
-            for s in self:
-                if s.properties['siteid'] == siteid:
-                    sites_matches.append(s)
-            if len(sites_matches) == 0:
-                raise SiteidError('cannot get site by id: {}'.format(siteid))
-            return sites_matches
-        else:
-            for s in self:
-                if s.properties['siteid'] == siteid:
-                    return s
+        return self.sdict[siteid]
+        # if multimatch:
+        #     sites_matches = []
+        #     for s in self:
+        #         if s.properties['siteid'] == siteid:
+        #             sites_matches.append(s)
+        #     if len(sites_matches) == 0:
+        #         raise SiteidError('cannot get site by id: {}'.format(siteid))
+        #     return sites_matches
+        # else:
+        #     for s in self:
+        #         if s.properties['siteid'] == siteid:
+        #             return s
 
     def get_sites_byids(self, siteids, copy=False):
         self.checkstatus('all assigned', 'unique ids')
         if not set(siteids).issubset(set(self.siteids)):
             raise SiteidError('siteids is not a subset of sitelist when init conformer')
         rs = []
-        for s in self:
-            if s.properties['siteid'] in siteids:
-                if copy:
-                    rs.append(deepcopy(s))
-                else:
-                    rs.append(s)
+        for i in siteids:
+            s = self.sdict[i]
+            # for s in self:
+            # if s.properties['siteid'] in siteids:
+            if copy:
+                rs.append(deepcopy(s))
+            else:
+                rs.append(s)
         return rs
 
     @property
@@ -156,10 +160,10 @@ class SiteidOperation:
         """
         s = []
 
-        if self.siteids[0] == 0:
-            s.append('0start')
-        else:
-            s.append('not0strat')
+        # if self.siteids[0] == 0:
+        #     s.append('0start')
+        # else:
+        #     s.append('not0strat')
 
         if set(self.siteids) == {None}:
             s.append('all none')
@@ -168,14 +172,14 @@ class SiteidOperation:
         else:
             s.append('all assigned')
 
-        try:
-            cri = all(a + 1 == b for a, b in zip(self.siteids, self.siteids[1:]))
-            if cri:
-                s.append('continuous')
-            else:
-                s.append('not continuous')
-        except TypeError:
-            pass
+        # try:
+        #     cri = all(a + 1 == b for a, b in zip(self.siteids, self.siteids[1:]))
+        #     if cri:
+        #         s.append('continuous')
+        #     else:
+        #         s.append('not continuous')
+        # except TypeError:
+        #     pass
 
         if len(set(self.siteids)) < len(self.siteids):
             s.append('duplicate ids')
@@ -184,12 +188,14 @@ class SiteidOperation:
 
         return s
 
-    def assign_siteid(self, siteids=None):
+    def assign_siteid(self, siteids):
         """
         :param siteids: default None means siteid = index, otherwise siteid = siteids[i]
         :return:
         """
-        if siteids is None:
+        if siteids is False:
+            pass
+        elif siteids is None:
             for i in range(len(self)):
                 self[i].properties['siteid'] = i
         elif len(siteids) == len(self) and all(isinstance(i, int) for i in siteids):
@@ -208,32 +214,14 @@ class SiteidOperation:
 
 class BasicConformer(SiteidOperation):
 
-    def __init__(self, sites, charge=0, spin_multiplicity=1, validate_proximity=True, siteids=None):
+    def __init__(self, sites, siteids=False):
         """
-        if siteids is None, siteid is set to site.properties['siteid'] or none if site.properties doesnot have a key as 'siteid'
-
         :param sites:
-        :param charge:
-        :param spin_multiplicity:
-        :param validate_proximity:
         :param siteids: a list of siteids, siteids[index]=siteid of self[index]
         """
         super().__init__(sites)
-        self.charge = charge
-        self.spin_multiplicity = spin_multiplicity
-        if not self.pmgmol.is_ordered:
-            raise ConformerInitError('{} is disordered'.format(self.__class__.__name__))
-
-        if validate_proximity:
-            if not self.pmgmol.is_valid():
-                raise ConformerInitError('sites too close')
-
-        if siteids is not None:
-            if len(siteids) == len(self) and all(isinstance(i, int) for i in siteids):
-                for i in range(len(self)):
-                    self[i].properties['siteid'] = siteids[i]
-            else:
-                raise SiteidError('siteids are not legit!')
+        self.assign_siteid(siteids)
+        self.checkstatus('all assigned', 'unique ids')
 
     @property
     def composition(self):
@@ -376,15 +364,9 @@ class BasicConformer(SiteidOperation):
         numsites = len(sites)
         mat = np.zeros((numsites, numsites), dtype=bool)
         for i in range(numsites):
-            istring = sites[i].species_string
-            irad = Element(istring).atomic_radius
-            if irad is None:
-                continue
+            irad = AtomicRadius(sites[i])
             for j in range(i + 1, numsites):
-                jstring = sites[j].species_string
-                jrad = Element(jstring).atomic_radius
-                if jrad is None:
-                    continue
+                jrad = AtomicRadius(sites[j])
                 cutoff = (irad + jrad) * co
                 if 1e-5 < distmat[i][j] < cutoff:
                     mat[i][j] = True
@@ -453,6 +435,11 @@ class BasicConformer(SiteidOperation):
     def atomic_numbers(self):
         """List of atomic numbers."""
         return tuple(site.specie.Z for site in self)  # type: ignore
+
+    # @property
+    # def atomic_radii(self):
+    #     return (Element(site.species_string).atomic_radius for site in self)
+    # return tuple(atomic_radius Elesite.species_string for site in self)
 
     def intersection(self, other, copy=False):
         """
@@ -563,7 +550,7 @@ class BasicConformer(SiteidOperation):
             return False
 
     def get_bondmat_based_on_siteid(self, co=1.3):
-        self.checkstatus('all assigned', 'unique ids')
+        # self.checkstatus('all assigned', 'unique ids')
         distmat = self.distmat
         siteid_to_disti = self.siteid2index
         mat = {}
@@ -573,26 +560,22 @@ class BasicConformer(SiteidOperation):
                 mat[ii][jj] = False
             # print(self.siteids)
         # mat = np.zeros((max(self.siteids) + 10, max(self.siteids) + 10), dtype=bool)
-        for sidi in self.siteids:
+        for isidi in range(len(self)):
+            sidi = self.siteids[isidi]
             i = siteid_to_disti[sidi]
-            istring = self[i].species_string
-            irad = Element(istring).atomic_radius
-            if irad is None:
-                continue
-            for sidj in self.siteids:
+            irad = AtomicRadius(self[i])
+            for isidj in range(isidi + 1, len(self)):
+                sidj = self.siteids[isidj]
                 j = siteid_to_disti[sidj]
-                jstring = self[j].species_string
-                jrad = Element(jstring).atomic_radius
-                if jrad is None:
-                    continue
+                jrad = AtomicRadius(self[j])
                 distance = distmat[i][j]
                 cutoff = (irad + jrad) * co
                 if 1e-5 < distance < cutoff:
-                    mat[sidi][sidj] = 1
-                    mat[sidj][sidi] = 1
+                    mat[sidi][sidj] = True
+                    mat[sidj][sidi] = True
         return mat
 
-    def to_graph(self, nodename='siteid', graphtype='MolGraph'):
+    def to_graph(self, nodename='siteid', graphtype='MolGraph', partition_scheme=None, joints: dict = None):
         """
         get a Graph, default siteid --> nodename
 
@@ -601,17 +584,22 @@ class BasicConformer(SiteidOperation):
         bondmat_by_siteid = self.get_bondmat_based_on_siteid(co=1.3)
         g = nx.Graph()
         if nodename == 'siteid':
-            for s in self:
+            for i in range(len(self)):
+                s = self[i]
                 g.add_node(s.properties['siteid'], symbol=s.species_string)
-                for ss in self:
+                for j in range(i + 1, len(self)):
+                    ss = self[j]
                     g.add_node(ss.properties['siteid'], symbol=ss.species_string)
-                    if s == ss:
-                        continue
-                    else:
-                        if bondmat_by_siteid[s.properties['siteid']][ss.properties['siteid']]:
-                            g.add_edge(s.properties['siteid'], ss.properties['siteid'])
+                    if bondmat_by_siteid[s.properties['siteid']][ss.properties['siteid']]:
+                        g.add_edge(s.properties['siteid'], ss.properties['siteid'])
         if graphtype == 'MolGraph':
             return MolGraph(g)
+        elif graphtype == 'FragmentGraph':
+            return FragmentGraph(g, joints=joints, partition_scheme=partition_scheme)
+        elif graphtype == 'BackboneGraph':
+            return BackboneGraph(g, joints=joints, partition_scheme=partition_scheme)
+        elif graphtype == 'SidechainGraph':
+            return SidechainGraph(g, joints=joints, partition_scheme=partition_scheme)
         return BasicGraph(g)
 
     def is_missing_hydrogen(self):
@@ -672,63 +660,30 @@ class BasicConformer(SiteidOperation):
         self.pmgmol.to(fmt, filename)
 
     @classmethod
-    def from_sites(cls, sites, charge=0, spin_multiplicity=None,
-                   validate_proximity=True, siteidcheck=('all assigned', 'unique ids'), siteids=None):
+    def from_sites(cls, sites, siteids=False):
         """
         we use this as the parent constructor
-
-        :param sites:
-        :param charge:
-        :param spin_multiplicity:
-        :param validate_proximity:
-        :param siteidcheck: if the check fails, assign siteid as the order in m
-        :param siteids:
-        :return:
         """
-        so = SiteidOperation(sites)
-        try:
-            so.checkstatus(*siteidcheck)
-        except SiteidError:
-            warnings.warn('siteid check in {} failed, reassign siteid...'.format(cls.__class__.__name__))
-            so.assign_siteid()
-        # print(cls.__class__.__name__, so.sites)
-        if siteids is None:
-            try:
-                idsfromsites = [s.properties['siteid'] for s in sites]
-            except KeyError:
-                idsfromsites = None
-            siteids = idsfromsites
-        return cls(so.sites, charge, spin_multiplicity, validate_proximity, siteids)
+        return cls(sites, siteids)
 
     @classmethod
-    def from_pmgmol(cls, m: Molecule, validate_proximity=True, siteidcheck=('all assigned', 'unique ids'),
-                    siteids=None):
-        return cls.from_sites(m.sites, int(m.charge), m.spin_multiplicity, validate_proximity, siteidcheck, siteids)
+    def from_pmgmol(cls, m: Molecule, siteids=False):
+        return cls.from_sites(m.sites, siteids)
 
     @classmethod
-    def from_siteids(cls, siteids, sites, copy=False, charge=0, spin_multiplicity=None, validate_proximity=True,
-                     siteidcheck=('all assigned', 'unique ids')):
+    def from_siteids(cls, siteids, sites, copy=False):
         """
         build up a ring based on a list of siteid and a list of sites
 
         the sites should have been assigned siteids
-
-        :param copy:
-        :param charge:
-        :param spin_multiplicity:
-        :param validate_proximity:
-        :param siteidcheck:
-        :param siteids: a list of siteid
-        :param sites: all sites (in a mol)
         """
         rs = SiteidOperation(sites).get_sites_byids(siteids, copy)
-        return cls.from_sites(rs, charge, spin_multiplicity, validate_proximity, siteidcheck)
+        return cls.from_sites(rs, siteids=False)
 
     @classmethod
     def from_file(cls, filename):
-
         m = Molecule.from_file(filename)
-        c = cls.from_pmgmol(m)
+        c = cls.from_pmgmol(m, siteids=None)
         warnings.warn(
             'conformer built from file, siteids are assigned by the order of entries in file: {}'.format(filename))
         return c
@@ -736,7 +691,7 @@ class BasicConformer(SiteidOperation):
     @classmethod
     def from_str(cls, input_string, fmt):
         m = Molecule.from_str(input_string, fmt)
-        conformer = cls.from_pmgmol(m)
+        conformer = cls.from_pmgmol(m, siteids=None)
         warnings.warn('conformer built from string, siteids are assigned by the order of entries in the string')
         return conformer
 
@@ -745,54 +700,22 @@ class BasicConformer(SiteidOperation):
             "@module": self.__class__.__module__,
             "@class": self.__class__.__name__,
             "sites": [s.as_dict() for s in self],
-            "charge": self.charge,
-            "spin_multiplicity": self.spin_multiplicity,
         }
         return d
 
     @classmethod
     def from_dict(cls, d: dict):
         sites = [Site.from_dict(sd) for sd in d['sites']]
-        return cls.from_sites(sites, d['charge'], d['spin_multiplicity'])
-
-
-def get_rings_from_conformer(conformer: BasicConformer, scheme='all'):
-    """
-    :param conformer:
-    :param scheme: 'all', 'lgfr', 'lgcr'
-    :return:a list of :class:`RingConformer`
-    """
-    conformer.checkstatus('all assigned', 'unique ids')
-    molgraph = conformer.to_graph('siteid', 'MolGraph')
-    rings = []
-    if scheme == 'all':
-        for r in molgraph.rings:
-            ring = RingConformer.from_siteids(r, conformer.sites, copy=False)
-            rings.append(ring)
-    elif scheme == 'lgfr':
-        if molgraph.lgfr is None:
-            raise ConformerOperationError('there is no lgfr of this conformer!')
-        for r in molgraph.lgfr:
-            ring = RingConformer.from_siteids(r, conformer.sites, copy=False)
-            rings.append(ring)
-    elif scheme == 'lgcr':
-        if molgraph.lgcr is None:
-            raise ConformerOperationError('there is no lgfr of this conformer!')
-        for r in molgraph.lgcr:
-            ring = RingConformer.from_siteids(r, conformer.sites, copy=False)
-            rings.append(ring)
-    else:
-        raise NotImplementedError('I do not understand the scheme {}!'.format(scheme))
-    return rings
+        return cls.from_sites(sites, siteids=False)
 
 
 class BondConformer(BasicConformer):
 
-    def __init__(self, sites, charge=0, spin_multiplicity=1, validate_proximity=True, siteids=None):
-        super().__init__(sites, charge, spin_multiplicity, validate_proximity, siteids)
+    def __init__(self, sites, siteids=False):
+        super().__init__(sites, siteids)
         # self.checkstatus('all assigned', 'unique ids')
         if len(self) != 2:
-            raise ConformerInitError('only use two sites to create a bond! you are using {}'.format(len(self)))
+            raise ConformerError('only use two sites to create a bond! you are using {}'.format(len(self)))
         self.a = self[0]
         self.b = self[1]
 
@@ -802,12 +725,12 @@ class BondConformer(BasicConformer):
 
 
 class RingConformer(BasicConformer):
-    def __init__(self, sites, charge=0, spin_multiplicity=1, validate_proximity=True, siteids=None):
-        super().__init__(sites, charge, spin_multiplicity, validate_proximity, siteids)
+    def __init__(self, sites, siteids=False):
+        super().__init__(sites, siteids)
         # self.checkstatus('all assigned', 'unique ids')
         self.n_member = len(self)
         if self.n_member < 3:
-            raise ConformerInitError('you are initializing a ring with less than 3 sites!')
+            raise ConformerError('you are initializing a ring with less than 3 sites!')
         normal, self.ptsmean, self.pl_error = Fitter.plane_fit(self.cart_coords)
         self.n1 = np.array(normal)
         self.n2 = np.array(-normal)
@@ -895,7 +818,7 @@ class RingConformer(BasicConformer):
     def as_dict(self):
         d = super().as_dict()
         d['n_member'] = self.n_member
-        d['bonds'] = [b.as_dict() for b in self.bonds_in_ring]
+        # d['bonds'] = [b.as_dict() for b in self.bonds_in_ring]
         return d
 
 
@@ -1063,7 +986,7 @@ def conformer_addh(c: BasicConformer, joints=None, original: BasicConformer = No
                         continue
                     hsites = []
                     for nb in joints[s.properties['siteid']]:
-                        nb_site = original.get_site_byid(nb, multimatch=False)
+                        nb_site = original.get_site_byid(nb)
                         v_s_to_h = nb_site.coords - s.coords
                         v_s_to_h = unify(v_s_to_h)
                         hcoords = s.coords + v_s_to_h * 1.1
@@ -1093,7 +1016,7 @@ def conformer_addhmol(c: BasicConformer, joints=None, original: BasicConformer =
             if k in hydrogen_assign_keys:
                 hsites_to_be_added[ihs].properties[k] = original_properties[k]
             elif k == 'siteid':
-                hsites_to_be_added[ihs].properties[k] = -(ihs+1)
+                hsites_to_be_added[ihs].properties[k] = -(ihs + 1)
             elif k == 'label':
                 hsites_to_be_added[ihs].properties[k] = 'addedh'
             else:
@@ -1102,135 +1025,70 @@ def conformer_addhmol(c: BasicConformer, joints=None, original: BasicConformer =
     return Molecule.from_sites(SiteidOperation(sites).sites)
 
 
+from typing import Union
+
+
 class FragConformer(BasicConformer):
     _conformer_properties = {}
 
     def __init__(
-            self, sites, charge=0, spin_multiplicity=1, validate_proximity=True, siteids=None,
+            self, sites,
+            siteids=False,
             conformer_properties=None,
-            rings=None,
-            joints=None,
+            graph: Union[FragmentGraph, BackboneGraph, SidechainGraph] = None,
     ):
-        super().__init__(sites, charge, spin_multiplicity, validate_proximity, siteids)
-        # self.checkstatus('all assigned', 'unique ids')
+        super().__init__(sites, siteids)
         if conformer_properties is None:
             self.conformer_properties = {}
         else:
             self.conformer_properties = conformer_properties
-
-        self.joints = joints
-        if self.joints is None:
-            # raise ConformerInitError('BoneConformer init without joints dict defined')
-            warnings.warn('{} init without joints'.format(self.__class__.__name__))
-
-        if rings is None:
-            self.rings = get_rings_from_conformer(self, 'all')
+        if isinstance(graph, FragmentGraph):
+            self.graph = graph
         else:
-            self.rings = rings
+            raise ConformerError('Missing FragmentGraph!')
+        self.joints = self.graph.joints
+        self.rings = self.get_rings()
+
+    def get_rings(self):
+        rings = nx.minimum_cycle_basis(self.graph.graph)  # technically sssr
+        rings = sorted(rings, key=lambda x: len(x))
+        rcs = []
+        for r in rings:
+            ring = RingConformer.from_siteids(r, self.sites, copy=False)
+            rcs.append(ring)
+        return rcs
 
     def calculate_conformer_properties(self):
         pass
 
     @classmethod
-    def from_sites(
-            cls, sites, charge=0, spin_multiplicity=None, validate_proximity=True,
-            siteidcheck=('all assigned', 'unique ids'), siteids=None,
-            conformer_properties=None,
-            rings=None,
-            joints=None,
-    ):
-        """
-
-        :param conformer_properties:
-        :param rings:
-        :param joints:
-        :param sites:
-        :param charge:
-        :param spin_multiplicity:
-        :param validate_proximity:
-        :param siteidcheck: if the check fails, assign siteid as the order in m
-        :param siteids:
-        :return:
-        """
-        if siteids is None:
-            try:
-                idsfromsites = [s.properties['siteid'] for s in sites]
-            except KeyError:
-                idsfromsites = None
-            siteids = idsfromsites
-        c = cls(sites, charge, spin_multiplicity, validate_proximity, siteids, conformer_properties, rings, joints)
-        try:
-            c.checkstatus(*siteidcheck)
-        except SiteidError:
-            warnings.warn('siteid check in {} failed, reassign siteid...'.format(cls.__class__.__name__))
-            c.assign_siteid()
-        return c
+    def from_sites(cls, sites, graph=None, siteids=False, conformer_properties=None):
+        bc = BasicConformer.from_sites(sites, siteids)
+        if graph is None:
+            graph = bc.to_graph('siteid', 'FragmentGraph')
+        return cls(sites, siteids, conformer_properties, graph)
 
     @classmethod
-    def from_rings(
-            cls, rings, charge=0, spin_multiplicity=None, validate_proximity=True,
-            siteidcheck=('all assigned', 'unique ids'), siteids=None,
-            conformer_properties=None,
-            joints=None,
-    ):
-        sites = []
-        for r in rings:
-            for rs in r:
-                if rs not in sites:
-                    sites.append(rs)
-        c = cls(sites, charge, spin_multiplicity, validate_proximity, siteids, conformer_properties, rings, joints)
-        try:
-            c.checkstatus(*siteidcheck)
-        except SiteidError:
-            warnings.warn('siteid check in {} failed, reassign siteid...'.format(cls.__class__.__name__))
-            c.assign_siteid()
-        return c
-
-    @classmethod
-    def from_basic(
-            cls, bc: BasicConformer, validate_proximity=True,
-            conformer_properties=None,
-            rings=None,
-            joints=None,
-    ):
-        return cls.from_sites(bc.sites, bc.charge, bc.spin_multiplicity, validate_proximity, siteids=bc.siteids,
-                              conformer_properties=conformer_properties, rings=rings, joints=joints)
-
-    @classmethod
-    def from_siteids(cls, siteids, sites, copy=False, charge=0, spin_multiplicity=None, validate_proximity=True,
-                     siteidcheck=('all assigned', 'unique ids'),
-                     conformer_properties=None,
-                     rings=None,
-                     joints=None,
-                     ):
+    def from_siteids(cls, siteids, sites, graph=None, copy=False, conformer_properties=None, ):
         rs = SiteidOperation(sites).get_sites_byids(siteids, copy)
-        return cls.from_sites(
-            rs, charge, spin_multiplicity, validate_proximity,
-            ('all assigned', 'unique ids'), siteids=None,
-            conformer_properties=conformer_properties,
-            rings=rings,
-            joints=joints,
-        )
+        return cls.from_sites(rs, siteids=False, conformer_properties=conformer_properties, graph=graph)
 
     @classmethod
     def from_dict(cls, d: dict):
-        rings = [RingConformer.from_dict(rd) for rd in d['rings']]
-        joints = dict((int(k), int(v)) for k, v in d['joints'].items())
+        graph = FragmentGraph.from_dict(d['graph'])
         prop = d['conformer_properties']
-        bc = BasicConformer.from_dict(d)
-        return cls.from_basic(bc, True, prop, rings, joints)
+        sites = [Site.from_dict(sd) for sd in d['sites']]
+        return cls.from_sites(sites, graph=graph, siteids=False, conformer_properties=prop)
 
     def as_dict(self):
         d = super().as_dict()
-        d['joints'] = dict((str(k), str(v)) for k, v in self.joints.items())
         d['conformer_properties'] = self.conformer_properties
+        d['graph'] = self.graph.as_dict()
         return d
 
     @classmethod
-    def from_pmgmol(cls, m: Molecule, validate_proximity=True, siteidcheck=('all assigned', 'unique ids'), siteids=None,
-                    conformer_properties=None, rings=None, joints=None, ):
-        return cls.from_sites(m.sites, int(m.charge), m.spin_multiplicity, validate_proximity, siteidcheck, siteids,
-                              conformer_properties, rings, joints)
+    def from_pmgmol(cls, m: Molecule, siteids=False, conformer_properties=None, graph=None):
+        return cls.from_sites(m.sites, siteids, conformer_properties, graph)
 
 
 class BoneConformer(FragConformer):
@@ -1243,15 +1101,14 @@ class BoneConformer(FragConformer):
     }
 
     def __init__(
-            self, sites, charge=0, spin_multiplicity=1, validate_proximity=True, siteids=None,
+            self, sites,
+            siteids=False,
             conformer_properties=None,
-            rings=None,
-            joints=None,
+            graph: BackboneGraph = None,
     ):
         if conformer_properties is None:
             conformer_properties = self._bone_conformer_properties
-        super().__init__(sites, charge, spin_multiplicity, validate_proximity, siteids, conformer_properties, rings,
-                         joints)
+        super().__init__(sites, siteids, conformer_properties, graph)
         # self.checkstatus('all assigned', 'unique ids')
 
         if any(v is None for v in self.conformer_properties.values()) or any(
@@ -1317,12 +1174,20 @@ class BoneConformer(FragConformer):
         projs = [np.dot(s.coords - ref, self.pfit_vo) for s in self]
         return max(projs) - min(projs)
 
-    # def as_dict(self):
-    #     d = super().as_dict()
-    #     d['rings'] = [r.as_dict() for r in self.rings]
-    #     d['joints'] = self.joints
-    #     d['conformer_properties'] = self.conformer_properties
-    #     return d
+    @classmethod
+    def from_sites(cls, sites, graph=None, siteids=False, conformer_properties=None):
+        bc = BasicConformer.from_sites(sites, siteids)
+        if graph is None:
+            graph = bc.to_graph('siteid', 'BackboneGraph')
+        c = cls(sites, siteids, conformer_properties, graph)
+        return c
+
+    @classmethod
+    def from_dict(cls, d: dict):
+        graph = BackboneGraph.from_dict(d['graph'])
+        prop = d['conformer_properties']
+        sites = [Site.from_dict(sd) for sd in d['sites']]
+        return cls.from_sites(sites, graph=graph, siteids=False, conformer_properties=prop)
 
 
 class SidechainConformer(FragConformer):
@@ -1331,57 +1196,90 @@ class SidechainConformer(FragConformer):
     """
     _sidechain_conformer_properties = {}
 
+
     def __init__(
-            self, sites, charge=0, spin_multiplicity=1, validate_proximity=True, siteids=None,
+            self, sites,
+            siteids=False,
             conformer_properties=None,
-            rings=None,
-            joints=None,
+            graph: SidechainGraph = None
     ):
+        super().__init__(sites, siteids, conformer_properties, graph)
         if conformer_properties is None:
-            conformer_properties = self._sidechain_conformer_properties
-        super().__init__(sites, charge, spin_multiplicity, validate_proximity, siteids, conformer_properties, rings,
-                         joints)
+            self.conformer_properties = self._sidechain_conformer_properties
 
-        try:
-            if len(self.joints.keys()) != 1:
-                raise ConformerInitError('sidechain init with no or >1 joints')
-            self.sidechain_joint_siteid = list(self.joints.keys())[0]
-            self.sidechain_joint = self.get_site_byid(self.sidechain_joint_siteid)
-        except TypeError:
-            warnings.warn('sidechain joints is not a dict!')
-            self.sidechain_joint_siteid = None
-            self.sidechain_joint = None
+        if len(self.joints.keys()) != 1:
+            raise ConformerError('sidechain init with no or >1 joints')
+        self.sidechain_joint_siteid = list(self.joints.keys())[0]
+        self.sidechain_joint = self.get_site_byid(self.sidechain_joint_siteid)
 
+    @classmethod
+    def from_sites(cls, sites, graph=None, siteids=False, conformer_properties=None):
+        bc = BasicConformer.from_sites(sites, siteids)
+        if graph is None:
+            graph = bc.to_graph('siteid', 'SidechainGraph')
+        c = cls(sites, siteids, conformer_properties, graph)
+        return c
+
+    @classmethod
+    def from_dict(cls, d: dict):
+        graph = SidechainGraph.from_dict(d['graph'])
+        prop = d['conformer_properties']
+        sites = [Site.from_dict(sd) for sd in d['sites']]
+        return cls.from_sites(sites, graph=graph, siteids=False, conformer_properties=prop)
 
 class MolConformer(BasicConformer):
+    rings: List[RingConformer]
     _mol_conformer_properties = {
         # 'smiles': None,
     }
 
     def __init__(
-            self, sites, charge=0, spin_multiplicity=1, validate_proximity=True, siteids=None, prop=None
+            self,
+            sites,
+            siteids=False,
+            prop=None,
+            graph: MolGraph = None,
+            rdmol: Chem.Mol = None,
+            smiles: str = None,
+            siteid2atomidx: dict = None,
+            atomidx2siteid: dict = None,
+            backbone: BoneConformer = None,
+            sccs: [SidechainConformer] = None,
+            backbone_graph: BackboneGraph = None,
+            scgs: [SidechainGraph] = None,
+            coplane_cutoff=30.0,
+            chrombone: FragConformer = None,
+            chromsccs: [FragConformer] = None,
+            chrombone_graph: FragmentGraph = None,
+            chromscgs: [FragmentGraph] = None,
     ):
-        super().__init__(sites, charge, spin_multiplicity, validate_proximity, siteids)
+        super().__init__(sites, siteids)
         # self.checkstatus('all assigned', 'unique ids')
 
-        self.rings = get_rings_from_conformer(self, 'all')
-        if len(self.rings) <= 1:
+        self.rdmol = rdmol
+        self.smiles = smiles
+        self.siteid2atomidx = siteid2atomidx
+        self.atomidx2siteid = atomidx2siteid
+        self.graph = graph
+        self.rings = []
+        for r in self.graph.rings:
+            ring = RingConformer.from_siteids(r, self.sites, copy=False)
+            self.rings.append(ring)
+
+        if len(self.rings) < 2:
             self.is_solvent = True
         else:
             self.is_solvent = False
 
-        # this is geometric bone
-        try:
-            self.backbone, self.sccs, self.backbone_graph, self.scgs = self.partition(scheme='lgcr', coplane_cutoff=30.0)
-        except ConformerOperationError:
-            self.backbone, self.sccs, self.backbone_graph, self.scgs = [None] * 4
-            warnings.warn('cannot geo-partition this molconformer!')
-        try:
-            # self.chrombone, self.chromsccs, self.chrombone_graph, self.chromscgs = self.partition_chrom(sc)
-            self.chrombone, self.chromsccs, self.chrombone_graph, self.chromscgs = self.partition(scheme='chrom')
-        except ConformerOperationError:
-            self.chrombone, self.chromsccs, self.chrombone_graph, self.chromscgs = [None] * 4
-            warnings.warn('cannot chrom-partition this molconformer!')
+        self.backbone = backbone
+        self.backbone_graph = backbone_graph
+        self.sccs = sccs
+        self.scgs = scgs
+        self.chrombone = chrombone
+        self.chromsccs = chromsccs
+        self.chrombone_graph = chrombone_graph
+        self.chromscgs = chromscgs
+        self.coplane_cutoff = coplane_cutoff
         if prop is None:
             self.conformer_properties = self._mol_conformer_properties
         else:
@@ -1389,104 +1287,178 @@ class MolConformer(BasicConformer):
 
     def as_dict(self):
         d = super().as_dict()
+        d['rdmol'] = RdFunc.mol_as_json(self.rdmol)
+        d['smiles'] = self.smiles
+        d['siteid2atomidx'] = self.siteid2atomidx
+        d['atomidx2siteid'] = self.atomidx2siteid
+        d['graph'] = self.graph.as_dict()
+        d['rings'] = [r.as_dict() for r in self.rings]
+        d['coplane_cutoff'] = self.coplane_cutoff
+        d['conformer_properties'] = self.conformer_properties
         try:
-            d['geobone'] = self.backbone.as_dict()
-            d['geo_scs'] = [sc.as_dict() for sc in self.sccs]
+            d['backbone'] = self.backbone.as_dict()
+            d['backbone_graph'] = self.backbone_graph.as_dict()
+            d['sccs'] = [sc.as_dict() for sc in self.sccs]
+            d['scgs'] = [sg.as_dict() for sg in self.scgs]
         except AttributeError:
-            d['geobone'] = None
-            d['geo_scs'] = None
-
+            d['backbone'] = None
+            d['backbone_graph'] = None
+            d['sccs'] = None
+            d['scgs'] = None
         try:
             d['chrombone'] = self.chrombone.as_dict()
-            d['chrom_scs'] = [sc.as_dict() for sc in self.chromsccs]
+            d['chrombone_graph'] = self.chrombone_graph.as_dict()
+            d['chromsccs'] = [sc.as_dict() for sc in self.chromsccs]
+            d['chromscgs'] = [sg.as_dict() for sg in self.chromscgs]
         except AttributeError:
             d['chrombone'] = None
-            d['chrom_scs'] = None
+            d['chrombone_graph'] = None
+            d['chromsccs'] = None
+            d['chromscgs'] = None
         d['conformer_properties'] = self.conformer_properties
         return d
+
+    @classmethod
+    def from_dict(cls, d: dict):
+        sites = [Site.from_dict(sd) for sd in d['sites']]
+        siteids = False
+        prop = d['conformer_properties']
+        graph = MolGraph.from_dict(d['graph'])
+        rdmol = RdFunc.mol_from_json(d['rdmol'])
+        smiles = d['smiles']
+        siteid2atomidx = d['siteid2atomidx']
+        atomidx2siteid = d['atomidx2siteid']
+        coplane_cutoff = d['coplane_cutoff']
+        backbone = BoneConformer.from_dict(d['backbone'])
+        sccs = [SidechainConformer.from_dict(scd) for scd in d['sccs']]
+        backbone_graph = BackboneGraph.from_dict(d['backbone_graph'])
+        scgs = [SidechainGraph.from_dict(scd) for scd in d['scgs']]
+        chrombone = FragConformer.from_dict(d['chrombone'])
+        chromsccs = [FragConformer.from_dict(fd) for fd in d['sccs']]
+        chrombone_graph = FragmentGraph.from_dict(d['chrombone_graph'])
+        chromscgs = [FragmentGraph.from_dict(fg) for fg in d['chromscgs']]
+
+        mc = cls(
+            sites,
+            siteids,
+            prop,
+            graph,
+            rdmol,
+            smiles,
+            siteid2atomidx,
+            atomidx2siteid,
+            backbone,
+            sccs,
+            backbone_graph,
+            scgs,
+            coplane_cutoff,
+            chrombone,
+            chromsccs,
+            chrombone_graph,
+            chromscgs
+        )
+        return mc
 
     def calculate_conformer_properties(self):
         pass
 
-    # def partition_chrom(self, withhalogen=True):
-    #     try:
-    #         rdmol, smiles, siteid2atomidx, atomidx2siteid = self.to_rdmol()
-    #     except:
-    #         raise ConformerOperationError('partition_chrom failed as self.can_rdmol == False')
-    #     if withhalogen:
-    #         cgs = RdFunc.get_conjugate_group(rdmol)
-    #     else:
-    #         cgs = RdFunc.get_conjugate_group_with_halogen(rdmol)
-    #     try:
-    #         chromol, aid_to_newid_chromol = cgs[0]
-    #     except IndexError:
-    #         raise ConformerOperationError('rdkit cannot find a chrom here!')
-    #     aids_in_chromol = list(aid_to_newid_chromol.keys())
-    #     siteids_in_chromol = [atomidx2siteid[aid] for aid in aids_in_chromol]
-    #     siteids_not_in_chromol = [sid for sid in self.siteids if sid not in siteids_in_chromol]
-    #     molgraph = self.to_graph()
-    #     chromol_joints, other_joints, chromolsg, sg_components = MolGraph.get_joints_and_subgraph(
-    #         siteids_in_chromol, siteids_not_in_chromol, molgraph.graph)
-    #     bg, scgs = MolGraph.get_bone_and_frags_from_nxgraph(chromolsg, sg_components, "chrom")
-    #     chromolc = BoneConformer.from_siteids(
-    #         siteids_in_chromol, self.sites, copy=False, joints=chromol_joints, rings=None
-    #     )  # you need to make sure there is at least a ring here
-    #     sccs = []
-    #     for scg in scgs:
-    #         sc_joint_site_id = list(scg.graph.graph['joints'].keys())[0]
-    #         bc_joint_site_id = scg.graph.graph['joints'][sc_joint_site_id][0]
-    #         bc_joint_site = self.get_site_byid(bc_joint_site_id)
-    #         # print(bc_joint_site)
-    #         v_sc_position = bc_joint_site.coords - self.geoc
-    #         sc_position_angle = angle_btw(v_sc_position, chromolc.pfit_vp, 'degree')
-    #         scc = SidechainConformer.from_siteids(scg.graph.nodes, self.sites, copy=False,
-    #                                               joints=scg.graph.graph['joints'],
-    #                                               rings=None,
-    #                                               conformer_properties={'sc_position_angle': sc_position_angle,
-    #                                                                     'bc_joint_siteid': bc_joint_site_id})
-    #         sccs.append(scc)
-    #     return chromolc, sccs, bg, scgs  # sccs <--> scgs bijection
-
-    def partition(self, coplane_cutoff=None, scheme=None, with_halogen=True):
-        molgraph = self.to_graph('siteid', 'MolGraph')
+    @staticmethod
+    def chrom_partition(mc: BasicConformer, rdmol, atomidx2siteid, molgraph: MolGraph, withhalogen=True):
+        if withhalogen:
+            cgs = RdFunc.get_conjugate_group(rdmol)
+        else:
+            cgs = RdFunc.get_conjugate_group_with_halogen(rdmol)
         try:
-            lgfr = get_rings_from_conformer(self, 'lgfr')
-        except ConformerOperationError:
-            raise ConformerOperationError('cannot get lgfr!')
+            chromol, aid_to_newid_chromol = cgs[0]
+        except IndexError:
+            raise ConformerError('rdkit cannot find a chrom here!')
+        aids_in_chromol = list(aid_to_newid_chromol.keys())
+        siteids_in_chromol = [atomidx2siteid[aid] for aid in aids_in_chromol]
+        chromol_joints, other_joints, chromolsg, sg_components = MolGraph.get_joints_and_subgraph(
+            siteids_in_chromol, molgraph.graph)
+        cg, fgs = MolGraph.get_chrom_and_frags_from_nxgraph(chromolsg, sg_components)
+        chromolc = FragConformer.from_siteids(
+            siteids_in_chromol, mc.sites, graph=cg, copy=False
+        )  # you need to make sure there is at least a ring here
+        fragcs = []
+        for fg in fgs:
+            fragc = FragConformer.from_siteids(fg.graph.nodes, mc.sites, graph=fg, copy=False, )
+            fragcs.append(fragc)
+        return chromolc, fragcs, cg, fgs
+
+    @staticmethod
+    def geo_partition(bc: BasicConformer, molgraph: MolGraph, coplane_cutoff=30.0):
+        try:
+            lgfr = []
+            for r in molgraph.lgfr:
+                ring = RingConformer.from_siteids(r, bc.sites, False)
+                lgfr.append(ring)
+        except:
+            raise ConformerError('cannot get lgfr!')
         avgn1, avgn2 = RingConformer.get_avg_norms(lgfr)
 
         def coplane_check(ring_siteids, tol=coplane_cutoff):
-            ringconformer = RingConformer.from_siteids(ring_siteids, self.sites, False)
+            ringconformer = RingConformer.from_siteids(ring_siteids, bc.sites, False)
             coplane = ringconformer.iscoplane_with_norm(avgn1, tol, 'degree')
             return coplane
 
         try:
-            if isinstance(coplane_cutoff, float):
-                bg, scgs = molgraph.partition_to_bone_frags(scheme, additional_criteria=coplane_check, with_halogen=with_halogen)
-            else:
-                bg, scgs = molgraph.partition_to_bone_frags(scheme, with_halogen=with_halogen)
+            bg, scgs = molgraph.partition_to_bone_frags('lgcr', additional_criteria=coplane_check)
         except:
-            raise ConformerOperationError('cannot partition with {}!'.format(scheme))
+            raise ConformerError('cannot lgcr partition with coplane_cutoff: {}!'.format(coplane_cutoff))
 
-        bone_conformer = BoneConformer.from_siteids(
-            bg.graph.nodes, self.sites, copy=False, joints=bg.graph.graph['joints'], rings=None
-        )
+        bone_conformer = BoneConformer.from_siteids(bg.graph.nodes, bc.sites, graph=bg, copy=False)
 
         sccs = []
         for scg in scgs:
             sc_joint_site_id = list(scg.graph.graph['joints'].keys())[0]
             bc_joint_site_id = scg.graph.graph['joints'][sc_joint_site_id][0]
-            bc_joint_site = self.get_site_byid(bc_joint_site_id)
+            bc_joint_site = bc.get_site_byid(bc_joint_site_id)
             # print(bc_joint_site)
-            v_sc_position = bc_joint_site.coords - self.geoc
+            v_sc_position = bc_joint_site.coords - bc.geoc
             sc_position_angle = angle_btw(v_sc_position, bone_conformer.pfit_vp, 'degree')
-            scc = SidechainConformer.from_siteids(scg.graph.nodes, self.sites, copy=False,
-                                                  joints=scg.graph.graph['joints'],
-                                                  rings=None,
+            scc = SidechainConformer.from_siteids(scg.graph.nodes, bc.sites, copy=False, graph=scg,
                                                   conformer_properties={'sc_position_angle': sc_position_angle,
                                                                         'bc_joint_siteid': bc_joint_site_id})
             sccs.append(scc)
         return bone_conformer, sccs, bg, scgs  # sccs <--> scgs bijection
+
+    @classmethod
+    def from_sites(cls, sites, siteids=False, prop=None, coplane_cutoff=30.0, withhalogen=True):
+        bc = BasicConformer.from_sites(sites, siteids)
+        rdmol, smiles, siteid2atomidx, atomidx2siteid = bc.to_rdmol()
+        graph = bc.to_graph('siteid', 'MolGraph')
+        try:
+            backbone, sccs, backbone_graph, scgs = MolConformer.geo_partition(bc, graph, coplane_cutoff)
+        except ConformerError:
+            warnings.warn('geo_partition failed!')
+            backbone, sccs, backbone_graph, scgs = [None] * 4
+        try:
+            chrombone, chromsccs, chrombone_graph, chromscgs = MolConformer.chrom_partition(bc, rdmol, atomidx2siteid,
+                                                                                            graph, withhalogen)
+        except ConformerError:
+            warnings.warn('chrom_partition failed!')
+            chrombone, chromsccs, chrombone_graph, chromscgs = [None] * 4
+        mc = cls(
+            bc.sites,
+            siteids,
+            prop,
+            graph,
+            rdmol,
+            smiles,
+            siteid2atomidx,
+            atomidx2siteid,
+            backbone,
+            sccs,
+            backbone_graph,
+            scgs,
+            coplane_cutoff,
+            chrombone,
+            chromsccs,
+            chrombone_graph,
+            chromscgs
+        )
+        return mc
 
     def to_addhmol(self, bonescheme='geo'):
         """
@@ -1689,7 +1661,7 @@ class ConformerDimer:
             ref_hull = Polygon(ref_2dpts).convex_hull
             var_hull = Polygon(var_2dpts).convex_hull
         else:
-            raise ConformerOperationError('bone_overlap receive a wrong algo spec')
+            raise ConformerError('bone_overlap receive a wrong algo spec')
         x, y = var_hull.exterior.coords.xy
         points = np.array([x, y]).T
         fig, ax = plt.subplots(1)
@@ -1730,7 +1702,7 @@ class ConformerDimer:
             ref_hull = Polygon(ref_2dpts).convex_hull
             var_hull = Polygon(var_2dpts).convex_hull
         else:
-            raise ConformerOperationError('overlap receive a wrong algo spec')
+            raise ConformerError('overlap receive a wrong algo spec')
         return (ref_hull.intersection(var_hull).area,
                 float(ref_hull.area),
                 float(var_hull.area))
@@ -1764,7 +1736,7 @@ class ConformerDimer:
             ref_hull = Polygon(ref_2dpts).convex_hull
             var_hull = Polygon(var_2dpts).convex_hull
         else:
-            raise ConformerOperationError('overlap receive a wrong algo spec')
+            raise ConformerError('overlap receive a wrong algo spec')
 
         mindist2d = ref_hull.distance(var_hull)
 

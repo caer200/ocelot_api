@@ -8,7 +8,7 @@ from pymatgen.core.structure import lattice_points_in_supercell
 
 from ocelot.routines.disparser_functions import *
 from ocelot.routines.pbc import PBCparser
-from ocelot.schema.conformer import ConformerInitError
+from ocelot.schema.conformer import ConformerError
 from ocelot.schema.conformer import MolConformer
 
 """
@@ -166,8 +166,6 @@ Ref:
 
 
 class DisorderParserError(Exception): pass
-
-
 
 
 class AtomLabel:
@@ -762,7 +760,7 @@ class DisParser:  # chaos parser sounds cooler?
                 obc_sites.append(Site(ps.species_string, ps.coords, properties=ps.properties))
             try:
                 molconformer = MolConformer.from_sites(obc_sites, siteids=[s.properties['siteid'] for s in obc_sites])
-            except ConformerInitError:
+            except ConformerError:
                 raise DisorderParserError('cannot init legit conformer to identify site location')
             for sid in molconformer.siteids:
                 site = molconformer.get_site_byid(sid)
@@ -820,6 +818,7 @@ class DisParser:  # chaos parser sounds cooler?
         if vanilla:
             iconf = 0
             conf_structures = self.get_vanilla_configs(sc.sites)
+
             # # it is possible to have the situation where unwrapping disordered sites lead to super-large molecule
             # # e.g. x15029, this can be dealt with unwrpa again, I do not think this is common tho.
             # # if use this you may want to reassign imol field
@@ -827,11 +826,12 @@ class DisParser:  # chaos parser sounds cooler?
             #     _, struct, _ = PBCparser.unwrap(c)
             #     unwrap_again.append(struct)
             # confs = [[c, 0.5] for c in conf_structures]
-            def get_average_occu(structure:Structure):
+            def get_average_occu(structure: Structure):
                 try:
                     return np.mean([s.properties['occu'] for s in structure.sites])
                 except KeyError:
                     return 0.5
+
             confs = [[c, get_average_occu(c)] for c in conf_structures]
             if write_files:
                 for conf in conf_structures:

@@ -1,12 +1,12 @@
-from itertools import groupby
-from collections import OrderedDict
 import warnings
-from pymatgen.core.structure import Composition
+from collections import OrderedDict
+
 from pymatgen.core.composition import CompositionError
+from pymatgen.core.structure import Composition
+
+from ocelot.routines.disparser import DisParser
 from ocelot.schema.configuration import Config
-from ocelot.routines.disparser import DisParser, CifFileError
-from ocelot.schema.conformer import MolConformer, ConformerInitError
-from ocelot.routines.pbc import Site
+from ocelot.schema.conformer import MolConformer
 
 """
 ReadCif implements a set of checkers/functions as the first step of reading cif file
@@ -73,7 +73,7 @@ class ReadCif:
             self.results['n_unique_molecule'] = len(check_config.molgraph_set())
             self.results['n_molconformers'] = len(check_config.molconformers)
             self.results['all_molconformers_legit'] = check_config.molconformers_all_legit()
-            self.results['disorder_location'] = self.where_is_disorder(check_config.pstructure)
+            self.results['disorder_location'] = self.where_is_disorder(check_config)
         except:
             warnings.warn('there are problems in readcif.results, some fileds will be missing!')
         
@@ -136,38 +136,28 @@ class ReadCif:
         return cls(s, source, identifier)
 
     @staticmethod
-    def where_is_disorder(config_structure):
+    def where_is_disorder(c: Config):
         """
         data[imol] = disorder info in conformer_properties
         """
-        c = config_structure
-        dic = {}
-        k = lambda x: x.properties['imol']
-        psites = sorted(c.sites, key=k)
         disorderinfo = {}
-        for imol, group in groupby(psites, key=k):
-            dic[imol] = list(group)  # e.g. dic[0] is psites with the imol=0
-            disordered_siteid = []
-            obc_sites = []
-            for ps in dic[imol]:
-                if abs(ps.properties['occu'] - 1.0) > 1e-3:
-                    disordered_siteid.append(ps.properties['siteid'])
-                obc_sites.append(Site(ps.species_string, ps.coords, properties=ps.properties))
+        mc: MolConformer
+        for imol in range(len(c.molconformers)):
+            mc = c.molconformers[imol]
             try:
-                molconformer = MolConformer.from_sites(obc_sites, siteids=[s.properties['siteid'] for s in obc_sites])
-            except ConformerInitError:
+                disordered_siteid = [s for s in mc if abs(s.properties['occu'] - 1) > 1e-3]
+            except KeyError:
+                warnings.warn('not all sites have occu field, cannot decide disorder location!')
                 disorderinfo[imol] = 'not sure'
                 continue
-            if molconformer.backbone is None:
-                disorderinfo[imol] = 'sc disorder'
-                continue
-            if len(disordered_siteid) > 0:
-                if set(molconformer.backbone.siteids).intersection(set(disordered_siteid)):
-                    mol_disorder_info = 'bone disorder'
-                else:
-                    mol_disorder_info = 'sc disorder'
+            if len(disordered_siteid) == 0:
+                disorderinfo[imol] = 'no disorder'
             else:
-                mol_disorder_info = 'no disorder'
-            disorderinfo[imol] = mol_disorder_info
+                if mc.backbone is None:
+                    disorderinfo[imol] = 'sc disorder'
+                elif set(mc.backbone.siteids).intersection(set(disordered_siteid)):
+                    disorderinfo[imol] = 'bone disorder'
+                else:
+                    disorderinfo[imol] = 'sc disorder'
         disorderinfo = dict((str(k), v) for k, v in disorderinfo.items())
         return disorderinfo

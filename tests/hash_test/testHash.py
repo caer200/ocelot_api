@@ -1,33 +1,13 @@
-import itertools
-from collections import OrderedDict
-from operator import eq
 import pynauty as pn
-import matplotlib.pyplot as plt
-import networkx as nx
-import networkx.algorithms.isomorphism as iso
-import numpy as np
-from networkx import Graph
-from pymatgen.core.periodic_table import Element
-from pymatgen.vis.structure_vtk import EL_COLORS
-import numpy as np
-from rdkit import DataStructs
-from rdkit.Chem import AllChem
-from rdkit.Chem import Descriptors
-from rdkit.Chem import Descriptors3D as D3d
-from rdkit.Chem.Fingerprints import FingerprintMols
+import pynauty as pn
 
 """
 commonly used rdkit functions
 """
 
-from itertools import combinations
-
 from rdkit import Chem
-from rdkit.Chem import Atom
-from rdkit.Chem import Bond
-from rdkit.Chem import Draw
-from rdkit.Chem import Mol
-from rdkit.Chem import ResonanceMolSupplier
+
+
 def makeRd(smile):
     rdmol = Chem.MolFromSmiles(smile)
     rdmol = Chem.AddHs(rdmol)

@@ -2,9 +2,10 @@ import warnings
 from copy import deepcopy
 
 import numpy as np
+from pymatgen.core.periodic_table import _pt_data
 from pymatgen.core.structure import Lattice
 from pymatgen.core.structure import Molecule
-from pymatgen.core.structure import PeriodicSite, Element
+from pymatgen.core.structure import PeriodicSite
 from pymatgen.core.structure import Site
 from pymatgen.core.structure import Structure
 from pymatgen.util.coord import pbc_shortest_vectors
@@ -14,6 +15,16 @@ PBCparser: get unwrapped structure and mols
 
 method here should not rely on ocelot schema
 """
+
+
+def AtomicRadius(site: Site):
+    d = _pt_data[site.species_string]
+    at_r = d.get("Atomic radius", "no data")
+    try:
+        return float(at_r)
+    except ValueError:
+        warnings.warn('unknown element {}'.format(site.species_string))
+        return 1.0
 
 
 class PBCparser:
@@ -58,8 +69,7 @@ class PBCparser:
         cutoff_matrix = np.zeros((len(psites), len(psites)))
         for i in range(len(psites)):
             for j in range(i + 1, len(psites)):
-                cutoff = Element(psites[i].species_string).atomic_radius + Element(
-                    psites[j].species_string).atomic_radius
+                cutoff = AtomicRadius(psites[i]) + AtomicRadius(psites[j])
                 cutoff *= 1.3
                 cutoff_matrix[i][j] = cutoff
                 cutoff_matrix[j][i] = cutoff

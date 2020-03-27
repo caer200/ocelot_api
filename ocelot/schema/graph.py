@@ -30,19 +30,16 @@ N’ is a subset of N E’ is the subset of edges in E relating nodes in N’
 def to_fracrgb(t):
     return [x / 255 for x in t]
 
-class PartitionError(Exception): pass
-
-class GraphNotConnectedError(Exception):
-    pass
+class GraphError(Exception): pass
 
 
 class BasicGraph:
 
     def __init__(self, graph: nx.Graph):
         self.graph = graph
-        self.rings = nx.minimum_cycle_basis(self.graph)  # technically sssr
-        self.rings = sorted(self.rings, key=lambda x: len(x))
-        self.nrings = len(self.rings)
+        # self.rings = nx.minimum_cycle_basis(self.graph)  # technically sssr
+        # self.rings = sorted(self.rings, key=lambda x: len(x))
+        # self.nrings = len(self.rings)
 
     def __len__(self):
         return len(self.graph.nodes)
@@ -128,7 +125,7 @@ class BasicGraph:
         return cls.from_rdmol(hm)
 
     @classmethod
-    def from_rdmol(cls, rdmol, atomidx2nodename=None):
+    def from_rdmol(cls, rdmol: Chem.Mol, atomidx2nodename=None):
         """
         :param rdmol:
         :param atomidx2nodename: the dict to convert atomidx in rdmol to graph node, atomidx2nodename[rdmolid] == nodename
@@ -156,11 +153,11 @@ class BasicGraph:
                     bond.GetEndAtomIdx(),
                 )
         if not nx.is_connected(g):
-            raise GraphNotConnectedError('the graph is not connected!')
+            raise GraphError('the graph is not connected!')
         return cls(g)
 
     @classmethod
-    def from_dict(cls, d):
+    def from_dict(cls, d: dict):
         g = nx.from_dict_of_lists(d['graph_dict_of_lists'])
         nx.set_node_attributes(g, d['graph_node_symbols'], name='symbol')
         return cls(g)
@@ -229,7 +226,7 @@ class BasicGraph:
         # d['nrings'] = self.nrings
         return d
 
-    def draw(self, output, dpi=600):
+    def draw(self, output: str, dpi=600):
         """
         draw graph, using jmol color scheme for elements
 
@@ -240,7 +237,7 @@ class BasicGraph:
         draw_chemgraph(self.graph, output, dpi)
 
 
-def draw_chemgraph(graph, output, dpi=600):
+def draw_chemgraph(graph: nx.Graph, output: str, dpi=600):
     f = plt.figure()
     symbols = nx.get_node_attributes(graph, 'symbol')
     colors = [to_fracrgb(EL_COLORS['Jmol'][symbols[n]]) for n in graph]
@@ -250,7 +247,7 @@ def draw_chemgraph(graph, output, dpi=600):
 
 class FragmentGraph(BasicGraph):
 
-    def __init__(self, graph, joints, partition_scheme='lgcr'):
+    def __init__(self, graph: nx.Graph, joints: dict, partition_scheme: str):
         """
         fragment is a BasicGraph with joints
 
@@ -263,6 +260,8 @@ class FragmentGraph(BasicGraph):
         self.partition_scheme = partition_scheme
         self.graph = graph
         self.joints = joints
+        self.rings = nx.minimum_cycle_basis(self.graph)  # technically sssr
+        self.rings = sorted(self.rings, key=lambda x: len(x))
 
         # we don't need ring graph in frag, that should be used in partition process
         # self.rings = nx.minimum_cycle_basis(self.graph)
@@ -276,29 +275,25 @@ class FragmentGraph(BasicGraph):
         return d
 
     @classmethod
-    def from_dict(cls, d):
+    def from_dict(cls, d: dict):
         g = nx.from_dict_of_lists(d['graph_dict_of_lists'])
         nx.set_node_attributes(g, d['graph_node_symbols'], name='symbol')
-        return cls(g, d['joints'])
+        return cls(g, d['joints'], d['partition_scheme'])
 
 
-class BackboneGraph(FragmentGraph):
+class BackboneGraph(FragmentGraph):  # is this necessary?
     def __init__(self, graph, joints, partition_scheme='lgcr'):
         super().__init__(graph, joints, partition_scheme)
         # self.ringfp = set([len(r) for r in self.rings])
 
-    def as_dict(self):
-        d = super().as_dict()
-        # d['ringfp'] = self.ringfp
-        return d
-
-
-class SideJointError(Exception):
-    pass
+    # def as_dict(self):
+    #     d = super().as_dict()
+    #     # d['ringfp'] = self.ringfp
+    #     return d
 
 
 class SidechainGraph(FragmentGraph):
-    def __init__(self, graph, joints, partition_scheme='lgcr'):
+    def __init__(self, graph, joints, partition_scheme):
         """
         it is not possible for a side chain to have two frag-joints connected to one bone-joint, as this should be
         already in backbone
@@ -311,10 +306,10 @@ class SidechainGraph(FragmentGraph):
         super().__init__(graph, joints, partition_scheme)
         if len(self.joints.keys()) > 1:
             # in general, sc from chrom partition should not be used
-            warnings.warn('sidechain has more than one side joint... this could happen when using chrom partition')
-            # raise SideJointError('sidechain has more than one side joint... impossible!')
+            # warnings.warn('sidechain has more than one side joint... this could happen when using chrom partition')
+            raise GraphError('sidechain has more than one side joint... impossible!')
         if len(self.joints.keys()) == 0:
-            raise SideJointError('sidechain has no side joint, the molceule may not be a connected graph')
+            raise GraphError('sidechain has no side joint, the molceule may not be a connected graph')
         sc_joint = list(self.joints.keys())[0]
         self.rankmap = {}
         for node in self.graph:
@@ -322,10 +317,10 @@ class SidechainGraph(FragmentGraph):
             self.rankmap[node] = rank
             # self.graph.nodes[node]['rank'] = rank
 
-        if self.nrings > 0:
-            self.hasring = True
-        else:
-            self.hasring = False
+        # if self.nrings > 0:
+        #     self.hasring = True
+        # else:
+        #     self.hasring = False
 
     def as_dict(self):
         d = super().as_dict()
@@ -343,9 +338,11 @@ class MolGraph(BasicGraph):
         :param graph:
         """
         super().__init__(graph)
-        # self.rings = nx.minimum_cycle_basis(self.graph)  # technically sssr
-        # self.rings = sorted(self.rings, key=lambda x: len(x))
-        # self.nrings = len(self.rings)
+        self.rings = nx.minimum_cycle_basis(self.graph)  # technically sssr
+        self.rings = sorted(self.rings, key=lambda x: len(x))
+        self.nrings = len(self.rings)
+        if self.nrings < 1:
+            warnings.warn('you are init a MolGraph with no ring!')
 
         self.ring_graph = nx.Graph()
         for ij in itertools.combinations(range(self.nrings), 2):
@@ -361,20 +358,21 @@ class MolGraph(BasicGraph):
         self.connected_rings = self.get_rings('nconnect', 1)  # for rubrene len(self.connected_rings[0]) == 8
         self.fused_rings = self.get_rings('nshare', 2)  # for rubrene len(self.fused_rings[0]) == 4
         # notice if two rings share2 then they must connect1
-        if len(self.connected_rings) > 0:
+        try:
             self.lgcr = self.connected_rings[0]
-        else:
-            if len(self.rings) > 0:
+        except IndexError:
+            try:
                 self.lgcr = [self.rings[0]]
-            else:
-                self.lgcr = None
-        if len(self.fused_rings) > 0:
+            except IndexError:
+                raise GraphError('no rings in the MolGraph!')
+
+        try:
             self.lgfr = self.fused_rings[0]
-        else:
-            if len(self.rings) > 0:
+        except IndexError:
+            try:
                 self.lgfr = [self.rings[0]]
-            else:
-                self.lgfr = None
+            except IndexError:
+                raise GraphError('no rings in the MolGraph!')
 
     @classmethod
     def from_basicgraph(cls, basicgraph: BasicGraph):
@@ -394,7 +392,7 @@ class MolGraph(BasicGraph):
                 sorted(nx.connected_components(subgraph), key=len, reverse=True)]
 
     @staticmethod
-    def get_joints_and_subgraph(subg1_nodes: [int], subg2_nodes: [int], g:Graph):
+    def get_joints_and_subgraph(subg1_nodes: [int], g: Graph):
         """
         we assume subg1 \cap subg2 == empty and subg1 + subg2 == g
         """
@@ -445,36 +443,38 @@ class MolGraph(BasicGraph):
         return joints_subg1_as_keys, joints_subg2_as_keys, sg1, sg2_components
 
     @staticmethod
-    def get_bone_and_frags_from_nxgraph(bone_graph, fragments, scheme=""):
+    def get_bone_and_frags_from_nxgraph(bone_graph: nx.Graph, fragments: [nx.Graph], scheme):
         gb = BackboneGraph(bone_graph, bone_graph.graph['joints'], partition_scheme=scheme)
         scs = [SidechainGraph(frag_graph, frag_graph.graph['joints'], partition_scheme=scheme) for frag_graph in
                fragments]
-        scs = sorted(scs, key=lambda x: len(x.graph), reverse=True)
         return gb, scs
+
+    @staticmethod
+    def get_chrom_and_frags_from_nxgraph(chrom_graph, fragments):
+        cg = FragmentGraph(chrom_graph, chrom_graph.graph['joints'], 'chrom')
+        fgs = [FragmentGraph(frag_graph, frag_graph.graph['joints'], 'chrom') for frag_graph in fragments]
+        return cg, fgs
 
     def partition(self, bone_selection='lgfr', additional_ring_criteria=None, with_halogen=True):
         """
         parition the molecule into a backbone graph and a list of fragments (graphs)
 
+        :param with_halogen:
         :param bone_selection:
         :param additional_ring_criteria:
             this should be a function to check whether a ring (a set of siteids) meets additional conditions
-            this does nothing for chrom scheme
+            # this does nothing for chrom scheme
         :return:
         """
         if bone_selection == 'lgfr':
-            if self.lgfr is None:
-                return None
             rings = self.lgfr
         elif bone_selection == 'lgcr':
-            if self.lgcr is None:
-                return None
             rings = self.lgcr
         elif bone_selection == 'chrom':
             try:
                 mol, smiles, atomidx2nodename, nodename2atomidx = self.to_rdmol()
             except:
-                raise PartitionError('to_rdmol failed in chrom partition!')
+                raise GraphError('to_rdmol failed in chrom partition!')
             if with_halogen:
                 cgs = RdFunc.get_conjugate_group_with_halogen(mol)
             else:
@@ -482,16 +482,16 @@ class MolGraph(BasicGraph):
             try:
                 chromol, aid_to_newid_chromol = cgs[0]
             except IndexError:
-                raise PartitionError('rdkit cannot find a chrom here!')
+                raise GraphError('rdkit cannot find a chrom here!')
             aids_in_chromol = list(aid_to_newid_chromol.keys())
             nodes_in_chromol = [atomidx2nodename[aid] for aid in aids_in_chromol]
             nodes_not_in_chromol = [sid for sid in self.graph if sid not in nodes_in_chromol]
             chromol_joints, other_joints, chromolsg, sg_components = MolGraph.get_joints_and_subgraph(
-                nodes_in_chromol, nodes_not_in_chromol, self.graph)
+                nodes_in_chromol, self.graph)
             return chromolsg, sg_components
-
+        #
         else:
-            raise PartitionError('selection scheme not implemented: {}'.format(bone_selection))
+            raise GraphError('selection scheme not implemented in graph partition: {}'.format(bone_selection))
 
         if additional_ring_criteria is None:
             bonerings = rings
@@ -502,52 +502,11 @@ class MolGraph(BasicGraph):
                     bonerings.append(r)
 
         backbone_nodes = set([item for sublist in bonerings for item in sublist])
-        bone_graph = nx.Graph()
-        fragments_graph = nx.Graph()  # this is the graph of anything other than bone nodes
-        for node in self.graph:
-            s = self.symbols[node]
-            if node in backbone_nodes:
-                bone_graph.add_node(node, symbol=s)
-            else:
-                fragments_graph.add_node(node, symbol=s)
-
-        joints_bone_as_keys = {}
-        joints_frag_as_keys = {}
-        for n, nbrs in self.graph.adj.items():
-            for nbr, d in nbrs.items():
-                if n in backbone_nodes and nbr in backbone_nodes:
-                    bone_graph.add_edge(n, nbr, **d)
-                elif n not in backbone_nodes and nbr not in backbone_nodes:
-                    fragments_graph.add_edge(n, nbr, **d)
-                elif n in backbone_nodes and nbr not in backbone_nodes:
-                    if n not in joints_bone_as_keys.keys():
-                        joints_bone_as_keys[n] = [nbr]
-                    else:
-                        joints_bone_as_keys[n].append(nbr)
-                elif n not in backbone_nodes and nbr in backbone_nodes:
-                    if n not in joints_frag_as_keys.keys():
-                        joints_frag_as_keys[n] = [nbr]
-                    else:
-                        joints_frag_as_keys[n].append(nbr)
-
-        bone_graph.graph['joints'] = joints_bone_as_keys
-
-        fragments = []
-        for c in sorted(nx.connected_components(fragments_graph), key=len, reverse=True):
-            nodes = list(c)
-            joints_in_frag = {}
-            for j in joints_frag_as_keys.keys():
-                if j in nodes:
-                    joints_in_frag[j] = joints_frag_as_keys[j]
-            frag_graph = nx.Graph(joints=joints_in_frag)  # joints_in_frag[frag_node] is a list of bone joints
-            frag_graph.add_nodes_from((n, self.graph.nodes[n]) for n in nodes)
-            frag_graph.add_edges_from(
-                (n, nbr, d) for n, nbrs in self.graph.adj.items() if n in nodes for nbr, d in nbrs.items() if
-                nbr in nodes)
-            fragments.append(frag_graph)
+        joints_bone_as_keys, joints_frag_as_keys, bone_graph, fragments = self.get_joints_and_subgraph(backbone_nodes,
+                                                                                                       self.graph)
         return bone_graph, fragments
 
-    def partition_to_bone_frags(self, bone_selection='lgfr', additional_criteria=None, with_halogen=True):
+    def partition_to_bone_frags(self, bone_selection='lgfr', additional_criteria=None):
         """
         partition the molecule into backbone and a list of frags
 
@@ -557,7 +516,7 @@ class MolGraph(BasicGraph):
         :param bone_selection:
         :return:
         """
-        bone_graph, fragments = self.partition(bone_selection, additional_criteria, with_halogen=with_halogen)
+        bone_graph, fragments = self.partition(bone_selection, additional_criteria)
         gb, scs = self.get_bone_and_frags_from_nxgraph(bone_graph, fragments, scheme=bone_selection)
         # gb = BackboneGraph(bone_graph, bone_graph.graph['joints'], partition_scheme=bone_selection)
         # scs = [SidechainGraph(frag_graph, frag_graph.graph['joints'], partition_scheme=bone_selection) for frag_graph in
