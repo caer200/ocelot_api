@@ -83,10 +83,10 @@ class EmTensor:
 
         :param kcoord: in frac, center of the stencil
         :param iband: starts from 0
-        :param stepsize: in bohr!!!
-        :param reci_mat: in A-1
+        :param stepsize: in 1/A
+        :param reci_mat: in 1/A
         :param eigens: in eV
-        :param st: size of the stencil, 3 or 5
+        :param int st: size of the stencil, 3 or 5
         """
         self.kcoord = kcoord
         self.iband = iband
@@ -105,10 +105,10 @@ class EmTensor:
 
     @property
     def kmesh(self):
-        h = self.stepsize
+        h = self.stepsize  # in 1/A
         kpoints = []
         for i in range(len(self.st)):
-            k_c = self.kcoord + self.st[i] * h
+            k_c = self.kcart + self.st[i] * h
             k_f = cart2frac(k_c, self.reci_mat)
             kpoints.append(k_f)
         return np.array(kpoints)
@@ -116,7 +116,7 @@ class EmTensor:
     def write_kmesh(self, fn):
         kpts = self.kmesh
         with open(fn, 'w') as f:
-            f.write("EMC at {}\n".format(self.kcoord))
+            f.write("EMC at frac {}\n".format(self.kcoord))
             f.write("%d\n" % len(self.st))
             f.write("Reciprocal\n")
             for kpt in kpts:
@@ -140,9 +140,9 @@ class EmTensor:
     def cal_emtensor(self):
         eigens = ev_to_ha(self.eigens)
         if len(self.st) == 19:
-            fdm = fd_effmass_st3(eigens, self.stepsize)
+            fdm = fd_effmass_st3(eigens, ra2rb(self.stepsize))
         else:
-            fdm = fd_effmass_st5(eigens, self.stepsize)
+            fdm = fd_effmass_st5(eigens, ra2rb(self.stepsize))
         e, v = np.linalg.eig(fdm)
 
         eigenvs_cart = np.zeros((3, 3))
@@ -172,6 +172,8 @@ def get_reci_mat(file, filetype='poscar'):
         raise NotImplementedError('filetype {} not implemented'.format(filetype))
     return reci_mat
 
+def ra2rb(ra:float):
+    return ra * 0.529177
 
 def rb2ra2pi(rb:float):
     return rb/0.529177/2/np.pi
