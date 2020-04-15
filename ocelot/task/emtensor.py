@@ -83,7 +83,7 @@ class EmTensor:
 
         :param kcoord: in frac, center of the stencil
         :param iband: starts from 0
-        :param stepsize: in 1/A
+        :param stepsize: in 1/A / 2pi
         :param reci_mat: in 1/A
         :param eigens: in eV
         :param int st: size of the stencil, 3 or 5
@@ -140,9 +140,10 @@ class EmTensor:
     def cal_emtensor(self):
         eigens = ev_to_ha(self.eigens)
         if len(self.st) == 19:
-            fdm = fd_effmass_st3(eigens, ra2rb(self.stepsize))
+            fdm = fd_effmass_st3(eigens, ra2pi2rb(self.stepsize))
         else:
-            fdm = fd_effmass_st5(eigens, ra2rb(self.stepsize))
+            fdm = fd_effmass_st5(eigens, ra2pi2rb(self.stepsize))
+        print(fdm)
         e, v = np.linalg.eig(fdm)
 
         eigenvs_cart = np.zeros((3, 3))
@@ -178,16 +179,9 @@ def ra2rb(ra:float):
 def rb2ra2pi(rb:float):
     return rb/0.529177/2/np.pi
 
+def ra2pi2rb(ra2pi:float):
+    return ra2pi * 2 * np.pi * 0.529177
+
 def rb2ra(rb:float):
     return rb/0.529177
 
-
-if __name__ == '__main__':
-    emt = EmTensor.from_vasprun((0, 0, 0), 118, 0.035, 'vasprun.xml', st=3)
-    print(len(emt.kmesh))
-    ems, es, eigenvs_frac, eigenvs_cart = emt.cal_emtensor()
-    from pprint import pprint
-
-    pprint(ems)
-    pprint(eigenvs_cart)
-    pprint(eigenvs_frac)
