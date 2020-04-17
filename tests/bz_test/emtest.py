@@ -8,5 +8,5 @@ from pprint import pprint
 
 
 pprint(ems)
-# pprint(eigenvs_cart)
-# pprint(eigenvs_frac)
+pprint(eigenvs_cart)
+pprint(eigenvs_frac)
