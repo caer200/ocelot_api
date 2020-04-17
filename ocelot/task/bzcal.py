@@ -212,28 +212,13 @@ class DispersionRelationLine:
 
     @staticmethod
     def read_vasprun(vasprunfile):
-        """
-        pymatgen using 2pi/A^-1 for reciprocal lattice, vasp using A^-1
-
-        pprint(vdata['input']['lattice_rec'])
-        [[0.7654368479611454, 0.10740250289031696, 0.013259809344559732],
-         [-0.009267602068066481, 0.8178117783565992, 0.18288314174442258],
-         [-0.0012908634116146093, 0.004592123082615961, 0.3792248834663378]]
-
-        but in vasprun.xml/OUTCAR
-           <varray name="rec_basis" >
-            <v>       0.12182306       0.01709364       0.00211036 </v>
-            <v>      -0.00147498       0.13015879       0.02910676 </v>
-            <v>      -0.00020545       0.00073086       0.06035551 </v>
-           </varray>
-        """
         vasprun = BSVasprun(vasprunfile)
         vdata = vasprun.as_dict()
         # pprint(vdata['input']['crystal']['lattice']['matrix'])
         # pprint(vdata['input']['lattice_rec']['matrix'])
         real_latt = vdata['input']['crystal']['lattice']['matrix']
         real_latt = np.array(real_latt)
-        reci_matrix = np.linalg.inv(real_latt).T
+        reci_matrix = 2 * np.pi * np.linalg.inv(real_latt).T
         eigens_all = vasprun.eigenvalues
         if Spin(-1) not in eigens_all.keys():
             eigens_up = eigens_all[Spin(1)]

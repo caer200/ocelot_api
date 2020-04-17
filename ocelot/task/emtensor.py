@@ -8,7 +8,7 @@ from ocelot.routines.mathop import ev_to_ha
 modified based on sasha's code @
 https://github.com/afonari/emc
 it looks like in there the reciprocal lattice basis was calculated following the physicist convention, so the 2pi was not
-dropped in the deltas in fd, we're going to stick to 1/A (crystallographer convention)
+dropped in the deltas in fd, we're going to stick to physicist convention 
 
 choose stepsize:
 if we know the lowest line effective mass was obtained at a point along GX, this point can be G or X
@@ -83,8 +83,8 @@ class EmTensor:
 
         :param kcoord: in frac, center of the stencil
         :param iband: starts from 0
-        :param stepsize: in 1/A / 2pi
-        :param reci_mat: in 1/A
+        :param stepsize: in 1/A
+        :param reci_mat: in 1/A, physics convention (with 2 pi)
         :param eigens: in eV
         :param int st: size of the stencil, 3 or 5
         """
@@ -93,7 +93,7 @@ class EmTensor:
         self.stepsize = stepsize
         self.reci_mat = reci_mat
         self.eigens = eigens
-        self.real_mat = np.linalg.inv(self.reci_mat).T
+        self.real_mat = 2 * np.pi * np.linalg.inv(self.reci_mat).T
         if st == 3:
             self.st = np.array(st3)
         else:
@@ -140,9 +140,10 @@ class EmTensor:
     def cal_emtensor(self):
         eigens = ev_to_ha(self.eigens)
         if len(self.st) == 19:
-            fdm = fd_effmass_st3(eigens, ra2pi2rb(self.stepsize))
+            fdm = fd_effmass_st3(eigens, ra2rb(self.stepsize))
         else:
-            fdm = fd_effmass_st5(eigens, ra2pi2rb(self.stepsize))
+            fdm = fd_effmass_st5(eigens, ra2rb(self.stepsize))
+        print('fd_effmass:')
         print(fdm)
         e, v = np.linalg.eig(fdm)
 
@@ -164,7 +165,7 @@ def get_reci_mat(file, filetype='poscar'):
     if filetype == 'poscar':
         from pymatgen.io.vasp.inputs import Poscar
         poscar = Poscar.from_file(file, check_for_POTCAR=False)
-        reci_mat = poscar.structure.lattice.reciprocal_lattice_crystallographic.matrix
+        reci_mat = poscar.structure.lattice.reciprocal_lattice.matrix
     elif filetype == 'vasprun':
         from ocelot.task.bzcal import DispersionRelationLine
         vdata = DispersionRelationLine.read_vasprun(file)
