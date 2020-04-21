@@ -399,14 +399,3 @@ class LineSegment:
                     #     j - step]:
                     #     poi.append(j)
         return poi
-
-
-if __name__ == '__main__':
-
-
-    # DispersionRelationVASP.read_vasprun('vasprun.xml')
-    dr = DispersionRelationLine.from_klines_files('vasprun.xml', 'KPOINTS')
-    # dr.plotlinebs()
-    ems = dr.get_line_ems('cb')
-    from pprint import pprint
-    pprint(ems)

@@ -12,7 +12,7 @@ def ra_to_rb(ra_list):
     """
     rb_list = []
     for i in ra_list:
-        rb = float(i) * np.pi * 2 * (1.0 / 1.8897259885789)  # so vasp outcar kpt cart is 2pi/A ???
+        rb = float(i) * (1.0 / 1.8897259885789)
         rb_list.append(rb)
     return rb_list
 
