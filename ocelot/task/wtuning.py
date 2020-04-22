@@ -5,6 +5,7 @@ default keywords for gaussian
 'scf=(xqc,fermi,noincfock,ndamp=35,conver=6,vshift=500,novaracc)'
 dev-ing
 """
+import warning
 import datetime as dt
 import os
 import random
@@ -154,14 +155,14 @@ class WtuningJob:
                       dis=3, tol=1e-3, max_cycles=5):
         while True:
             oldomega = self.omega
-            self.log_add({'Super Cycle': self.ocycle, 'w': self.omega})
+            self.log_add({'Super Cycle': self.ocycle, 'cycle init with w': self.omega})
             omega = self.omega_tune(dis=dis, tol=tol)[0]
-            print('new-->old', omega, oldomega)
+            self.log_add({'new': omega, 'old': oldomega})
             if abs(omega - oldomega) <= eps and self.ocycle > 0:
                 self.omega = omega
                 break
             elif self.ocycle >= max_cycles:
-                print('tuning cycle went over max cycles')
+                warning.warn('tuning cycle went over max cycles')
                 break
             self.omega = omega
             self.mol = self.geo_opt()
@@ -173,12 +174,12 @@ class WtuningJob:
             self.log_add(
                 {'Super Cycle': self.ocycle, 'a': self.alpha, 'Elapsed Time': dt.datetime.now() - self.start_time})
             alpha = self.alpha_tune(dis=dis, tol=tol)[0]
-            print('new-->old', alpha, oldalpha)
+            self.log_add({'new': alpha, 'old': oldalpha})
             if abs(alpha - oldalpha) <= eps and self.ocycle > 0:
                 self.alpha = alpha
                 break
             elif self.ocycle >= max_cycles:
-                print('tuning cycle went over max cycles')
+                warning.warn('tuning cycle went over max cycles')
                 break
             self.alpha = alpha
             self.mol = self.geo_opt()
