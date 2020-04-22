@@ -12,4 +12,4 @@ os.chdir(str(iwd)+'/'+name)
 Mol = WtuningJob(func='uLC-wHPBE', basis='6-31G', name=name, nproc=16, mem=50,
                  n_charge=0, n_spin=1, wdir='./', scheme='Jh', wbmin=0.05, wbmax=0.5)
 Mol.mol=pymol
-Mol.wtuning_cycle()
+Mol.wtuning_cycle(max_cycles=0)

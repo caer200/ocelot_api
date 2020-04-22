@@ -2,8 +2,8 @@
  Input=1b_tune_c6.gjf
  Output=1b_tune_c6.log
  Initial command:
- /opt/ohpc/pub/libs/gaussian/g16-A.03/sandybridge/g16/l1.exe "/pscratch/cmri235_uksr/ocelot/fw/dev/ocelot_api/tests/wtuning_test/1b/tuning_1b_ocycle0/Gau-61139.inp" -scrdir="/pscratch/cmri235_uksr/ocelot/fw/dev/ocelot_api/tests/wtuning_test/1b/tuning_1b_ocycle0/"
- Entering Link 1 = /opt/ohpc/pub/libs/gaussian/g16-A.03/sandybridge/g16/l1.exe PID=     61140.
+ /opt/ohpc/pub/libs/gaussian/g16-A.03/sandybridge/g16/l1.exe "/scratch/qai222/ocelot_api/tests/wtuning_test/1b/tuning_1b_ocycle0/Gau-112670.inp" -scrdir="/scratch/qai222/ocelot_api/tests/wtuning_test/1b/tuning_1b_ocycle0/"
+ Entering Link 1 = /opt/ohpc/pub/libs/gaussian/g16-A.03/sandybridge/g16/l1.exe PID=    112671.
   
  Copyright (c) 1988,1990,1992,1993,1995,1998,2003,2009,2016,
             Gaussian, Inc.  All Rights Reserved.
@@ -77,7 +77,7 @@
  
  ******************************************
  Gaussian 16:  EM64L-G16RevA.03 25-Dec-2016
-                16-Mar-2020 
+                22-Apr-2020 
  ******************************************
  %mem=50GB
  %nproc=16
@@ -93,7 +93,7 @@
  5/5=100002,6=6,8=3,10=500,13=1,18=-1,22=13,38=1,93=35/2,8;
  6/7=2,8=2,9=2,10=2,28=1/1;
  99/5=1,9=1/99;
- Leave Link    1 at Mon Mar 16 03:49:47 2020, MaxMem=  6710886400 cpu:              13.2 elap:               0.9
+ Leave Link    1 at Wed Apr 22 16:20:53 2020, MaxMem=  6710886400 cpu:               9.4 elap:               0.6
  (Enter /opt/ohpc/pub/libs/gaussian/g16-A.03/sandybridge/g16/l101.exe)
  -----
  H6 C6
@@ -138,7 +138,7 @@
  NQMom=    0.0000000   0.0000000
  NMagM=    2.7928460   2.7928460
  AtZNuc=   1.0000000   1.0000000
- Leave Link  101 at Mon Mar 16 03:49:47 2020, MaxMem=  6710886400 cpu:               2.4 elap:               0.2
+ Leave Link  101 at Wed Apr 22 16:20:53 2020, MaxMem=  6710886400 cpu:               2.4 elap:               0.2
  (Enter /opt/ohpc/pub/libs/gaussian/g16-A.03/sandybridge/g16/l202.exe)
                           Input orientation:                          
  ---------------------------------------------------------------------
@@ -208,7 +208,7 @@
      12          1           0        2.150065    1.241340   -0.000000
  ---------------------------------------------------------------------
  Rotational constants (GHZ):           5.7099798           5.7099798           2.8549899
- Leave Link  202 at Mon Mar 16 03:49:47 2020, MaxMem=  6710886400 cpu:               0.4 elap:               0.0
+ Leave Link  202 at Wed Apr 22 16:20:53 2020, MaxMem=  6710886400 cpu:               1.4 elap:               0.1
  (Enter /opt/ohpc/pub/libs/gaussian/g16-A.03/sandybridge/g16/l301.exe)
  Standard basis: 6-31G (6D, 7F)
  Ernie: Thresh=  0.10000D-02 Tol=  0.10000D-05 Strict=F.
@@ -240,7 +240,7 @@
  Integral buffers will be    131072 words long.
  Raffenetti 2 integral format.
  Two-electron integral symmetry is turned on.
- Leave Link  301 at Mon Mar 16 03:49:47 2020, MaxMem=  6710886400 cpu:               1.1 elap:               0.1
+ Leave Link  301 at Wed Apr 22 16:20:53 2020, MaxMem=  6710886400 cpu:               0.9 elap:               0.1
  (Enter /opt/ohpc/pub/libs/gaussian/g16-A.03/sandybridge/g16/l302.exe)
  NPDir=0 NMtPBC=     1 NCelOv=     1 NCel=       1 NClECP=     1 NCelD=      1
          NCelK=      1 NCelE2=     1 NClLst=     1 CellRange=     0.0.
@@ -252,10 +252,10 @@
  IXCGrd= 4 IRadAn=           5 IRanWt=          -1 IRanGd=           0 AccXCQ= 0.00D+00.
  Generated NRdTot=       0 NPtTot=           0 NUsed=           0 NTot=          32
  NSgBfM=    66    66    66    66    66 MxSgAt=    12 MxSgA2=    12.
- Leave Link  302 at Mon Mar 16 03:49:48 2020, MaxMem=  6710886400 cpu:               2.3 elap:               0.2
+ Leave Link  302 at Wed Apr 22 16:20:53 2020, MaxMem=  6710886400 cpu:               2.4 elap:               0.2
  (Enter /opt/ohpc/pub/libs/gaussian/g16-A.03/sandybridge/g16/l303.exe)
  DipDrv:  MaxL=1.
- Leave Link  303 at Mon Mar 16 03:49:48 2020, MaxMem=  6710886400 cpu:               0.9 elap:               0.1
+ Leave Link  303 at Wed Apr 22 16:20:53 2020, MaxMem=  6710886400 cpu:               0.5 elap:               0.1
  (Enter /opt/ohpc/pub/libs/gaussian/g16-A.03/sandybridge/g16/l401.exe)
  ExpMin= 1.61D-01 ExpMax= 3.05D+03 ExpMxC= 4.57D+02 IAcc=3 IRadAn=         5 AccDes= 0.00D+00
  Harris functional with IExCor=33909 and IRadAn=       5 diagonalized for initial guess.
@@ -290,7 +290,7 @@
                  (E1U) (E1U) (A2G) (A1G) (E1U) (E1U) (E2G) (E2G)
                  (E1U) (E1U) (B1U) (E2G) (E2G) (B1U)
  Initial guess <Sx>= 0.0000 <Sy>= 0.0000 <Sz>= 0.5000 <S**2>= 0.7500 S= 0.5000
- Leave Link  401 at Mon Mar 16 03:49:48 2020, MaxMem=  6710886400 cpu:               2.8 elap:               0.2
+ Leave Link  401 at Wed Apr 22 16:20:53 2020, MaxMem=  6710886400 cpu:               2.8 elap:               0.2
  (Enter /opt/ohpc/pub/libs/gaussian/g16-A.03/sandybridge/g16/l502.exe)
  Keep R1 and R2 ints in memory in symmetry-blocked form, NReq=19109854.
  FoFCou: FMM=F IPFlag=           0 FMFlag=           0 FMFlg1=           0
@@ -331,9 +331,9 @@
  Cycle   2  Pass 1  IDiag  1:
  Density matrix breaks symmetry, PCut= 1.00D-04
  Density has only Abelian symmetry.
- E= -231.654630239532     Delta-E=       -0.011941508577 Rises=F Damp=T
+ E= -231.654630239531     Delta-E=       -0.011941508576 Rises=F Damp=T
  DIIS: error= 9.90D-03 at cycle   2 NSaved=   2.
- NSaved= 2 IEnMin= 2 EnMin= -231.654630239532     IErMin= 2 ErrMin= 9.90D-03
+ NSaved= 2 IEnMin= 2 EnMin= -231.654630239531     IErMin= 2 ErrMin= 9.90D-03
  ErrMax= 9.90D-03  0.00D+00 EMaxC= 1.00D+00 BMatC= 1.79D-02 BMatP= 7.43D-02
  IDIUse=1 WtCom= 1.00D+00 WtEn= 0.00D+00
  Coeff-Com: -0.822D+00 0.182D+01
@@ -369,9 +369,9 @@
  Cycle   4  Pass 1  IDiag  1:
  Density matrix breaks symmetry, PCut= 1.00D-04
  Density has only Abelian symmetry.
- E= -231.664936188924     Delta-E=       -0.000560968295 Rises=F Damp=F
+ E= -231.664936188925     Delta-E=       -0.000560968296 Rises=F Damp=F
  DIIS: error= 4.17D-03 at cycle   4 NSaved=   4.
- NSaved= 4 IEnMin= 4 EnMin= -231.664936188924     IErMin= 4 ErrMin= 4.17D-03
+ NSaved= 4 IEnMin= 4 EnMin= -231.664936188925     IErMin= 4 ErrMin= 4.17D-03
  ErrMax= 4.17D-03  0.00D+00 EMaxC= 1.00D+00 BMatC= 3.60D-04 BMatP= 7.48D-04
  IDIUse=1 WtCom= 1.00D+00 WtEn= 0.00D+00
  Coeff-Com:  0.123D+00-0.277D+00-0.601D+00 0.175D+01
@@ -388,7 +388,7 @@
  Cycle   5  Pass 1  IDiag  1:
  Density matrix breaks symmetry, PCut= 1.00D-04
  Density has only Abelian symmetry.
- E= -231.665304231362     Delta-E=       -0.000368042438 Rises=F Damp=F
+ E= -231.665304231362     Delta-E=       -0.000368042437 Rises=F Damp=F
  DIIS: error= 2.59D-03 at cycle   5 NSaved=   5.
  NSaved= 5 IEnMin= 5 EnMin= -231.665304231362     IErMin= 5 ErrMin= 2.59D-03
  ErrMax= 2.59D-03  0.00D+00 EMaxC= 1.00D+00 BMatC= 1.52D-04 BMatP= 3.60D-04
@@ -426,9 +426,9 @@
  Cycle   7  Pass 1  IDiag  1:
  Density matrix breaks symmetry, PCut= 1.00D-04
  Density has only Abelian symmetry.
- E= -231.665581480545     Delta-E=       -0.000063545147 Rises=F Damp=F
+ E= -231.665581480544     Delta-E=       -0.000063545147 Rises=F Damp=F
  DIIS: error= 7.38D-04 at cycle   7 NSaved=   7.
- NSaved= 7 IEnMin= 7 EnMin= -231.665581480545     IErMin= 7 ErrMin= 7.38D-04
+ NSaved= 7 IEnMin= 7 EnMin= -231.665581480544     IErMin= 7 ErrMin= 7.38D-04
  ErrMax= 7.38D-04  0.00D+00 EMaxC= 1.00D+00 BMatC= 1.19D-05 BMatP= 4.28D-05
  IDIUse=1 WtCom= 1.00D+00 WtEn= 0.00D+00
  Coeff-Com: -0.231D-01 0.475D-01-0.185D+00-0.610D-01 0.156D+01-0.399D+01
@@ -442,9 +442,9 @@
  Cycle   8  Pass 1  IDiag  1:
  Density matrix breaks symmetry, PCut= 1.00D-04
  Density has only Abelian symmetry.
- E= -231.665598580678     Delta-E=       -0.000017100132 Rises=F Damp=F
+ E= -231.665598580677     Delta-E=       -0.000017100133 Rises=F Damp=F
  DIIS: error= 3.76D-04 at cycle   8 NSaved=   8.
- NSaved= 8 IEnMin= 8 EnMin= -231.665598580678     IErMin= 8 ErrMin= 3.76D-04
+ NSaved= 8 IEnMin= 8 EnMin= -231.665598580677     IErMin= 8 ErrMin= 3.76D-04
  ErrMax= 3.76D-04  0.00D+00 EMaxC= 1.00D+00 BMatC= 3.03D-06 BMatP= 1.19D-05
  IDIUse=1 WtCom= 1.00D+00 WtEn= 0.00D+00
  Coeff-Com:  0.554D-02-0.101D-01 0.415D-01-0.204D-01-0.436D+00 0.162D+01
@@ -474,9 +474,9 @@
  Cycle  10  Pass 1  IDiag  1:
  Density matrix breaks symmetry, PCut= 1.00D-04
  Density has only Abelian symmetry.
- E= -231.665603628050     Delta-E=       -0.000000930321 Rises=F Damp=F
+ E= -231.665603628052     Delta-E=       -0.000000930322 Rises=F Damp=F
  DIIS: error= 9.15D-05 at cycle  10 NSaved=  10.
- NSaved=10 IEnMin=10 EnMin= -231.665603628050     IErMin=10 ErrMin= 9.15D-05
+ NSaved=10 IEnMin=10 EnMin= -231.665603628052     IErMin=10 ErrMin= 9.15D-05
  ErrMax= 9.15D-05  0.00D+00 EMaxC= 1.00D+00 BMatC= 1.53D-07 BMatP= 6.90D-07
  IDIUse=1 WtCom= 1.00D+00 WtEn= 0.00D+00
  Coeff-Com:  0.166D-02-0.301D-02 0.895D-02-0.526D-02-0.881D-01 0.355D+00
@@ -490,9 +490,9 @@
  Cycle  11  Pass 1  IDiag  1:
  Density matrix breaks symmetry, PCut= 1.00D-04
  Density has only Abelian symmetry.
- E= -231.665603833095     Delta-E=       -0.000000205046 Rises=F Damp=F
+ E= -231.665603833096     Delta-E=       -0.000000205045 Rises=F Damp=F
  DIIS: error= 4.48D-05 at cycle  11 NSaved=  11.
- NSaved=11 IEnMin=11 EnMin= -231.665603833095     IErMin=11 ErrMin= 4.48D-05
+ NSaved=11 IEnMin=11 EnMin= -231.665603833096     IErMin=11 ErrMin= 4.48D-05
  ErrMax= 4.48D-05  0.00D+00 EMaxC= 1.00D+00 BMatC= 3.33D-08 BMatP= 1.53D-07
  IDIUse=1 WtCom= 1.00D+00 WtEn= 0.00D+00
  Coeff-Com: -0.367D-03 0.681D-03-0.145D-02 0.392D-03 0.988D-02-0.407D-01
@@ -506,9 +506,9 @@
  Cycle  12  Pass 1  IDiag  1:
  Density matrix breaks symmetry, PCut= 1.00D-04
  Density has only Abelian symmetry.
- E= -231.665603877792     Delta-E=       -0.000000044696 Rises=F Damp=F
+ E= -231.665603877790     Delta-E=       -0.000000044694 Rises=F Damp=F
  DIIS: error= 2.22D-05 at cycle  12 NSaved=  12.
- NSaved=12 IEnMin=12 EnMin= -231.665603877792     IErMin=12 ErrMin= 2.22D-05
+ NSaved=12 IEnMin=12 EnMin= -231.665603877790     IErMin=12 ErrMin= 2.22D-05
  ErrMax= 2.22D-05  0.00D+00 EMaxC= 1.00D+00 BMatC= 7.39D-09 BMatP= 3.33D-08
  IDIUse=1 WtCom= 1.00D+00 WtEn= 0.00D+00
  Coeff-Com: -0.214D-03 0.435D-03-0.135D-02-0.109D-02 0.182D-01-0.603D-01
@@ -522,7 +522,7 @@
  Cycle  13  Pass 1  IDiag  1:
  Density matrix breaks symmetry, PCut= 1.00D-04
  Density has only Abelian symmetry.
- E= -231.665603887651     Delta-E=       -0.000000009859 Rises=F Damp=F
+ E= -231.665603887651     Delta-E=       -0.000000009861 Rises=F Damp=F
  DIIS: error= 1.09D-05 at cycle  13 NSaved=  13.
  NSaved=13 IEnMin=13 EnMin= -231.665603887651     IErMin=13 ErrMin= 1.09D-05
  ErrMax= 1.09D-05  0.00D+00 EMaxC= 1.00D+00 BMatC= 1.64D-09 BMatP= 7.39D-09
@@ -546,10 +546,10 @@
  KE= 2.306017300967D+02 PE=-9.349098187312D+02 EE= 2.690984866548D+02
  Annihilation of the first spin contaminant:
  S**2 before annihilation     0.7750,   after     0.7503
- Leave Link  502 at Mon Mar 16 03:49:49 2020, MaxMem=  6710886400 cpu:              17.2 elap:               1.1
+ Leave Link  502 at Wed Apr 22 16:20:55 2020, MaxMem=  6710886400 cpu:              17.3 elap:               1.1
  (Enter /opt/ohpc/pub/libs/gaussian/g16-A.03/sandybridge/g16/l508.exe)
  QCSCF skips out because SCF is already converged.
- Leave Link  508 at Mon Mar 16 03:49:49 2020, MaxMem=  6710886400 cpu:               0.2 elap:               0.0
+ Leave Link  508 at Wed Apr 22 16:20:55 2020, MaxMem=  6710886400 cpu:               0.1 elap:               0.0
  (Enter /opt/ohpc/pub/libs/gaussian/g16-A.03/sandybridge/g16/l601.exe)
  Copying SCF densities to generalized density rwf, IOpCl= 1 IROHF=0.
  SCF density gives NOpUse=  8 NOpAll= 24.
@@ -690,7 +690,7 @@
  Electronic spatial extent (au):  <R**2>=            437.1479
  Charge=              1.0000 electrons
  Dipole moment (field-independent basis, Debye):
-    X=              0.0000    Y=              0.0000    Z=             -0.0000  Tot=              0.0000
+    X=             -0.0000    Y=              0.0000    Z=             -0.0000  Tot=              0.0000
  Quadrupole moment (field-independent basis, Debye-Ang):
    XX=            -18.0454   YY=            -21.6841   ZZ=            -35.0056
    XY=             -0.0000   XZ=              0.0000   YZ=              0.0000
@@ -711,18 +711,18 @@
  Symmetry B1G  KE= 3.776539126529D+01
  Symmetry B2G  KE= 1.198131096685D+00
  Symmetry B3G  KE= 2.344295699863D+00
- Symmetry AU   KE= 3.299931505115D-17
+ Symmetry AU   KE= 6.606850327029D-17
  Symmetry B1U  KE= 1.958935508700D+00
  Symmetry B2U  KE= 7.220324864884D+01
  Symmetry B3U  KE= 4.061081090607D+01
- Symmetry AG   SP= 8.634464128930D-15
- Symmetry B1G  SP=-3.940599711501D-15
+ Symmetry AG   SP= 1.400993850011D-14
+ Symmetry B1G  SP= 9.602860803900D-15
  Symmetry B2G  SP= 1.000000000000D+00
- Symmetry B3G  SP= 1.298576047040D-15
- Symmetry AU   SP= 3.734812055821D-18
- Symmetry B1U  SP=-2.383632028737D-15
- Symmetry B2U  SP= 1.725663950386D-14
- Symmetry B3U  SP=-3.172917657779D-16
+ Symmetry B3G  SP= 1.137870180024D-15
+ Symmetry AU   SP= 4.398028816143D-17
+ Symmetry B1U  SP= 8.735281378444D-16
+ Symmetry B2U  SP= 9.222806437829D-15
+ Symmetry B3U  SP=-3.453563390127D-15
                           Isotropic Fermi Contact Couplings
         Atom                 a.u.       MegaHertz       Gauss      10(-4) cm-1
      1  C(13)             -0.03107     -34.92393     -12.46173     -11.64937
@@ -829,11 +829,11 @@
  ---------------------------------------------------------------------------------
 
  No NMR shielding tensors so no spin-rotation constants.
- Leave Link  601 at Mon Mar 16 03:49:49 2020, MaxMem=  6710886400 cpu:               3.3 elap:               0.2
+ Leave Link  601 at Wed Apr 22 16:20:55 2020, MaxMem=  6710886400 cpu:               4.1 elap:               0.3
  (Enter /opt/ohpc/pub/libs/gaussian/g16-A.03/sandybridge/g16/l9999.exe)
 
  Test job not archived.
- 1\1\GINC-CNODE145\SP\ULC-wHPBE\6-31G\C6H6(1+,2)\QAI222\16-Mar-2020\0\\
+ 1\1\GINC-CNODE136\SP\ULC-wHPBE\6-31G\C6H6(1+,2)\QAI222\22-Apr-2020\0\\
  #P uLC-wHPBE/6-31G iop(3/107=0305800000, 3/108=0305800000) scf=(conver
  =6,fermi,ndamp=35,noincfock,novaracc,vshift=500,xqc)\\H6 C6\\1,2\C,0,0
  .,1.39316,0.\C,0,-1.206512,0.69658,0.\C,0,-1.206512,-0.69658,0.\C,0,0.
@@ -845,13 +845,13 @@
  .,0.,0.\PG=D06H [3C2'(H1C1.C1H1)]\\@
 
 
- ALL MEN WHO EXPLORE
- DEPLORE
- THAT FRUSTRATING HURDLE
- THE GIRDLE.
-
-         -- COLIN FLETCHER
- Job cpu time:       0 days  0 hours  0 minutes 44.5 seconds.
- Elapsed time:       0 days  0 hours  0 minutes  3.0 seconds.
+ GARLIC THEN HAVE POWER TO SAVE FROM DEATH
+ BEAR WITH IT THOUGH IT MAKETH UNSAVORY BREATH,
+ AND SCORN NOT GARLIC LIKE SOME THAT THINK
+ IT ONLY MAKETH MEN WINK AND DRINK AND STINK.
+   --  SIR JOHN HARRINGTON,
+       "THE ENGLISHMAN'S DOCTOR", 1609
+ Job cpu time:       0 days  0 hours  0 minutes 42.0 seconds.
+ Elapsed time:       0 days  0 hours  0 minutes  2.9 seconds.
  File lengths (MBytes):  RWF=    272 Int=      0 D2E=      0 Chk=     32 Scr=     32
- Normal termination of Gaussian 16 at Mon Mar 16 03:49:49 2020.
+ Normal termination of Gaussian 16 at Wed Apr 22 16:20:55 2020.
