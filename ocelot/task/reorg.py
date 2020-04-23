@@ -36,13 +36,13 @@ class Reorganization:
         hole_reorg = (ngeo_c_energy - copt_energy + cgeo_n_energy - nopt_energy) * 27.2114
         elec_reorg = (ngeo_a_energy - aopt_energy + ageo_n_energy - nopt_energy) * 27.2114  # ev
 
-        ip_adia = (ngeo_c_energy - nopt_energy) * 27.2114
-        ip_nadia = (copt_energy - nopt_energy) * 27.2114
+        ip_vertical = (ngeo_c_energy - nopt_energy) * 27.2114
+        ip_adia = (copt_energy - nopt_energy) * 27.2114
 
-        ea_adia = (ngeo_a_energy - nopt_energy) * 27.2114
-        ea_nadia = (aopt_energy - nopt_energy) * 27.2114
+        ea_vertical = (ngeo_a_energy - nopt_energy) * 27.2114
+        ea_adia = (aopt_energy - nopt_energy) * 27.2114
 
-        return hole_reorg, elec_reorg, ip_adia, ip_nadia, ea_adia, ea_nadia
+        return hole_reorg, elec_reorg, ip_vertical, ip_adia, ea_vertical, ea_adia
 
     @staticmethod
     def extract_energy(log):
