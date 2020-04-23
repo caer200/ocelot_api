@@ -1,4 +1,6 @@
-Job 474038 running on SLURM NODELIST: cnode136 
+Job 474860 running on SLURM NODELIST: cnode130 
+/scratch/qai222/localpkg/anaconda3/envs/ocelot_fireworks/lib/python3.8/site-packages/ocelot-0.2-py3.8.egg/ocelot/task/wtuning.py:165: UserWarning: tuning cycle went over max cycles
+  warnings.warn('tuning cycle went over max cycles')
  
  Func-count     x          f(x)          Procedure
     1       0.221885     0.508163        initial
@@ -6,8 +8,8 @@ Job 474038 running on SLURM NODELIST: cnode136
     3       0.393769      0.29027        golden
     4       0.321904    0.0336809        parabolic
     5         0.2837     0.141859        golden
-    6        0.31181   0.00961343        parabolic
-    7        0.30584    0.0362014        parabolic
+    6        0.31181   0.00961341        parabolic
+    7       0.305839    0.0362014        parabolic
     8       0.314056  0.000400851        parabolic
     9       0.315414   0.00629457        parabolic
    10       0.313723   0.00130669        parabolic
@@ -16,5 +18,3 @@ Job 474038 running on SLURM NODELIST: cnode136
 Optimization terminated successfully;
 The returned value satisfies the termination criteria
 (using xtol =  0.001 )
-new-->old 0.3140558561548915 0.07622288811910988
-tuning cycle went over max cycles

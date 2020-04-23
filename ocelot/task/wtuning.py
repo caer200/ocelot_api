@@ -5,7 +5,7 @@ default keywords for gaussian
 'scf=(xqc,fermi,noincfock,ndamp=35,conver=6,vshift=500,novaracc)'
 dev-ing
 """
-import warning
+import warnings
 import datetime as dt
 import os
 import random
@@ -162,7 +162,7 @@ class WtuningJob:
                 self.omega = omega
                 break
             elif self.ocycle >= max_cycles:
-                warning.warn('tuning cycle went over max cycles')
+                warnings.warn('tuning cycle went over max cycles')
                 break
             self.omega = omega
             self.mol = self.geo_opt()
@@ -179,7 +179,7 @@ class WtuningJob:
                 self.alpha = alpha
                 break
             elif self.ocycle >= max_cycles:
-                warning.warn('tuning cycle went over max cycles')
+                warnings.warn('tuning cycle went over max cycles')
                 break
             self.alpha = alpha
             self.mol = self.geo_opt()
