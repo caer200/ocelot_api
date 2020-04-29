@@ -1,5 +1,5 @@
-import os
 import glob
+import os
 
 from ocelot.curator.Contribution import Contribution
 from ocelot.curator.DataSchema import *
@@ -22,6 +22,10 @@ john_anthony_contribution_20181007 = Contribution(
 )
 
 def john_anthony_vis_pkid(abspath):
+    """
+    john "manually" inspected all crystal structures in this contribution and reported packing motifs and chromophore
+    these info are provided via the relative path
+    """
     common_path = os.path.commonpath([CONTRIBUTION_FOLDER, abspath])
     relative_path = os.path.relpath(abspath, common_path)
     d = OrderedDict()
