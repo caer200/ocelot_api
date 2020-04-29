@@ -607,15 +607,12 @@ class BasicConformer(SiteidOperation):
             rdmol, smiles, siteid2atomidx, atomidx2siteid = self.to_rdmol()  # hydrogens are explicitly added
         except:
             warnings.warn('to_rdmol failed for this conformer! we believe it misses hydrogen')
-            return True
+            return 666
         # to_rdmol is quite sensitive to AC, if AC is wrong and charged_frag=False then nradical will be quite large
         nradical = Descriptors.NumRadicalElectrons(rdmol)
-        if nradical != 0:
-            return True
-        rdmolh = Chem.AddHs(rdmol)
-        if len(rdmol.GetAtoms()) != len(rdmolh.GetAtoms()):
-            return True
-        return False
+        return nradical
+        # this will do nothing as to_rdmol specified hydrogens
+        # rdmolh = Chem.AddHs(rdmol)
 
     def to_rdmol(self, charge=0, sani=True, charged_fragments=None, force_single=False, expliciths=True):
         """

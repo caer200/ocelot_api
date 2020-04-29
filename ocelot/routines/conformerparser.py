@@ -14,6 +14,10 @@ from scipy.spatial.distance import squareform
 
 """
 modified based on Jan H. Jensen's implementation in [xyz2mol](https://github.com/jensengroup/xyz2mol)
+
+# TODO this is based on atom connectivity, is also good to include bond length information so bond type can be 
+determined such that a radical fragment can have bond type of its parent, this is why i cannot use rdkit AddHs in 
+conformer_addh
 """
 
 
