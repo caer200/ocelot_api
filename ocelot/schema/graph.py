@@ -1,5 +1,6 @@
 import itertools
 import warnings
+import hashlib
 from collections import OrderedDict
 from operator import eq
 from ocelot.routines.fileop import stringkey, intkey
@@ -32,6 +33,9 @@ def to_fracrgb(t):
 
 class GraphError(Exception): pass
 
+def hashstr2int(s, hashmethod = hashlib.sha256):
+    return int(hashmethod(s.encode('utf-8')).hexdigest(), 16) % 10**8
+
 
 class BasicGraph:
 
@@ -49,25 +53,37 @@ class BasicGraph:
         return self.hash_nxgraph(self.graph)
         # return self.hash_via_smiles(self)
 
-    @staticmethod
-    def hash_via_smiles(mg):
-        smiles, rdmol, _, _ = mg.to_rdmol()
-        # return hash("{}: {}".format(mg.__class__.__name__, smiles))
-        return hash(smiles)
-
-    @staticmethod
-    def hash_nxgraph(g: nx.Graph):
+    @property
+    def props_for_hash(self):
         """
         see https://stackoverflow.com/questions/46999771/
         use with caution...
         """
+        t = nx.triangles(self.graph)
+        c = nx.number_of_cliques(self.graph)
+        ele = nx.get_node_attributes(self.graph, 'symbol')
+        dv = self.graph.degree
+        props = [(dv[v], t[v], c[v], ele[v]) for v in self.graph]
+        props.sort()
+        return props
+
+    @staticmethod
+    def hash_via_smiles(mg):
+        smiles, rdmol, _, _ = mg.to_rdmol()
+        # return hash("{}: {}".format(mg.__class__.__name__, smiles))
+        return hashstr2int(smiles)
+
+    @staticmethod
+    def hash_nxgraph(g: nx.Graph):
         t = nx.triangles(g)
         c = nx.number_of_cliques(g)
         ele = nx.get_node_attributes(g, 'symbol')
         dv = g.degree
         props = [(dv[v], t[v], c[v], ele[v]) for v in g]
         props.sort()
-        return hash(tuple(props))
+        s = str(props)
+        return hashstr2int(s)
+        # return hash(tuple(props))
         # pnGraph=pn.Graph(g.number_of_nodes());
         # edg=list(g.edges);
         # for E in edg:

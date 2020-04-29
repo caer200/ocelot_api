@@ -2,6 +2,7 @@ import warnings
 from copy import deepcopy
 from itertools import groupby
 
+import hashlib
 import numpy as np
 from pymatgen.core.sites import PeriodicSite
 from pymatgen.core.structure import Molecule
@@ -119,6 +120,19 @@ class Config:
         except KeyError:
             occu = 1.0
         return cls.from_pstructure(pstructure, occu)
+
+    def hashconfig(self, hashmethod=hashlib.sha256):
+        latt = self.pstructure.lattice
+        latt_str = '_'.join(['{:.3f}'] * 9)
+        latt_str = latt_str.format(*latt.matrix.flatten())
+        comp_str = self.pstructure.composition.__repr__()
+
+        # or use smiles
+        mg_props = [mg.props_for_hash for mg in self.molgraph_set()]
+        mg_props.sort()
+        mg_str = str(mg_props)
+        combine = '---'.join([latt_str, comp_str, mg_str])
+        return hashmethod(combine.encode('utf-8')).hexdigest()
 
     def get_dimers_array(self, maxfold=2, fast=False, symm=False):
         """
