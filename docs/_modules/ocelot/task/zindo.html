@@ -21,10 +21,10 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../../../_static/jquery.js"></script>
-        <script type="text/javascript" src="../../../_static/underscore.js"></script>
-        <script type="text/javascript" src="../../../_static/doctools.js"></script>
-        <script type="text/javascript" src="../../../_static/language_data.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
     
     <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
@@ -416,24 +416,55 @@
         <span class="n">whereami</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span>
         <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">wdir</span><span class="p">)</span>
 
-        <span class="n">dimer_inps</span> <span class="o">=</span> <span class="n">zj</span><span class="o">.</span><span class="n">write_dimer</span><span class="p">(</span><span class="n">jobname</span><span class="p">)</span>
+        <span class="n">dimer_inps</span> <span class="o">=</span> <span class="n">zj</span><span class="o">.</span><span class="n">write_dimer</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">/</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">wdir</span><span class="p">,</span> <span class="n">jobname</span><span class="p">))</span>
         <span class="n">dimerinp</span><span class="p">,</span> <span class="n">ainp</span><span class="p">,</span> <span class="n">dinp</span> <span class="o">=</span> <span class="n">dimer_inps</span>
-        <span class="n">aout</span><span class="p">,</span> <span class="n">dout</span><span class="p">,</span> <span class="n">dimerout</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;A.out&#39;</span><span class="p">,</span> <span class="s1">&#39;D.out&#39;</span><span class="p">,</span> <span class="s1">&#39;dimer.out&#39;</span><span class="p">]</span>
+        <span class="n">aout</span><span class="p">,</span> <span class="n">dout</span><span class="p">,</span> <span class="n">dimerout</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">/</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">wdir</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;A.out&#39;</span><span class="p">,</span> <span class="s1">&#39;D.out&#39;</span><span class="p">,</span> <span class="s1">&#39;dimer.out&#39;</span><span class="p">]]</span>
         <span class="n">env</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">ldlibpath</span> <span class="o">=</span> <span class="n">env</span><span class="p">[</span><span class="s1">&#39;LD_LIBRARY_PATH&#39;</span><span class="p">]</span>
         <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
             <span class="n">ldlibpath</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
         <span class="n">env</span><span class="p">[</span><span class="s1">&#39;LD_LIBRARY_PATH&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">:&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">zindolib</span><span class="p">)</span> <span class="o">+</span> <span class="n">ldlibpath</span>
-        <span class="n">p</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> &lt; </span><span class="si">{}</span><span class="s2"> &gt; </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">zindobin</span><span class="p">,</span> <span class="n">ainp</span><span class="p">,</span> <span class="n">aout</span><span class="p">),</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">env</span><span class="o">=</span><span class="n">env</span><span class="p">)</span>
+
+        <span class="n">ainpf</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">ainp</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
+        <span class="n">aoutf</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">aout</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span>
+        <span class="n">aerrf</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">aout</span><span class="o">+</span><span class="s1">&#39;err&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">([</span><span class="n">zindobin</span><span class="p">],</span> <span class="n">stdin</span><span class="o">=</span><span class="n">ainpf</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="n">aoutf</span><span class="p">,</span> <span class="n">stderr</span><span class="o">=</span><span class="n">aerrf</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">env</span><span class="o">=</span><span class="n">env</span><span class="p">)</span>
         <span class="n">p</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
-        <span class="n">movefile</span><span class="p">(</span><span class="s1">&#39;mo.out&#39;</span><span class="p">,</span> <span class="s1">&#39;mo_A.out&#39;</span><span class="p">)</span>
-        <span class="n">p</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> &lt; </span><span class="si">{}</span><span class="s2"> &gt; </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">zindobin</span><span class="p">,</span> <span class="n">dinp</span><span class="p">,</span> <span class="n">dout</span><span class="p">),</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">env</span><span class="o">=</span><span class="n">env</span><span class="p">)</span>
+        <span class="n">movefile</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">/mo.out&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">wdir</span><span class="p">),</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">/mo_A.out&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">wdir</span><span class="p">))</span>
+        <span class="n">ainpf</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="n">aoutf</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="n">aerrf</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+        <span class="n">dinpf</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">dinp</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
+        <span class="n">doutf</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">dout</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span>
+        <span class="n">derrf</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">dout</span><span class="o">+</span><span class="s1">&#39;err&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">([</span><span class="n">zindobin</span><span class="p">],</span> <span class="n">stdin</span><span class="o">=</span><span class="n">dinpf</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="n">doutf</span><span class="p">,</span> <span class="n">stderr</span><span class="o">=</span><span class="n">derrf</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">env</span><span class="o">=</span><span class="n">env</span><span class="p">)</span>
         <span class="n">p</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
-        <span class="n">movefile</span><span class="p">(</span><span class="s1">&#39;mo.out&#39;</span><span class="p">,</span> <span class="s1">&#39;mo_D.out&#39;</span><span class="p">)</span>
-        <span class="n">p</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> &lt; </span><span class="si">{}</span><span class="s2"> &gt; </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">zindoctbin</span><span class="p">,</span> <span class="n">dimerinp</span><span class="p">,</span> <span class="n">dimerout</span><span class="p">),</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">env</span><span class="o">=</span><span class="n">env</span><span class="p">)</span>
+        <span class="n">movefile</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">/mo.out&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">wdir</span><span class="p">),</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">/mo_D.out&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">wdir</span><span class="p">))</span>
+        <span class="n">dinpf</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="n">doutf</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="n">derrf</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+        <span class="n">dimerinpf</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">dimerinp</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
+        <span class="n">dimeroutf</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">dimerout</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span>
+        <span class="n">dimererrf</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">dimerout</span><span class="o">+</span><span class="s1">&#39;err&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">([</span><span class="n">zindoctbin</span><span class="p">],</span> <span class="n">stdin</span><span class="o">=</span><span class="n">dimerinpf</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="n">dimeroutf</span><span class="p">,</span> <span class="n">stderr</span><span class="o">=</span><span class="n">dimererrf</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">env</span><span class="o">=</span><span class="n">env</span><span class="p">)</span>
         <span class="n">p</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
         <span class="n">data</span><span class="p">,</span> <span class="n">nmo_a</span><span class="p">,</span> <span class="n">nmo_d</span> <span class="o">=</span> <span class="n">zj</span><span class="o">.</span><span class="n">parse_tmo</span><span class="p">(</span><span class="s1">&#39;tmo.dat&#39;</span><span class="p">)</span>
+        <span class="n">dimerinpf</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="n">dimeroutf</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="n">dimererrf</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+        <span class="c1"># p = subprocess.Popen(&quot;{} &lt; {} &gt; {}&quot;.format(zindobin, ainp, aout), shell=True, env=env)</span>
+        <span class="c1"># p.wait()</span>
+        <span class="c1"># movefile(&#39;mo.out&#39;, &#39;mo_A.out&#39;)</span>
+        <span class="c1"># p = subprocess.Popen(&quot;{} &lt; {} &gt; {}&quot;.format(zindobin, dinp, dout), shell=True, env=env)</span>
+        <span class="c1"># p.wait()</span>
+        <span class="c1"># movefile(&#39;mo.out&#39;, &#39;mo_D.out&#39;)</span>
+        <span class="c1"># p = subprocess.Popen(&quot;{} &lt; {} &gt; {}&quot;.format(zindoctbin, dimerinp, dimerout), shell=True, env=env)</span>
+        <span class="c1"># p.wait()</span>
+        <span class="c1"># data, nmo_a, nmo_d = zj.parse_tmo(&#39;tmo.dat&#39;)</span>
 
         <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">whereami</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">data</span><span class="p">,</span> <span class="n">nmo_a</span><span class="p">,</span> <span class="n">nmo_d</span></div>
@@ -475,7 +506,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2019, Ai, Qianxiang
+        &copy; Copyright 2020, Ai, Qianxiang
 
     </p>
   </div>

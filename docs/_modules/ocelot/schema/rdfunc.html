@@ -21,10 +21,10 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../../../_static/jquery.js"></script>
-        <script type="text/javascript" src="../../../_static/underscore.js"></script>
-        <script type="text/javascript" src="../../../_static/doctools.js"></script>
-        <script type="text/javascript" src="../../../_static/language_data.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
     
     <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
@@ -153,16 +153,27 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ocelot.schema.rdfunc</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">rdkit</span> <span class="kn">import</span> <span class="n">Chem</span>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">rdkit</span> <span class="kn">import</span> <span class="n">DataStructs</span>
 <span class="kn">from</span> <span class="nn">rdkit.Chem</span> <span class="kn">import</span> <span class="n">AllChem</span>
 <span class="kn">from</span> <span class="nn">rdkit.Chem</span> <span class="kn">import</span> <span class="n">Descriptors</span>
 <span class="kn">from</span> <span class="nn">rdkit.Chem</span> <span class="kn">import</span> <span class="n">Descriptors3D</span> <span class="k">as</span> <span class="n">D3d</span>
 <span class="kn">from</span> <span class="nn">rdkit.Chem.Fingerprints</span> <span class="kn">import</span> <span class="n">FingerprintMols</span>
+<span class="kn">from</span> <span class="nn">rdkit.Chem.rdMolInterchange</span> <span class="kn">import</span> <span class="n">JSONToMols</span>
+<span class="kn">from</span> <span class="nn">rdkit.Chem.rdMolInterchange</span> <span class="kn">import</span> <span class="n">MolToJSON</span>
 
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">commonly used rdkit functions</span>
 <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">combinations</span>
+
+<span class="kn">from</span> <span class="nn">rdkit</span> <span class="kn">import</span> <span class="n">Chem</span>
+<span class="kn">from</span> <span class="nn">rdkit.Chem</span> <span class="kn">import</span> <span class="n">Atom</span>
+<span class="kn">from</span> <span class="nn">rdkit.Chem</span> <span class="kn">import</span> <span class="n">Bond</span>
+<span class="kn">from</span> <span class="nn">rdkit.Chem</span> <span class="kn">import</span> <span class="n">Draw</span>
+<span class="kn">from</span> <span class="nn">rdkit.Chem</span> <span class="kn">import</span> <span class="n">Mol</span>
+<span class="kn">from</span> <span class="nn">rdkit.Chem</span> <span class="kn">import</span> <span class="n">ResonanceMolSupplier</span>
 
 
 <div class="viewcode-block" id="RdFunc"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.rdfunc.RdFunc">[docs]</a><span class="k">class</span> <span class="nc">RdFunc</span><span class="p">:</span>
@@ -300,7 +311,158 @@
             <span class="k">if</span> <span class="n">func</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">metric</span><span class="p">:</span>
                 <span class="n">metric_function</span> <span class="o">=</span> <span class="n">func</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
                 <span class="k">return</span> <span class="n">DataStructs</span><span class="o">.</span><span class="n">FingerprintSimilarity</span><span class="p">(</span><span class="n">fps</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">fps</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">metric</span><span class="o">=</span><span class="n">metric_function</span><span class="p">)</span>
-        <span class="k">return</span> <span class="kc">None</span></div></div>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="RdFunc.draw_smiles"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.rdfunc.RdFunc.draw_smiles">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">draw_smiles</span><span class="p">(</span><span class="n">smiles</span><span class="p">,</span> <span class="n">fn</span><span class="o">=</span><span class="s1">&#39;m.ps&#39;</span><span class="p">):</span>
+        <span class="n">rdmol</span> <span class="o">=</span> <span class="n">RdFunc</span><span class="o">.</span><span class="n">from_string</span><span class="p">(</span><span class="s1">&#39;smiles&#39;</span><span class="p">,</span> <span class="n">smiles</span><span class="p">)</span>
+        <span class="n">Draw</span><span class="o">.</span><span class="n">MolToFile</span><span class="p">(</span><span class="n">rdmol</span><span class="p">,</span> <span class="n">fn</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="RdFunc.draw_mol"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.rdfunc.RdFunc.draw_mol">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">draw_mol</span><span class="p">(</span><span class="n">rdmol</span><span class="p">,</span> <span class="n">fn</span><span class="o">=</span><span class="s1">&#39;m.ps&#39;</span><span class="p">):</span>
+        <span class="n">Draw</span><span class="o">.</span><span class="n">MolToFile</span><span class="p">(</span><span class="n">rdmol</span><span class="p">,</span> <span class="n">fn</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="RdFunc.get_sub_rdmol"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.rdfunc.RdFunc.get_sub_rdmol">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">get_sub_rdmol</span><span class="p">(</span><span class="n">m</span><span class="p">:</span> <span class="n">Mol</span><span class="p">,</span> <span class="n">atomids</span><span class="p">:</span> <span class="p">[</span><span class="nb">int</span><span class="p">]):</span>
+        <span class="n">atoms_in_old_mol</span><span class="p">:</span> <span class="p">[</span><span class="n">Atom</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">m</span><span class="o">.</span><span class="n">GetAtoms</span><span class="p">()</span> <span class="k">if</span> <span class="n">a</span><span class="o">.</span><span class="n">GetIdx</span><span class="p">()</span> <span class="ow">in</span> <span class="n">atomids</span><span class="p">]</span>
+        <span class="n">atom_numbers</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">GetAtomicNum</span><span class="p">()</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">atoms_in_old_mol</span><span class="p">]</span>
+
+        <span class="n">old_id_2_new_id</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">newid</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">oldatom</span> <span class="ow">in</span> <span class="n">atoms_in_old_mol</span><span class="p">:</span>
+            <span class="n">old_id</span> <span class="o">=</span> <span class="n">oldatom</span><span class="o">.</span><span class="n">GetIdx</span><span class="p">()</span>
+            <span class="n">old_id_2_new_id</span><span class="p">[</span><span class="n">old_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">newid</span>
+            <span class="n">newid</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="n">mol</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">MolFromSmarts</span><span class="p">(</span><span class="s2">&quot;[#&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">atom_numbers</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="s2">&quot;]&quot;</span><span class="p">)</span>
+        <span class="n">rwmol</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">RWMol</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">atom_numbers</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+            <span class="n">rwmol</span><span class="o">.</span><span class="n">AddAtom</span><span class="p">(</span><span class="n">Chem</span><span class="o">.</span><span class="n">Atom</span><span class="p">(</span><span class="n">s</span><span class="p">))</span>
+
+        <span class="c1"># print(&#39;new mol atom&#39;)</span>
+        <span class="c1"># for a in rwmol.GetAtoms():</span>
+        <span class="c1">#     print(a.GetIdx(), a.GetSymbol())</span>
+        <span class="c1"># print(&#39;--&#39;)</span>
+
+        <span class="k">for</span> <span class="n">aini</span><span class="p">,</span> <span class="n">ainj</span> <span class="ow">in</span> <span class="n">combinations</span><span class="p">(</span><span class="n">atomids</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span>
+            <span class="n">b</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">GetBondBetweenAtoms</span><span class="p">(</span><span class="n">aini</span><span class="p">,</span> <span class="n">ainj</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">Bond</span><span class="p">):</span>
+                <span class="c1"># iatom = m.GetAtomWithIdx(aini).GetSymbol()</span>
+                <span class="c1"># jatom = m.GetAtomWithIdx(ainj).GetSymbol()</span>
+                <span class="c1"># print(&#39;found bond {} {} - {} {}, {}&#39;.format(iatom, aini, jatom, ainj, b.GetBondType()))</span>
+                <span class="n">bt</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">GetBondType</span><span class="p">()</span>
+                <span class="n">newi</span> <span class="o">=</span> <span class="n">old_id_2_new_id</span><span class="p">[</span><span class="n">aini</span><span class="p">]</span>
+                <span class="n">newj</span> <span class="o">=</span> <span class="n">old_id_2_new_id</span><span class="p">[</span><span class="n">ainj</span><span class="p">]</span>
+                <span class="n">rwmol</span><span class="o">.</span><span class="n">AddBond</span><span class="p">(</span><span class="n">newi</span><span class="p">,</span> <span class="n">newj</span><span class="p">,</span> <span class="n">bt</span><span class="p">)</span>
+                <span class="c1"># newatomi = rwmol.GetAtomWithIdx(newi).GetSymbol()</span>
+                <span class="c1"># newatomj = rwmol.GetAtomWithIdx(newj).GetSymbol()</span>
+                <span class="c1"># print(&#39;added {} {} - {} {}&#39;.format(newatomi, newi, newatomj, newj))</span>
+        <span class="n">mol</span> <span class="o">=</span> <span class="n">rwmol</span><span class="o">.</span><span class="n">GetMol</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">mol</span><span class="p">,</span> <span class="n">old_id_2_new_id</span></div>
+
+<div class="viewcode-block" id="RdFunc.get_conjugate_group"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.rdfunc.RdFunc.get_conjugate_group">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">get_conjugate_group</span><span class="p">(</span><span class="n">m</span><span class="p">:</span> <span class="n">Mol</span><span class="p">):</span>
+        <span class="c1"># supp = ResonanceMolSupplier(m, Chem.KEKULE_ALL)</span>
+        <span class="n">supp</span> <span class="o">=</span> <span class="n">ResonanceMolSupplier</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">Chem</span><span class="o">.</span><span class="n">ALLOW_CHARGE_SEPARATION</span><span class="p">)</span>
+        <span class="n">cg_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">a</span><span class="p">:</span> <span class="n">Atom</span>
+        <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">m</span><span class="o">.</span><span class="n">GetAtoms</span><span class="p">():</span>
+            <span class="n">aid</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">GetIdx</span><span class="p">()</span>
+            <span class="n">cgid</span> <span class="o">=</span> <span class="n">supp</span><span class="o">.</span><span class="n">GetAtomConjGrpIdx</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">cgid</span> <span class="o">&lt;</span> <span class="mf">1e5</span><span class="p">:</span>
+                <span class="n">cg_dict</span><span class="p">[</span><span class="n">aid</span><span class="p">]</span> <span class="o">=</span> <span class="n">cgid</span>
+        <span class="n">cgids</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">cg_dict</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+        <span class="n">cgs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">cgid</span> <span class="ow">in</span> <span class="n">cgids</span><span class="p">:</span>
+            <span class="n">cg</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">cg_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="n">cg_dict</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="n">cgid</span><span class="p">]</span>
+            <span class="n">cgmol</span><span class="p">,</span> <span class="n">old_id_2_new_id</span> <span class="o">=</span> <span class="n">RdFunc</span><span class="o">.</span><span class="n">get_sub_rdmol</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">cg</span><span class="p">)</span>
+            <span class="n">cgs</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">cgmol</span><span class="p">,</span> <span class="n">old_id_2_new_id</span><span class="p">])</span>
+        <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">cgs</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">GetNumAtoms</span><span class="p">(),</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="RdFunc.get_conjugate_group_with_halogen"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.rdfunc.RdFunc.get_conjugate_group_with_halogen">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">get_conjugate_group_with_halogen</span><span class="p">(</span><span class="n">m</span><span class="p">:</span> <span class="n">Mol</span><span class="p">):</span>
+        <span class="n">natoms</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">GetAtoms</span><span class="p">())</span>
+        <span class="n">adjmat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">natoms</span><span class="p">,</span> <span class="n">natoms</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">natoms</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">natoms</span><span class="p">):</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">GetBondBetweenAtoms</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">),</span> <span class="n">Bond</span><span class="p">):</span>
+                    <span class="n">adjmat</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="n">adjmat</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="n">supp</span> <span class="o">=</span> <span class="n">ResonanceMolSupplier</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="p">)</span>
+        <span class="c1"># supp = ResonanceMolSupplier(m, Chem.KEKULE_ALL)</span>
+        <span class="c1"># supp = ResonanceMolSupplier(m, Chem.ALLOW_CHARGE_SEPARATION)</span>
+        <span class="n">cg_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">a</span><span class="p">:</span> <span class="n">Atom</span>
+        <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">m</span><span class="o">.</span><span class="n">GetAtoms</span><span class="p">():</span>
+            <span class="n">aid</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">GetIdx</span><span class="p">()</span>
+            <span class="n">cgid</span> <span class="o">=</span> <span class="n">supp</span><span class="o">.</span><span class="n">GetAtomConjGrpIdx</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">cgid</span> <span class="o">&lt;</span> <span class="mf">1e5</span><span class="p">:</span>
+                <span class="n">cg_dict</span><span class="p">[</span><span class="n">aid</span><span class="p">]</span> <span class="o">=</span> <span class="n">cgid</span>
+        <span class="n">cgids</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">cg_dict</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+        <span class="n">cgs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">cgid</span> <span class="ow">in</span> <span class="n">cgids</span><span class="p">:</span>
+            <span class="n">cg</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">cg_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="n">cg_dict</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="n">cgid</span><span class="p">]</span>
+            <span class="n">atom</span><span class="p">:</span> <span class="n">Atom</span>
+            <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="n">m</span><span class="o">.</span><span class="n">GetAtoms</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">atom</span><span class="o">.</span><span class="n">GetIdx</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">cg</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">adjmat</span><span class="p">[</span><span class="n">atom</span><span class="o">.</span><span class="n">GetIdx</span><span class="p">()][</span><span class="n">cg_aid</span><span class="p">]</span> <span class="k">for</span> <span class="n">cg_aid</span> <span class="ow">in</span> <span class="n">cg</span><span class="p">)</span> <span class="ow">and</span> <span class="n">atom</span><span class="o">.</span><span class="n">GetSymbol</span><span class="p">()</span> <span class="ow">in</span> <span class="p">(</span>
+                    <span class="s2">&quot;I&quot;</span><span class="p">,</span> <span class="s2">&quot;F&quot;</span><span class="p">,</span> <span class="s2">&quot;Cl&quot;</span><span class="p">,</span> <span class="s2">&quot;Br&quot;</span><span class="p">):</span>
+                        <span class="n">cg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">atom</span><span class="o">.</span><span class="n">GetIdx</span><span class="p">())</span>
+            <span class="n">cgmol</span><span class="p">,</span> <span class="n">old_id_2_new_id</span> <span class="o">=</span> <span class="n">RdFunc</span><span class="o">.</span><span class="n">get_sub_rdmol</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">cg</span><span class="p">)</span>
+            <span class="n">cgs</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">cgmol</span><span class="p">,</span> <span class="n">old_id_2_new_id</span><span class="p">])</span>
+        <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">cgs</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">GetNumAtoms</span><span class="p">(),</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="RdFunc.vis_partition"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.rdfunc.RdFunc.vis_partition">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">vis_partition</span><span class="p">(</span><span class="n">m</span><span class="p">:</span> <span class="n">Mol</span><span class="p">,</span> <span class="n">fnprefix</span><span class="o">=</span><span class="s1">&#39;m&#39;</span><span class="p">):</span>
+        <span class="n">cgs</span> <span class="o">=</span> <span class="n">RdFunc</span><span class="o">.</span><span class="n">get_conjugate_group_with_halogen</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+        <span class="c1"># cgs = RdFunc.get_conjugate_group(m)</span>
+        <span class="n">Draw</span><span class="o">.</span><span class="n">MolToFile</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">.ps&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">fnprefix</span><span class="p">),</span> <span class="n">kekulize</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">kk</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">cg</span> <span class="ow">in</span> <span class="n">cgs</span><span class="p">:</span>
+            <span class="n">Chem</span><span class="o">.</span><span class="n">SanitizeMol</span><span class="p">(</span><span class="n">cg</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">Draw</span><span class="o">.</span><span class="n">MolToFile</span><span class="p">(</span><span class="n">cg</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">-</span><span class="si">{}</span><span class="s2">.ps&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">fnprefix</span><span class="p">,</span> <span class="n">kk</span><span class="p">),</span> <span class="n">kekulize</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="p">)</span>
+            <span class="n">kk</span> <span class="o">+=</span> <span class="mi">1</span></div>
+
+<div class="viewcode-block" id="RdFunc.get_aids"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.rdfunc.RdFunc.get_aids">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">get_aids</span><span class="p">(</span><span class="n">m</span><span class="p">:</span> <span class="n">Mol</span><span class="p">):</span>
+        <span class="n">aids</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">m</span><span class="o">.</span><span class="n">GetAtoms</span><span class="p">():</span>
+            <span class="n">aid</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">GetIdx</span><span class="p">()</span>
+            <span class="n">aids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">aids</span></div>
+
+<div class="viewcode-block" id="RdFunc.mol2xyz_by_confid"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.rdfunc.RdFunc.mol2xyz_by_confid">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">mol2xyz_by_confid</span><span class="p">(</span><span class="n">molecule</span><span class="p">:</span> <span class="n">Mol</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s1">&#39;rdmol&#39;</span><span class="p">,</span> <span class="n">confid</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">comment_line</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+        <span class="n">natoms</span> <span class="o">=</span> <span class="n">molecule</span><span class="o">.</span><span class="n">GetNumAtoms</span><span class="p">()</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">_</span><span class="si">{}</span><span class="s2">.xyz&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">prefix</span><span class="p">,</span> <span class="n">confid</span><span class="p">)</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="se">\n</span><span class="si">{}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">natoms</span><span class="p">,</span> <span class="n">comment_line</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">natoms</span><span class="p">):</span>
+            <span class="n">position</span> <span class="o">=</span> <span class="n">molecule</span><span class="o">.</span><span class="n">GetConformer</span><span class="p">(</span><span class="n">confid</span><span class="p">)</span><span class="o">.</span><span class="n">GetAtomPosition</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+            <span class="n">symbol</span> <span class="o">=</span> <span class="n">molecule</span><span class="o">.</span><span class="n">GetAtomWithIdx</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">.</span><span class="n">GetSymbol</span><span class="p">()</span>
+            <span class="n">s</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="se">\t</span><span class="si">{:.6}</span><span class="s2"> </span><span class="si">{:.6}</span><span class="s2"> </span><span class="si">{:.6}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">symbol</span><span class="p">,</span> <span class="n">position</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">position</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">position</span><span class="o">.</span><span class="n">z</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">s</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="RdFunc.conf2xyz"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.rdfunc.RdFunc.conf2xyz">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">conf2xyz</span><span class="p">(</span><span class="n">conf</span><span class="p">:</span> <span class="n">Chem</span><span class="o">.</span><span class="n">Conformer</span><span class="p">,</span> <span class="n">outputname</span><span class="p">,</span> <span class="n">atom_list</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">comment_line</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+        <span class="n">natoms</span> <span class="o">=</span> <span class="n">conf</span><span class="o">.</span><span class="n">GetNumAtoms</span><span class="p">()</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="se">\n</span><span class="si">{}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">natoms</span><span class="p">,</span> <span class="n">comment_line</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">natoms</span><span class="p">):</span>
+            <span class="n">position</span> <span class="o">=</span> <span class="n">conf</span><span class="o">.</span><span class="n">GetAtomPosition</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+            <span class="n">symbol</span> <span class="o">=</span> <span class="n">atom_list</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">s</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="se">\t</span><span class="si">{:.6}</span><span class="s2"> </span><span class="si">{:.6}</span><span class="s2"> </span><span class="si">{:.6}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">symbol</span><span class="p">,</span> <span class="n">position</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">position</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">position</span><span class="o">.</span><span class="n">z</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">outputname</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">s</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="RdFunc.mol_as_json"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.rdfunc.RdFunc.mol_as_json">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">mol_as_json</span><span class="p">(</span><span class="n">rdmol</span><span class="p">:</span> <span class="n">Mol</span><span class="p">):</span>
+        <span class="n">json</span> <span class="o">=</span> <span class="n">MolToJSON</span><span class="p">(</span><span class="n">rdmol</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">json</span></div>
+
+<div class="viewcode-block" id="RdFunc.mol_from_json"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.rdfunc.RdFunc.mol_from_json">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">mol_from_json</span><span class="p">(</span><span class="n">s</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">JSONToMols</span><span class="p">(</span><span class="n">s</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span></div></div>
 </pre></div>
 
            </div>
@@ -313,7 +475,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2019, Ai, Qianxiang
+        &copy; Copyright 2020, Ai, Qianxiang
 
     </p>
   </div>

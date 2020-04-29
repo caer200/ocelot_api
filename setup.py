@@ -10,6 +10,6 @@ setup(
     description="",
     author="Ai, Qianxiang",
     author_email='qai222@uky.edu',
-    packages=['ocelot', 'ocelot.schema', 'ocelot.routines', 'ocelot.task'],
+    packages=['ocelot', 'ocelot.schema', 'ocelot.routines', 'ocelot.task', 'ocelot.curator'],
     keywords='ocelot',
 )

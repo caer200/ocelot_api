@@ -1,0 +1,598 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ocelot.task.bzcal &mdash; ocelot 0.2 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> ocelot
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#schema">schema</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#disorder">Disorder</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#bone-config">Bone Config</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#backbone-and-sidechain">Backbone and Sidechain</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ocelot.html">ocelot package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">ocelot</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>ocelot.task.bzcal</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ocelot.task.bzcal</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
+
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">pymatgen.electronic_structure.core</span> <span class="kn">import</span> <span class="n">Spin</span>
+<span class="kn">from</span> <span class="nn">pymatgen.io.vasp</span> <span class="kn">import</span> <span class="n">BSVasprun</span>
+<span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">interpolate</span>
+
+<span class="kn">from</span> <span class="nn">ocelot.routines</span> <span class="kn">import</span> <span class="n">fileop</span>
+<span class="kn">from</span> <span class="nn">ocelot.routines</span> <span class="kn">import</span> <span class="n">mathop</span>
+<span class="kn">from</span> <span class="nn">ocelot.routines.geometry</span> <span class="kn">import</span> <span class="n">frac2cart</span>
+<span class="kn">from</span> <span class="nn">ocelot.routines.geometry</span> <span class="kn">import</span> <span class="n">norm</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">switch_backend</span><span class="p">(</span><span class="s1">&#39;agg&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="DispersionRelationLine"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.bzcal.DispersionRelationLine">[docs]</a><span class="k">class</span> <span class="nc">DispersionRelationLine</span><span class="p">:</span>
+
+<div class="viewcode-block" id="DispersionRelationLine.__init__"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.bzcal.DispersionRelationLine.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scheme</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">reci_mat</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">kcoords</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">eigens_up</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+                 <span class="n">eigens_down</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+                 <span class="n">ivb</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">icb</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">linekdata</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">efermi</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scheme</span> <span class="o">=</span> <span class="n">scheme</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reci_mat</span> <span class="o">=</span> <span class="n">reci_mat</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">kcoords</span> <span class="o">=</span> <span class="n">kcoords</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ivb</span> <span class="o">=</span> <span class="n">ivb</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">icb</span> <span class="o">=</span> <span class="n">icb</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">eigens_up_occu</span> <span class="o">=</span> <span class="n">eigens_up</span>  <span class="c1"># eigens[ikpt][iband] = eigen, occu</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">eigens_down_occu</span> <span class="o">=</span> <span class="n">eigens_down</span>  <span class="c1"># eigens[ikpt][iband] = eigen, occu, maybe None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">eigens_up</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">strip_occu_in_eigens</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">eigens_up_occu</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">eigens_down_occu</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">eigens_down</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">eigens_down</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">strip_occu_in_eigens</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">eigens_down_occu</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">linekdata</span> <span class="o">=</span> <span class="n">linekdata</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">efermi</span> <span class="o">=</span> <span class="n">efermi</span></div>
+
+<div class="viewcode-block" id="DispersionRelationLine.from_vasprun_file"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.bzcal.DispersionRelationLine.from_vasprun_file">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_vasprun_file</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">vasprunfile</span><span class="p">):</span>
+        <span class="n">vdata</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">read_vasprun</span><span class="p">(</span><span class="n">vasprunfile</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span>
+            <span class="s1">&#39;line&#39;</span><span class="p">,</span>
+            <span class="n">vdata</span><span class="p">[</span><span class="s1">&#39;reci_mat&#39;</span><span class="p">],</span>
+            <span class="n">vdata</span><span class="p">[</span><span class="s1">&#39;kcoords&#39;</span><span class="p">],</span>
+            <span class="n">vdata</span><span class="p">[</span><span class="s1">&#39;eigens_up&#39;</span><span class="p">],</span>
+            <span class="n">vdata</span><span class="p">[</span><span class="s1">&#39;eigens_down&#39;</span><span class="p">],</span>
+            <span class="n">ivb</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">vdata</span><span class="p">[</span><span class="s1">&#39;nelect&#39;</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">-</span> <span class="mi">1</span><span class="p">),</span>
+            <span class="n">icb</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">vdata</span><span class="p">[</span><span class="s1">&#39;nelect&#39;</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span><span class="p">),</span>
+            <span class="n">linekdata</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">efermi</span><span class="o">=</span><span class="n">vdata</span><span class="p">[</span><span class="s1">&#39;efermi&#39;</span><span class="p">],</span>
+        <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="DispersionRelationLine.plotlinebs"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.bzcal.DispersionRelationLine.plotlinebs">[docs]</a>    <span class="k">def</span> <span class="nf">plotlinebs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fname</span><span class="o">=</span><span class="s1">&#39;bands.eps&#39;</span><span class="p">,</span> <span class="n">fitdensity</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">nexbands</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">zerofermi</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">channel</span><span class="o">=</span><span class="s1">&#39;up&#39;</span><span class="p">,</span>
+                   <span class="n">yrange</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mf">2.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">)):</span>
+        <span class="n">f</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
+        <span class="n">fit_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fit_linedata</span><span class="p">(</span><span class="n">fitdensity</span><span class="p">,</span> <span class="n">nexbands</span><span class="p">,</span> <span class="n">channel</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">zerofermi</span><span class="p">:</span>
+            <span class="n">ylabel</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;$\mathrm{E\ -\ E_f\ (eV)}$&#39;</span>
+            <span class="n">shift</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">efermi</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ylabel</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;$\mathrm{E\ (eV)}$&#39;</span>
+            <span class="n">shift</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">for</span> <span class="n">iband</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ivb</span> <span class="o">-</span> <span class="n">nexbands</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">icb</span> <span class="o">+</span> <span class="n">nexbands</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">ks_scatter</span> <span class="o">=</span> <span class="n">fit_data</span><span class="p">[</span><span class="n">iband</span><span class="p">][</span><span class="s1">&#39;ks&#39;</span><span class="p">]</span>
+            <span class="n">es_scatter</span> <span class="o">=</span> <span class="n">fit_data</span><span class="p">[</span><span class="n">iband</span><span class="p">][</span><span class="s1">&#39;es&#39;</span><span class="p">]</span>
+            <span class="n">ks_fit</span> <span class="o">=</span> <span class="n">fit_data</span><span class="p">[</span><span class="n">iband</span><span class="p">][</span><span class="s1">&#39;fitks&#39;</span><span class="p">]</span>
+            <span class="n">es_fit</span> <span class="o">=</span> <span class="n">fit_data</span><span class="p">[</span><span class="n">iband</span><span class="p">][</span><span class="s1">&#39;fites&#39;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">zerofermi</span><span class="p">:</span>
+                <span class="n">es_scatter</span> <span class="o">-=</span> <span class="n">shift</span>
+                <span class="n">es_fit</span> <span class="o">-=</span> <span class="n">shift</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ks_fit</span><span class="p">,</span> <span class="n">es_fit</span><span class="p">,</span> <span class="s1">&#39;b-&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">ks_scatter</span><span class="p">,</span> <span class="n">es_scatter</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="mf">0.2</span><span class="p">)</span>
+
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;$\mathrm{k\ (\AA^{-1}})}$&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">ylabel</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="n">yrange</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">linekdata</span><span class="p">[</span><span class="s1">&#39;xticks&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">linekdata</span><span class="p">[</span><span class="s1">&#39;xticks&#39;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">linekdata</span><span class="p">[</span><span class="s1">&#39;xticks&#39;</span><span class="p">])</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xticklabels</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">linekdata</span><span class="p">[</span><span class="s1">&#39;xtickslabel&#39;</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">linekdata</span><span class="p">[</span><span class="s1">&#39;xticks&#39;</span><span class="p">]:</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">axvline</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">i</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">600</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="DispersionRelationLine.strip_occu_in_eigens"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.bzcal.DispersionRelationLine.strip_occu_in_eigens">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">strip_occu_in_eigens</span><span class="p">(</span><span class="n">eigens_with_occu</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+        <span class="n">size</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">eigens_with_occu</span><span class="p">)[:</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">eigens</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">size</span><span class="p">)</span>
+        <span class="n">ri</span><span class="p">,</span> <span class="n">rj</span> <span class="o">=</span> <span class="n">size</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ri</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">rj</span><span class="p">):</span>
+                <span class="n">eigens</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">eigens_with_occu</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">eigens</span></div>
+
+<div class="viewcode-block" id="DispersionRelationLine.fit_linedata"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.bzcal.DispersionRelationLine.fit_linedata">[docs]</a>    <span class="k">def</span> <span class="nf">fit_linedata</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fitdensity</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">nexbands</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">channel</span><span class="o">=</span><span class="s1">&#39;up&#39;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">channel</span> <span class="o">==</span> <span class="s1">&#39;up&#39;</span><span class="p">:</span>
+            <span class="n">eigens</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">eigens_up</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">eigens_down</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;down spin channel not available!&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">eigens</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">eigens_down</span>
+        <span class="n">fitted_data</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">iband</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ivb</span> <span class="o">-</span> <span class="n">nexbands</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">icb</span> <span class="o">+</span> <span class="n">nexbands</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">fitted_data</span><span class="p">[</span><span class="n">iband</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="n">fit_ks</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">fit_es</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">ks</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">es</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">lsegs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse2linsegs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">linekdata</span><span class="p">,</span> <span class="n">iband</span><span class="p">,</span> <span class="n">eigens</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">kcoords</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">reci_mat</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">lseg</span> <span class="ow">in</span> <span class="n">lsegs</span><span class="p">:</span>
+                <span class="n">seg_ks</span><span class="p">,</span> <span class="n">seg_es</span><span class="p">,</span> <span class="n">seg_rks</span><span class="p">,</span> <span class="n">seg_res</span> <span class="o">=</span> <span class="n">lseg</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">fitdensity</span><span class="p">)</span>
+                <span class="n">ks</span> <span class="o">+=</span> <span class="n">seg_rks</span>
+                <span class="n">es</span> <span class="o">+=</span> <span class="n">seg_res</span>
+                <span class="n">fit_ks</span> <span class="o">+=</span> <span class="n">seg_ks</span>
+                <span class="n">fit_es</span> <span class="o">+=</span> <span class="n">seg_es</span>
+            <span class="n">fitted_data</span><span class="p">[</span><span class="n">iband</span><span class="p">][</span><span class="s1">&#39;fitks&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fit_ks</span>
+            <span class="n">fitted_data</span><span class="p">[</span><span class="n">iband</span><span class="p">][</span><span class="s1">&#39;fites&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fit_es</span>
+            <span class="n">fitted_data</span><span class="p">[</span><span class="n">iband</span><span class="p">][</span><span class="s1">&#39;ks&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ks</span>
+            <span class="n">fitted_data</span><span class="p">[</span><span class="n">iband</span><span class="p">][</span><span class="s1">&#39;es&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">es</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">fitted_data</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="k">for</span> <span class="n">kk</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;fitks&#39;</span><span class="p">,</span> <span class="s1">&#39;fites&#39;</span><span class="p">,</span> <span class="s1">&#39;ks&#39;</span><span class="p">,</span> <span class="s1">&#39;es&#39;</span><span class="p">]:</span>
+                    <span class="n">fitted_data</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="n">kk</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">fitted_data</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="n">kk</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">fitted_data</span></div>
+
+<div class="viewcode-block" id="DispersionRelationLine.parse2linsegs"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.bzcal.DispersionRelationLine.parse2linsegs">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">parse2linsegs</span><span class="p">(</span><span class="n">kdata</span><span class="p">,</span> <span class="n">iband</span><span class="p">,</span> <span class="n">eigens</span><span class="p">,</span> <span class="n">kcoords</span><span class="p">,</span> <span class="n">reci_mat</span><span class="p">):</span>
+        <span class="n">kline_density</span> <span class="o">=</span> <span class="n">kdata</span><span class="p">[</span><span class="s1">&#39;kline_density&#39;</span><span class="p">]</span>
+        <span class="n">iseg</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">linsegs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">seg_label</span> <span class="ow">in</span> <span class="n">kdata</span><span class="p">[</span><span class="s1">&#39;segs_label&#39;</span><span class="p">]:</span>
+            <span class="n">begin_label</span><span class="p">,</span> <span class="n">end_label</span> <span class="o">=</span> <span class="n">seg_label</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">)</span>
+            <span class="n">seg_kcoords</span> <span class="o">=</span> <span class="n">kcoords</span><span class="p">[</span><span class="n">iseg</span> <span class="o">*</span> <span class="n">kline_density</span><span class="p">:</span> <span class="p">(</span><span class="n">iseg</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">kline_density</span><span class="p">]</span>
+            <span class="n">seg_eigens</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">e</span><span class="p">[</span><span class="n">iband</span><span class="p">]</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">eigens</span><span class="p">[</span><span class="n">iseg</span> <span class="o">*</span> <span class="n">kline_density</span><span class="p">:</span> <span class="p">(</span><span class="n">iseg</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">kline_density</span><span class="p">]])</span>
+            <span class="n">iband</span> <span class="o">=</span> <span class="n">iband</span>
+            <span class="n">reci_mat</span> <span class="o">=</span> <span class="n">reci_mat</span>
+            <span class="n">pltstart</span> <span class="o">=</span> <span class="n">kdata</span><span class="p">[</span><span class="s1">&#39;xticks&#39;</span><span class="p">][</span><span class="n">iseg</span><span class="p">]</span>
+            <span class="n">lseg</span> <span class="o">=</span> <span class="n">LineSegment</span><span class="p">(</span><span class="n">begin_label</span><span class="p">,</span> <span class="n">end_label</span><span class="p">,</span> <span class="n">seg_kcoords</span><span class="p">,</span> <span class="n">seg_eigens</span><span class="p">,</span> <span class="n">iband</span><span class="p">,</span> <span class="n">reci_mat</span><span class="p">,</span> <span class="n">pltstart</span><span class="p">)</span>
+            <span class="n">linsegs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">lseg</span><span class="p">)</span>
+            <span class="n">iseg</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="n">linsegs</span></div>
+
+<div class="viewcode-block" id="DispersionRelationLine.read_kpoints_line"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.bzcal.DispersionRelationLine.read_kpoints_line">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">read_kpoints_line</span><span class="p">(</span><span class="n">kpointsfile</span><span class="p">,</span> <span class="n">reci_mat</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        kpoints must be a file generated by aflow</span>
+
+<span class="sd">        return:</span>
+
+<span class="sd">        d[&#39;kline_density&#39;] = kline_density</span>
+<span class="sd">        d[&#39;segs_label&#39;] = segs_label</span>
+<span class="sd">        d[&#39;xticks&#39;] = kpath_kcoord</span>
+<span class="sd">        d[&#39;xtickslabel&#39;] = kpath_labels</span>
+<span class="sd">        d[&#39;x&#39;] = kpt_cumulative</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">kpointsfile</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f_KPOINTS</span><span class="p">:</span>
+            <span class="n">lines</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">fileop</span><span class="o">.</span><span class="n">nonblank_lines</span><span class="p">(</span><span class="n">f_KPOINTS</span><span class="p">))</span>
+
+        <span class="n">kline_density</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">lines</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">aflowstringkpath</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">2</span><span class="p">:]]</span>
+        <span class="n">segs_label</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">aflowstringkpath</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="n">segs_label</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">path</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;-&#39;</span> <span class="o">+</span> <span class="n">path</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+                    <span class="n">segs_label</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">path</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;-&#39;</span> <span class="o">+</span> <span class="n">path</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span>
+
+        <span class="n">kpath_kcoord</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">]</span>  <span class="c1"># these are xticks</span>
+        <span class="n">kroute</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">[</span><span class="mi">4</span><span class="p">:]),</span> <span class="mi">2</span><span class="p">):</span>
+            <span class="n">words_s</span> <span class="o">=</span> <span class="n">lines</span><span class="p">[</span><span class="mi">4</span><span class="p">:][</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+            <span class="n">words_e</span> <span class="o">=</span> <span class="n">lines</span><span class="p">[</span><span class="mi">4</span><span class="p">:][</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+            <span class="n">k_a_s</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">words_s</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">k_a_e</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">words_e</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">k_b_s</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">words_s</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">k_b_e</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">words_e</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">k_c_s</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">words_s</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+            <span class="n">k_c_e</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">words_e</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+            <span class="n">frac_v</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">k_a_e</span> <span class="o">-</span> <span class="n">k_a_s</span><span class="p">,</span> <span class="n">k_b_e</span> <span class="o">-</span> <span class="n">k_b_s</span><span class="p">,</span> <span class="n">k_c_e</span> <span class="o">-</span> <span class="n">k_c_s</span><span class="p">])</span>
+            <span class="n">length</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">frac2cart</span><span class="p">(</span><span class="n">frac_v</span><span class="p">,</span> <span class="n">reci_mat</span><span class="p">))</span>
+            <span class="n">kroute</span> <span class="o">=</span> <span class="n">kroute</span> <span class="o">+</span> <span class="n">length</span>
+            <span class="n">kpath_kcoord</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">kroute</span><span class="p">)</span>
+
+        <span class="n">kpath_labels</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># these are xtickslabel</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aflowstringkpath</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">pre_seg_end</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">pre_seg_end</span> <span class="o">=</span> <span class="n">aflowstringkpath</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aflowstringkpath</span><span class="p">[</span><span class="n">i</span><span class="p">])):</span>
+                <span class="k">if</span> <span class="n">j</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">j</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">aflowstringkpath</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">kpath_labels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">aflowstringkpath</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">])</span>
+                <span class="k">elif</span> <span class="n">j</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">kpath_labels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pre_seg_end</span> <span class="o">+</span> <span class="s1">&#39;|&#39;</span> <span class="o">+</span> <span class="n">aflowstringkpath</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">])</span>
+        <span class="n">kpath_labels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">aflowstringkpath</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="n">kpt_cumulative</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(((</span><span class="nb">len</span><span class="p">(</span><span class="n">kpath_kcoord</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">kline_density</span><span class="p">))</span>  <span class="c1"># these are x</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">kpath_kcoord</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">seg</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">kpath_kcoord</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">kpath_kcoord</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">],</span> <span class="n">num</span><span class="o">=</span><span class="n">kline_density</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">kline_density</span><span class="p">):</span>
+                <span class="n">kpt_cumulative</span><span class="p">[</span><span class="n">i</span> <span class="o">*</span> <span class="n">kline_density</span> <span class="o">+</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">seg</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="n">d</span><span class="p">[</span><span class="s1">&#39;kline_density&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kline_density</span>
+        <span class="n">d</span><span class="p">[</span><span class="s1">&#39;segs_label&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">segs_label</span>
+        <span class="n">d</span><span class="p">[</span><span class="s1">&#39;xticks&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kpath_kcoord</span>
+        <span class="n">d</span><span class="p">[</span><span class="s1">&#39;xtickslabel&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kpath_labels</span>
+        <span class="n">d</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kpt_cumulative</span>
+        <span class="k">return</span> <span class="n">d</span></div>
+
+<div class="viewcode-block" id="DispersionRelationLine.read_vasprun"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.bzcal.DispersionRelationLine.read_vasprun">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">read_vasprun</span><span class="p">(</span><span class="n">vasprunfile</span><span class="p">):</span>
+        <span class="n">vasprun</span> <span class="o">=</span> <span class="n">BSVasprun</span><span class="p">(</span><span class="n">vasprunfile</span><span class="p">)</span>
+        <span class="n">vdata</span> <span class="o">=</span> <span class="n">vasprun</span><span class="o">.</span><span class="n">as_dict</span><span class="p">()</span>
+        <span class="c1"># pprint(vdata[&#39;input&#39;][&#39;crystal&#39;][&#39;lattice&#39;][&#39;matrix&#39;])</span>
+        <span class="c1"># pprint(vdata[&#39;input&#39;][&#39;lattice_rec&#39;][&#39;matrix&#39;])</span>
+        <span class="n">real_latt</span> <span class="o">=</span> <span class="n">vdata</span><span class="p">[</span><span class="s1">&#39;input&#39;</span><span class="p">][</span><span class="s1">&#39;crystal&#39;</span><span class="p">][</span><span class="s1">&#39;lattice&#39;</span><span class="p">][</span><span class="s1">&#39;matrix&#39;</span><span class="p">]</span>
+        <span class="n">real_latt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">real_latt</span><span class="p">)</span>
+        <span class="n">reci_matrix</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">real_latt</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+        <span class="n">eigens_all</span> <span class="o">=</span> <span class="n">vasprun</span><span class="o">.</span><span class="n">eigenvalues</span>
+        <span class="k">if</span> <span class="n">Spin</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">eigens_all</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">eigens_up</span> <span class="o">=</span> <span class="n">eigens_all</span><span class="p">[</span><span class="n">Spin</span><span class="p">(</span><span class="mi">1</span><span class="p">)]</span>
+            <span class="n">eigens_down</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">eigens_up</span> <span class="o">=</span> <span class="n">eigens_all</span><span class="p">[</span><span class="n">Spin</span><span class="p">(</span><span class="mi">1</span><span class="p">)]</span>
+            <span class="n">eigens_down</span> <span class="o">=</span> <span class="n">eigens_all</span><span class="p">[</span><span class="n">Spin</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)]</span>  <span class="c1"># eigens[ikpt][iband] = eigen, occu</span>
+        <span class="n">nelect</span> <span class="o">=</span> <span class="n">vdata</span><span class="p">[</span><span class="s1">&#39;input&#39;</span><span class="p">][</span><span class="s1">&#39;parameters&#39;</span><span class="p">][</span><span class="s1">&#39;NELECT&#39;</span><span class="p">]</span>
+        <span class="n">efermi</span> <span class="o">=</span> <span class="n">vasprun</span><span class="o">.</span><span class="n">efermi</span>
+        <span class="n">kcoords</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">kpt</span> <span class="ow">in</span> <span class="n">vdata</span><span class="p">[</span><span class="s1">&#39;input&#39;</span><span class="p">][</span><span class="s1">&#39;kpoints&#39;</span><span class="p">][</span><span class="s1">&#39;actual_points&#39;</span><span class="p">]:</span>
+            <span class="n">kcoords</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">kpt</span><span class="p">[</span><span class="s1">&#39;abc&#39;</span><span class="p">])</span>
+
+        <span class="n">d</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="n">d</span><span class="p">[</span><span class="s1">&#39;reci_mat&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">reci_matrix</span>
+        <span class="n">d</span><span class="p">[</span><span class="s1">&#39;nelect&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">nelect</span><span class="p">)</span>
+        <span class="n">d</span><span class="p">[</span><span class="s1">&#39;efermi&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">efermi</span>
+        <span class="n">d</span><span class="p">[</span><span class="s1">&#39;eigens_up&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">eigens_up</span>
+        <span class="n">d</span><span class="p">[</span><span class="s1">&#39;eigens_down&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">eigens_down</span>
+        <span class="n">d</span><span class="p">[</span><span class="s1">&#39;kcoords&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">kcoords</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">d</span></div>
+
+<div class="viewcode-block" id="DispersionRelationLine.get_line_ems"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.bzcal.DispersionRelationLine.get_line_ems">[docs]</a>    <span class="k">def</span> <span class="nf">get_line_ems</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bandtype</span><span class="o">=</span><span class="s1">&#39;vb&#39;</span><span class="p">,</span> <span class="n">channel</span><span class="o">=</span><span class="s1">&#39;up&#39;</span><span class="p">):</span>
+        <span class="n">ems</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">bandtype</span> <span class="o">==</span> <span class="s1">&#39;vb&#39;</span><span class="p">:</span>
+            <span class="n">iband</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ivb</span>
+        <span class="k">elif</span> <span class="n">bandtype</span> <span class="o">==</span> <span class="s1">&#39;cb&#39;</span><span class="p">:</span>
+            <span class="n">iband</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">icb</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;bandtype should be cb or vb!&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">channel</span> <span class="o">==</span> <span class="s1">&#39;up&#39;</span><span class="p">:</span>
+            <span class="n">eigens</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">eigens_up</span>
+        <span class="k">elif</span> <span class="n">channel</span> <span class="o">==</span> <span class="s1">&#39;down&#39;</span><span class="p">:</span>
+            <span class="n">eigens</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">eigens_down</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;channel should be up or down!&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">eigens</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;eigens is None!&#39;</span><span class="p">)</span>
+        <span class="n">lsegs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse2linsegs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">linekdata</span><span class="p">,</span> <span class="n">iband</span><span class="p">,</span> <span class="n">eigens</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">kcoords</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">reci_mat</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">lseg</span> <span class="ow">in</span> <span class="n">lsegs</span><span class="p">:</span>
+            <span class="n">ems</span> <span class="o">+=</span> <span class="n">lseg</span><span class="o">.</span><span class="n">get_ems</span><span class="p">(</span><span class="n">bandtype</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ems</span><span class="p">)):</span>
+            <span class="n">ipt</span><span class="p">,</span> <span class="n">lseg</span><span class="p">,</span> <span class="n">em</span> <span class="o">=</span> <span class="n">ems</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">ems</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+=</span> <span class="p">[</span><span class="n">lseg</span><span class="o">.</span><span class="n">eigens</span><span class="p">[</span><span class="n">ipt</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">efermi</span><span class="p">,</span> <span class="n">lseg</span><span class="o">.</span><span class="n">dispersion</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">ems</span></div>
+
+
+<div class="viewcode-block" id="DispersionRelationLine.from_klines_files"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.bzcal.DispersionRelationLine.from_klines_files">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_klines_files</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">vasprunfile</span><span class="p">,</span> <span class="n">kpointsfile</span><span class="p">):</span>
+        <span class="n">vdata</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">read_vasprun</span><span class="p">(</span><span class="n">vasprunfile</span><span class="p">)</span>
+        <span class="n">kdata</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">read_kpoints_line</span><span class="p">(</span><span class="n">kpointsfile</span><span class="p">,</span> <span class="n">vdata</span><span class="p">[</span><span class="s1">&#39;reci_mat&#39;</span><span class="p">])</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span>
+            <span class="s1">&#39;line&#39;</span><span class="p">,</span>
+            <span class="n">vdata</span><span class="p">[</span><span class="s1">&#39;reci_mat&#39;</span><span class="p">],</span>
+            <span class="n">vdata</span><span class="p">[</span><span class="s1">&#39;kcoords&#39;</span><span class="p">],</span>
+            <span class="n">vdata</span><span class="p">[</span><span class="s1">&#39;eigens_up&#39;</span><span class="p">],</span>
+            <span class="n">vdata</span><span class="p">[</span><span class="s1">&#39;eigens_down&#39;</span><span class="p">],</span>
+            <span class="n">ivb</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">vdata</span><span class="p">[</span><span class="s1">&#39;nelect&#39;</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">-</span> <span class="mi">1</span><span class="p">),</span>
+            <span class="n">icb</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">vdata</span><span class="p">[</span><span class="s1">&#39;nelect&#39;</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span><span class="p">),</span>
+            <span class="n">linekdata</span><span class="o">=</span><span class="n">kdata</span><span class="p">,</span>
+            <span class="n">efermi</span><span class="o">=</span><span class="n">vdata</span><span class="p">[</span><span class="s1">&#39;efermi&#39;</span><span class="p">],</span>
+        <span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="LineSegment"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.bzcal.LineSegment">[docs]</a><span class="k">class</span> <span class="nc">LineSegment</span><span class="p">:</span>
+
+<div class="viewcode-block" id="LineSegment.__init__"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.bzcal.LineSegment.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">begin_label</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">end_label</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">kcoords</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">eigens</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+                 <span class="n">iband</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">reci_mat</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">pltstart</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">begin_label</span> <span class="o">=</span> <span class="n">begin_label</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">end_label</span> <span class="o">=</span> <span class="n">end_label</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">kcoords</span> <span class="o">=</span> <span class="n">kcoords</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">linedensity</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kcoords</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">eigens</span> <span class="o">=</span> <span class="n">eigens</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">iband</span> <span class="o">=</span> <span class="n">iband</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reci_mat</span> <span class="o">=</span> <span class="n">reci_mat</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pltstart</span> <span class="o">=</span> <span class="n">pltstart</span>  <span class="c1"># the x coord in band structure plt for the first k point in this segment</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">kcoords</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">eigens</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;kcoords len != eigens len&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">kcumulative</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pltstart</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pltstart</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">length</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">linedensity</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dispersion</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">eigens</span><span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">amin</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">eigens</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="LineSegment.fit"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.bzcal.LineSegment.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fitdensity</span><span class="o">=</span><span class="mi">100</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        fit band structure with spline at a predefined fit density</span>
+<span class="sd">        using `scipy.interpolate.splev`</span>
+
+<span class="sd">        :param int fitdensity: number of data points along one SEGMENT</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">all_x</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">all_y</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">x_r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kcumulative</span>
+        <span class="n">y_r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">eigens</span>
+        <span class="n">tck</span> <span class="o">=</span> <span class="n">interpolate</span><span class="o">.</span><span class="n">splrep</span><span class="p">(</span><span class="n">x_r</span><span class="p">,</span> <span class="n">y_r</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="mf">0.00</span><span class="p">)</span>
+        <span class="n">step</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">x_r</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">x_r</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="n">fitdensity</span>
+        <span class="n">xs</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="o">*</span> <span class="n">step</span> <span class="o">+</span> <span class="n">x_r</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">fitdensity</span><span class="p">)]</span>
+        <span class="n">ys</span> <span class="o">=</span> <span class="p">[</span><span class="n">interpolate</span><span class="o">.</span><span class="n">splev</span><span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="n">step</span> <span class="o">+</span> <span class="n">x_r</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">tck</span><span class="p">,</span> <span class="n">der</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">fitdensity</span><span class="p">)]</span>
+        <span class="n">ys_flat</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ys</span><span class="p">)</span><span class="o">.</span><span class="n">transpose</span><span class="p">())</span>
+        <span class="n">all_x</span> <span class="o">+=</span> <span class="n">xs</span>
+        <span class="n">all_y</span> <span class="o">+=</span> <span class="n">ys_flat</span>
+        <span class="k">return</span> <span class="n">all_x</span><span class="p">,</span> <span class="n">all_y</span><span class="p">,</span> <span class="n">x_r</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span> <span class="n">y_r</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="LineSegment.get_ems"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.bzcal.LineSegment.get_ems">[docs]</a>    <span class="k">def</span> <span class="nf">get_ems</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bandtype</span><span class="o">=</span><span class="s1">&#39;cb&#39;</span><span class="p">):</span>
+        <span class="n">gmax</span><span class="p">,</span> <span class="n">igmax</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_wi</span>
+        <span class="n">gmin</span><span class="p">,</span> <span class="n">igmin</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_wi</span>
+        <span class="n">ems</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">bandtype</span> <span class="o">==</span> <span class="s1">&#39;cb&#39;</span><span class="p">:</span>
+            <span class="n">poi</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_points_of_interest</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">eigens</span><span class="p">,</span> <span class="n">gmin</span><span class="p">,</span> <span class="n">bandtype</span><span class="p">,</span> <span class="mf">0.025</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">ipt</span> <span class="ow">in</span> <span class="n">poi</span><span class="p">:</span>
+                <span class="n">em</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_em</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kcumulative</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">eigens</span><span class="p">,</span> <span class="n">ipt</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">em</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">:</span>
+                    <span class="n">ems</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">ipt</span><span class="p">,</span> <span class="bp">self</span><span class="p">,</span> <span class="n">em</span><span class="p">])</span>
+        <span class="k">elif</span> <span class="n">bandtype</span> <span class="o">==</span> <span class="s1">&#39;vb&#39;</span><span class="p">:</span>
+            <span class="n">poi</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_points_of_interest</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">eigens</span><span class="p">,</span> <span class="n">gmax</span><span class="p">,</span> <span class="n">bandtype</span><span class="p">,</span> <span class="mf">0.025</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">ipt</span> <span class="ow">in</span> <span class="n">poi</span><span class="p">:</span>
+                <span class="n">em</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_em</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kcumulative</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">eigens</span><span class="p">,</span> <span class="n">ipt</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">em</span> <span class="o">&lt;</span> <span class="mf">0.0</span><span class="p">:</span>
+                    <span class="n">ems</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">ipt</span><span class="p">,</span> <span class="bp">self</span><span class="p">,</span> <span class="n">em</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">ems</span></div>
+
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">-</span><span class="si">{}</span><span class="s2">:</span><span class="si">{}</span><span class="s2">-</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">begin_label</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">end_label</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">kcoords</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">kcoords</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">pltend</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">pltstart</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">length</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">frac_direction</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">norm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kcoords</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">kcoords</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">length</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        length in k space</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kcoords</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">kcoords</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">norm</span><span class="p">(</span><span class="n">frac2cart</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">reci_mat</span><span class="p">))</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">max_wi</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">eigens</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">eigens</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">min_wi</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">amin</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">eigens</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">eigens</span><span class="p">)</span>
+
+<div class="viewcode-block" id="LineSegment.get_em"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.bzcal.LineSegment.get_em">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">get_em</span><span class="p">(</span><span class="n">kcumultive</span><span class="p">,</span> <span class="n">eigens</span><span class="p">,</span> <span class="n">ipt</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="n">rb_x</span> <span class="o">=</span> <span class="n">mathop</span><span class="o">.</span><span class="n">ra_to_rb</span><span class="p">(</span><span class="n">kcumultive</span><span class="p">)</span>  <span class="c1"># A-1 to b-1</span>
+        <span class="n">ha_y</span> <span class="o">=</span> <span class="n">mathop</span><span class="o">.</span><span class="n">ev_to_ha</span><span class="p">(</span><span class="n">eigens</span><span class="p">)</span>
+        <span class="n">em</span> <span class="o">=</span> <span class="n">mathop</span><span class="o">.</span><span class="n">fd_reci_2ndder</span><span class="p">(</span><span class="n">ha_y</span><span class="p">,</span> <span class="n">rb_x</span><span class="p">,</span> <span class="n">ipt</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="n">step</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">em</span></div>
+
+<div class="viewcode-block" id="LineSegment.get_points_of_interest"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.bzcal.LineSegment.get_points_of_interest">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">get_points_of_interest</span><span class="p">(</span><span class="n">eigens</span><span class="p">,</span> <span class="n">global_ex</span><span class="p">,</span> <span class="n">bandtype</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">fluctuation</span><span class="o">=</span><span class="mf">0.050</span><span class="p">):</span>
+        <span class="n">poi</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">eigens</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="n">bandtype</span> <span class="o">==</span> <span class="s1">&#39;cb&#39;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">eigens</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">global_ex</span> <span class="o">+</span> <span class="n">fluctuation</span><span class="p">:</span>
+                    <span class="n">poi</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>
+                    <span class="c1"># if (j == 0 and eigens[j] &lt; eigens[j + step]) or (j == len(kcoords) - 1 and</span>
+                    <span class="c1">#                                                  eigens[j] &lt; eigens[j - step]):</span>
+                    <span class="c1">#     poi.append(j)</span>
+                    <span class="c1"># elif 2 * step &lt; j &lt; len(kcoords) - 2 * step and eigens[j] &lt; eigens[j + step] and eigens[j] &lt; eigens[</span>
+                    <span class="c1">#     j - step]:</span>
+                    <span class="c1">#     poi.append(j)</span>
+            <span class="k">elif</span> <span class="n">bandtype</span> <span class="o">==</span> <span class="s1">&#39;vb&#39;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">eigens</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">global_ex</span> <span class="o">-</span> <span class="n">fluctuation</span><span class="p">:</span>
+                    <span class="n">poi</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>
+                    <span class="c1"># if (j == 0 and eigens[j] &gt; eigens[j + step]) or (j == len(kcoords) - 1 and</span>
+                    <span class="c1">#                                                  eigens[j] &gt; eigens[j - step]):</span>
+                    <span class="c1">#     poi.append(j)</span>
+                    <span class="c1"># elif 2 * step &lt; j &lt; len(kcoords) - 2 * step and eigens[j] &gt; eigens[j + step] and eigens[j] &gt; eigens[</span>
+                    <span class="c1">#     j - step]:</span>
+                    <span class="c1">#     poi.append(j)</span>
+        <span class="k">return</span> <span class="n">poi</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Ai, Qianxiang
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

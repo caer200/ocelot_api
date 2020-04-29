@@ -1,0 +1,430 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ocelot.task.dbwrite &mdash; ocelot 0.2 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> ocelot
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#schema">schema</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#disorder">Disorder</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#bone-config">Bone Config</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#backbone-and-sidechain">Backbone and Sidechain</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ocelot.html">ocelot package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">ocelot</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>ocelot.task.dbwrite</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ocelot.task.dbwrite</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">hashlib</span>  <span class="c1"># 3.8</span>
+<span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABCMeta</span>
+<span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">abstractmethod</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">monty.json</span> <span class="kn">import</span> <span class="n">MSONable</span>
+<span class="kn">from</span> <span class="nn">pymatgen.core.lattice</span> <span class="kn">import</span> <span class="n">Lattice</span>
+<span class="kn">from</span> <span class="nn">pymatgen.core.structure</span> <span class="kn">import</span> <span class="n">Structure</span>
+
+
+<div class="viewcode-block" id="sha1hash"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.dbwrite.sha1hash">[docs]</a><span class="k">def</span> <span class="nf">sha1hash</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha1</span><span class="p">()</span>
+    <span class="n">m</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">bytes</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">obj</span><span class="p">),</span> <span class="s1">&#39;utf-8&#39;</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">m</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="DBschema"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.dbwrite.DBschema">[docs]</a><span class="k">class</span> <span class="nc">DBschema</span><span class="p">(</span><span class="n">MSONable</span><span class="p">,</span> <span class="n">metaclass</span><span class="o">=</span><span class="n">ABCMeta</span><span class="p">):</span>
+
+<div class="viewcode-block" id="DBschema.getid"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.dbwrite.DBschema.getid">[docs]</a>    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">getid</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">pass</span></div>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="fm">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">pass</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">unfilled</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">as_dict</span><span class="p">()</span>
+        <span class="n">uf</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">d</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">uf</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">uf</span></div>
+
+
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">Counter</span>
+
+
+<div class="viewcode-block" id="DBCrystal"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.dbwrite.DBCrystal">[docs]</a><span class="k">class</span> <span class="nc">DBCrystal</span><span class="p">(</span><span class="n">DBschema</span><span class="p">):</span>
+    <span class="n">_id</span><span class="p">:</span> <span class="nb">str</span>
+
+<div class="viewcode-block" id="DBCrystal.__init__"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.dbwrite.DBCrystal.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+
+            <span class="n">lattice</span><span class="p">:</span> <span class="n">Lattice</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">smiles</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">hsmiles</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">chromophore</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+
+            <span class="n">elements</span><span class="p">:</span> <span class="p">(</span><span class="nb">str</span><span class="p">)</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># e.g. (&#39;c&#39;, &#39;h&#39;, ...), must be sorted</span>
+            <span class="n">identifier</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">source</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">cif_string</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">disorder_location</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># &#39;bone&#39; or &#39;sidechain&#39; or &#39;not sure&#39; or &#39;no disorder</span>
+            <span class="n">disorder_class</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">configurations</span><span class="p">:</span> <span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">major_configuration</span><span class="p">:</span> <span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+
+            <span class="n">results</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">elements</span> <span class="o">=</span> <span class="n">elements</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">identifier</span> <span class="o">=</span> <span class="n">identifier</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">source</span> <span class="o">=</span> <span class="n">source</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cif_string</span> <span class="o">=</span> <span class="n">cif_string</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">disorder_location</span> <span class="o">=</span> <span class="n">disorder_location</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">disorder_class</span> <span class="o">=</span> <span class="n">disorder_class</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">configurations</span> <span class="o">=</span> <span class="n">configurations</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">major_configuration</span> <span class="o">=</span> <span class="n">major_configuration</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lattice</span> <span class="o">=</span> <span class="n">lattice</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">smiles</span> <span class="o">=</span> <span class="n">smiles</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hsmiles</span> <span class="o">=</span> <span class="n">hsmiles</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">chromophore</span> <span class="o">=</span> <span class="n">chromophore</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">results</span> <span class="o">=</span> <span class="n">results</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getid</span><span class="p">()</span>  <span class="c1"># source + identifier  # e.g. &#39;csd_ASFNC&#39;</span></div>
+
+<div class="viewcode-block" id="DBCrystal.getid"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.dbwrite.DBCrystal.getid">[docs]</a>    <span class="k">def</span> <span class="nf">getid</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">_</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">identifier</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="fm">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;</span><span class="si">{:.4}</span><span class="s1">&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="mi">9</span><span class="p">)</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="n">Counter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">elements</span><span class="p">)</span>
+        <span class="n">els</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">most_common</span><span class="p">(),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">els</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">els</span><span class="p">)</span>
+        <span class="n">latmat_format</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">matrix</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">decimals</span><span class="o">=</span><span class="mi">4</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">sha1hash</span><span class="p">(</span><span class="s1">&#39;@&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">els</span><span class="p">,</span> <span class="n">latmat_format</span><span class="p">]))</span></div>
+
+
+<div class="viewcode-block" id="DBConfiguration"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.dbwrite.DBConfiguration">[docs]</a><span class="k">class</span> <span class="nc">DBConfiguration</span><span class="p">(</span><span class="n">DBschema</span><span class="p">):</span>
+
+<div class="viewcode-block" id="DBConfiguration.__init__"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.dbwrite.DBConfiguration.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">calculation_stage</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># denotes how many calculations have been done for this config</span>
+            <span class="n">unwrap_structure</span><span class="p">:</span> <span class="n">Structure</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># this is the unwrap_clean_pstructure</span>
+            <span class="n">molconformers</span><span class="p">:</span> <span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># use rmsd to get rid of identical conformers, see BasicConformer.compare()</span>
+            <span class="n">z</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">occupancy</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">backbone_structure</span><span class="p">:</span> <span class="n">Structure</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">crystal</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">config_index</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">is_major</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">packing_data</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">hop_data_geodict</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">hop_data_zindo</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">hop_data_dft</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">fb_opt_structure</span><span class="p">:</span> <span class="n">Structure</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">ar_opt_structure</span><span class="p">:</span> <span class="n">Structure</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">fb_opt_ebs</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">ar_opt_ebs</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">energetics</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># keys are fb_opt, ar_opt, mol_in_box, cohesive</span>
+    <span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">calculation_stage</span> <span class="o">=</span> <span class="n">calculation_stage</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">unwrap_structure</span> <span class="o">=</span> <span class="n">unwrap_structure</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">molconformers</span> <span class="o">=</span> <span class="n">molconformers</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">z</span> <span class="o">=</span> <span class="n">z</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">occupancy</span> <span class="o">=</span> <span class="n">occupancy</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">backbone_structure</span> <span class="o">=</span> <span class="n">backbone_structure</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">crystal</span> <span class="o">=</span> <span class="n">crystal</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config_index</span> <span class="o">=</span> <span class="n">config_index</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_major</span> <span class="o">=</span> <span class="n">is_major</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">packing_data</span> <span class="o">=</span> <span class="n">packing_data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hop_data_geodict</span> <span class="o">=</span> <span class="n">hop_data_geodict</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hop_data_zindo</span> <span class="o">=</span> <span class="n">hop_data_zindo</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hop_data_dft</span> <span class="o">=</span> <span class="n">hop_data_dft</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fb_opt_structure</span> <span class="o">=</span> <span class="n">fb_opt_structure</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ar_opt_structure</span> <span class="o">=</span> <span class="n">ar_opt_structure</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fb_opt_ebs</span> <span class="o">=</span> <span class="n">fb_opt_ebs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ar_opt_ebs</span> <span class="o">=</span> <span class="n">ar_opt_ebs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">energetics</span> <span class="o">=</span> <span class="n">energetics</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getid</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="DBConfiguration.getid"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.dbwrite.DBConfiguration.getid">[docs]</a>    <span class="k">def</span> <span class="nf">getid</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">crystal</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">config_index</span><span class="p">])</span></div>
+
+    <span class="k">def</span> <span class="fm">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">id</span></div>
+
+
+<div class="viewcode-block" id="DBMolConformer"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.dbwrite.DBMolConformer">[docs]</a><span class="k">class</span> <span class="nc">DBMolConformer</span><span class="p">(</span><span class="n">DBschema</span><span class="p">):</span>
+<div class="viewcode-block" id="DBMolConformer.__init__"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.dbwrite.DBMolConformer.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">mc_index</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">molconformer</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">Configuration</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">GeoBoneConf</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">GeoBoneConf_descriptors</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">GeoScsConf</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">GeoScsConf_descriptors</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">ChromBoneConf</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">ChromBoneConf_descriptors</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">ChromScsConf</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">ChromScsConf_descriptors</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mc_index</span> <span class="o">=</span> <span class="n">mc_index</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">molconformer</span> <span class="o">=</span> <span class="n">molconformer</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Configuration</span> <span class="o">=</span> <span class="n">Configuration</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">GeoBoneConf</span> <span class="o">=</span> <span class="n">GeoBoneConf</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">GeoBoneConf_descriptors</span> <span class="o">=</span> <span class="n">GeoBoneConf_descriptors</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">GeoScsConf</span> <span class="o">=</span> <span class="n">GeoScsConf</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">GeoScsConf_descriptors</span> <span class="o">=</span> <span class="n">GeoScsConf_descriptors</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ChromBoneConf</span> <span class="o">=</span> <span class="n">ChromBoneConf</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ChromBoneConf_descriptors</span> <span class="o">=</span> <span class="n">ChromBoneConf_descriptors</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ChromScsConf</span> <span class="o">=</span> <span class="n">ChromScsConf</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ChromScsConf_descriptors</span> <span class="o">=</span> <span class="n">ChromScsConf_descriptors</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getid</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="DBMolConformer.getid"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.dbwrite.DBMolConformer.getid">[docs]</a>    <span class="k">def</span> <span class="nf">getid</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">Configuration</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mc_index</span><span class="p">])</span></div>
+
+    <span class="k">def</span> <span class="fm">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">id</span></div>
+
+
+<div class="viewcode-block" id="DBChromophore"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.dbwrite.DBChromophore">[docs]</a><span class="k">class</span> <span class="nc">DBChromophore</span><span class="p">(</span><span class="n">MSONable</span><span class="p">):</span>
+<div class="viewcode-block" id="DBChromophore.__init__"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.dbwrite.DBChromophore.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">hsmiles</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">smiles</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">ChromophoreConfs</span><span class="p">:</span> <span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hsmiles</span> <span class="o">=</span> <span class="n">hsmiles</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">smiles</span> <span class="o">=</span> <span class="n">smiles</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ChromophoreConfs</span> <span class="o">=</span> <span class="n">ChromophoreConfs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getid</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="DBChromophore.getid"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.dbwrite.DBChromophore.getid">[docs]</a>    <span class="k">def</span> <span class="nf">getid</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">hsmiles</span></div>
+
+    <span class="k">def</span> <span class="fm">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">id</span></div>
+
+
+<div class="viewcode-block" id="DBChromophoreConformer"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.dbwrite.DBChromophoreConformer">[docs]</a><span class="k">class</span> <span class="nc">DBChromophoreConformer</span><span class="p">(</span><span class="n">DBschema</span><span class="p">):</span>
+<div class="viewcode-block" id="DBChromophoreConformer.__init__"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.dbwrite.DBChromophoreConformer.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">geo</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">index</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">anion_geo</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">cation_geo</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">AIP</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">AEA</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">reorg</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">tddft</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">vs0s1</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">vs0t1</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">as0t1</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">Chromophore</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">geo</span> <span class="o">=</span> <span class="n">geo</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">index</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">anion_geo</span> <span class="o">=</span> <span class="n">anion_geo</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cation_geo</span> <span class="o">=</span> <span class="n">cation_geo</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">AIP</span> <span class="o">=</span> <span class="n">AIP</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">AEA</span> <span class="o">=</span> <span class="n">AEA</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reorg</span> <span class="o">=</span> <span class="n">reorg</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tddft</span> <span class="o">=</span> <span class="n">tddft</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vs0s1</span> <span class="o">=</span> <span class="n">vs0s1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vs0t1</span> <span class="o">=</span> <span class="n">vs0t1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">as0t1</span> <span class="o">=</span> <span class="n">as0t1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Chromophore</span> <span class="o">=</span> <span class="n">Chromophore</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getid</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="DBChromophoreConformer.getid"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.dbwrite.DBChromophoreConformer.getid">[docs]</a>    <span class="k">def</span> <span class="nf">getid</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">Chromophore</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">])</span></div>
+
+    <span class="k">def</span> <span class="fm">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">id</span></div>
+
+<span class="c1"># dc = DBCrystal()</span>
+<span class="c1"># dc.lattice = Lattice.from_parameters(1, 2, 3, 40, 50, 60)</span>
+<span class="c1"># from pprint import pprint</span>
+<span class="c1"># pprint(dc.as_dict())</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Ai, Qianxiang
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

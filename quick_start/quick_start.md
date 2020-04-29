@@ -5,6 +5,11 @@
     ```bash
     git clone --single-branch --branch v0.2 git@github.com:caer200/ocelot_api.git
     ```
+   or for the dev version
+   ```bash
+   git clone git@github.com:caer200/ocelot_api.git
+   ```
+   
 2. this yields a folder called `ocelot_api`, create a new venv with
     ```bash
     conda env create -f venv/environment.yaml

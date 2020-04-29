@@ -21,10 +21,10 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../../../_static/jquery.js"></script>
-        <script type="text/javascript" src="../../../_static/underscore.js"></script>
-        <script type="text/javascript" src="../../../_static/doctools.js"></script>
-        <script type="text/javascript" src="../../../_static/language_data.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
     
     <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
@@ -162,6 +162,7 @@
 <span class="kn">from</span> <span class="nn">scipy.spatial</span> <span class="kn">import</span> <span class="n">Delaunay</span>
 <span class="kn">from</span> <span class="nn">shapely.ops</span> <span class="kn">import</span> <span class="n">cascaded_union</span><span class="p">,</span> <span class="n">polygonize</span>
 
+<div class="viewcode-block" id="GeometryError"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.geometry.GeometryError">[docs]</a><span class="k">class</span> <span class="nc">GeometryError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span> <span class="k">pass</span></div>
 
 <div class="viewcode-block" id="norm"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.geometry.norm">[docs]</a><span class="k">def</span> <span class="nf">norm</span><span class="p">(</span><span class="n">v</span><span class="p">):</span>
     <span class="n">l</span> <span class="o">=</span> <span class="mi">0</span>
@@ -327,11 +328,11 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">thetaunit</span> <span class="o">==</span> <span class="s1">&#39;degree&#39;</span><span class="p">:</span>
         <span class="n">theta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">axis</span> <span class="ow">is</span> <span class="s1">&#39;x&#39;</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">axis</span> <span class="o">==</span> <span class="s1">&#39;x&#39;</span><span class="p">:</span>
         <span class="n">axis</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
-    <span class="k">elif</span> <span class="n">axis</span> <span class="ow">is</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span>
+    <span class="k">elif</span> <span class="n">axis</span> <span class="o">==</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span>
         <span class="n">axis</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
-    <span class="k">elif</span> <span class="n">axis</span> <span class="ow">is</span> <span class="s1">&#39;z&#39;</span><span class="p">:</span>
+    <span class="k">elif</span> <span class="n">axis</span> <span class="o">==</span> <span class="s1">&#39;z&#39;</span><span class="p">:</span>
         <span class="n">axis</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">axis</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">axis</span><span class="p">)</span>
@@ -458,7 +459,7 @@
 <span class="sd">        :return: vector, ptsmean, error</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pts</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
-            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="s1">&#39;less than 2 pts to fit a line!&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">GeometryError</span><span class="p">(</span><span class="s1">&#39;less than 2 pts to fit a line!&#39;</span><span class="p">)</span>
         <span class="n">ptsmean</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">pts</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
         <span class="n">u</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">vt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">svd</span><span class="p">(</span><span class="n">pts</span> <span class="o">-</span> <span class="n">ptsmean</span><span class="p">)</span>
         <span class="n">vector</span> <span class="o">=</span> <span class="n">unify</span><span class="p">(</span><span class="n">vt</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
@@ -497,7 +498,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2019, Ai, Qianxiang
+        &copy; Copyright 2020, Ai, Qianxiang
 
     </p>
   </div>

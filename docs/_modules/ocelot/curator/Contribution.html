@@ -1,0 +1,673 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ocelot.curator.Contribution &mdash; ocelot 0.2 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> ocelot
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#schema">schema</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#disorder">Disorder</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#bone-config">Bone Config</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#backbone-and-sidechain">Backbone and Sidechain</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ocelot.html">ocelot package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">ocelot</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>ocelot.curator.Contribution</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ocelot.curator.Contribution</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">glob</span>
+<span class="kn">import</span> <span class="nn">hashlib</span>
+<span class="kn">import</span> <span class="nn">inspect</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+
+<span class="kn">import</span> <span class="nn">chardet</span>
+<span class="kn">import</span> <span class="nn">monty.json</span> <span class="k">as</span> <span class="nn">mj</span>
+<span class="kn">from</span> <span class="nn">ocelot.routines.disparser</span> <span class="kn">import</span> <span class="n">DisParser</span>
+<span class="kn">from</span> <span class="nn">ocelot.routines.disparser_functions</span> <span class="kn">import</span> <span class="n">CifFileError</span>
+<span class="kn">from</span> <span class="nn">ocelot.routines.disparser_functions</span> <span class="kn">import</span> <span class="n">get_pmg_dict</span>
+<span class="kn">from</span> <span class="nn">ocelot.routines.fileop</span> <span class="kn">import</span> <span class="n">createdir</span>
+<span class="kn">from</span> <span class="nn">ocelot.routines.fileop</span> <span class="kn">import</span> <span class="n">movefile</span>
+<span class="kn">from</span> <span class="nn">ocelot.schema.configuration</span> <span class="kn">import</span> <span class="n">Config</span>
+<span class="kn">from</span> <span class="nn">ocelot.schema.conformer</span> <span class="kn">import</span> <span class="n">Chem</span>
+<span class="kn">from</span> <span class="nn">ocelot.schema.conformer</span> <span class="kn">import</span> <span class="n">MolConformer</span>
+<span class="kn">from</span> <span class="nn">pymatgen.core.composition</span> <span class="kn">import</span> <span class="n">CompositionError</span>
+<span class="kn">from</span> <span class="nn">pymatgen.core.structure</span> <span class="kn">import</span> <span class="n">Composition</span>
+<span class="kn">from</span> <span class="nn">pymatgen.core.structure</span> <span class="kn">import</span> <span class="n">Structure</span>
+<span class="kn">from</span> <span class="nn">pymatgen.io.cif</span> <span class="kn">import</span> <span class="n">CifBlock</span>
+
+<span class="kn">from</span> <span class="nn">ocelot.curator.DataSchema</span> <span class="kn">import</span> <span class="o">*</span>
+
+
+<div class="viewcode-block" id="CuratorError"><a class="viewcode-back" href="../../../ocelot.curator.html#ocelot.curator.Contribution.CuratorError">[docs]</a><span class="k">class</span> <span class="nc">CuratorError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span> <span class="k">pass</span></div>
+
+
+<span class="n">WMSG</span> <span class="o">=</span> <span class="s1">&#39;WARNING: </span><span class="si">{}</span><span class="s1">&#39;</span>
+<span class="n">WEAK_WMSG</span> <span class="o">=</span> <span class="s1">&#39;WEAKWARNING: </span><span class="si">{}</span><span class="s1">&#39;</span>
+
+<span class="kn">import</span> <span class="nn">signal</span>
+<span class="kn">from</span> <span class="nn">contextlib</span> <span class="kn">import</span> <span class="n">contextmanager</span>
+
+
+<div class="viewcode-block" id="TimeoutException"><a class="viewcode-back" href="../../../ocelot.curator.html#ocelot.curator.Contribution.TimeoutException">[docs]</a><span class="k">class</span> <span class="nc">TimeoutException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span> <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="time_limit"><a class="viewcode-back" href="../../../ocelot.curator.html#ocelot.curator.Contribution.time_limit">[docs]</a><span class="nd">@contextmanager</span>
+<span class="k">def</span> <span class="nf">time_limit</span><span class="p">(</span><span class="n">seconds</span><span class="p">):</span>
+    <span class="c1"># https://stackoverflow.com/questions/366682/</span>
+    <span class="k">def</span> <span class="nf">signal_handler</span><span class="p">(</span><span class="n">signum</span><span class="p">,</span> <span class="n">frame</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">TimeoutException</span><span class="p">(</span><span class="s2">&quot;Timed out!&quot;</span><span class="p">)</span>
+
+    <span class="n">signal</span><span class="o">.</span><span class="n">signal</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">SIGALRM</span><span class="p">,</span> <span class="n">signal_handler</span><span class="p">)</span>
+    <span class="n">signal</span><span class="o">.</span><span class="n">alarm</span><span class="p">(</span><span class="n">seconds</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">yield</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="n">signal</span><span class="o">.</span><span class="n">alarm</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="clear_cif_from_crystalmaker"><a class="viewcode-back" href="../../../ocelot.curator.html#ocelot.curator.Contribution.clear_cif_from_crystalmaker">[docs]</a><span class="k">def</span> <span class="nf">clear_cif_from_crystalmaker</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+    <span class="n">identifier</span><span class="p">,</span> <span class="n">d</span> <span class="o">=</span> <span class="n">get_pmg_dict</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="s1">&#39;generated by CrystalMaker&#39;</span> <span class="ow">in</span> <span class="n">v</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
+        <span class="n">k</span> <span class="o">=</span> <span class="s1">&#39;_atom_site_occupancy&#39;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">lenk</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">s</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">lenk</span><span class="p">):</span>
+            <span class="n">d</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
+        <span class="n">loops</span> <span class="o">=</span> <span class="p">[[],</span> <span class="p">[]]</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="k">if</span> <span class="s1">&#39;_symmetry_equiv_pos_as_xyz&#39;</span> <span class="ow">in</span> <span class="n">key</span><span class="p">:</span>
+                <span class="n">loops</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="s1">&#39;_atom_&#39;</span> <span class="ow">in</span> <span class="n">key</span><span class="p">:</span>
+                <span class="n">loops</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">CifBlock</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">loops</span><span class="p">,</span> <span class="n">identifier</span><span class="p">)</span><span class="o">.</span><span class="fm">__str__</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">s</span></div>
+
+
+<div class="viewcode-block" id="readfile"><a class="viewcode-back" href="../../../ocelot.curator.html#ocelot.curator.Contribution.readfile">[docs]</a><span class="k">def</span> <span class="nf">readfile</span><span class="p">(</span><span class="n">file</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">raw</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+    <span class="n">raw_encoding</span> <span class="o">=</span> <span class="n">chardet</span><span class="o">.</span><span class="n">detect</span><span class="p">(</span><span class="n">raw</span><span class="p">)[</span><span class="s1">&#39;encoding&#39;</span><span class="p">]</span>
+    <span class="n">string</span> <span class="o">=</span> <span class="n">raw</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">raw_encoding</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">string</span></div>
+
+
+<div class="viewcode-block" id="trim_diffraction"><a class="viewcode-back" href="../../../ocelot.curator.html#ocelot.curator.Contribution.trim_diffraction">[docs]</a><span class="k">def</span> <span class="nf">trim_diffraction</span><span class="p">(</span><span class="n">cifstring</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">start_trim</span><span class="o">=</span><span class="s2">&quot;_atom_site_aniso_label&quot;</span><span class="p">):</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="n">cifstring</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">22</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;dumm&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">cifstring</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">CifFileError</span><span class="p">(</span><span class="s1">&#39;cif string too short!&#39;</span><span class="p">)</span>
+
+    <span class="n">itrim</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">22</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="s2">&quot;loop_&quot;</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="ow">and</span> <span class="n">start_trim</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
+            <span class="n">itrim</span> <span class="o">=</span> <span class="n">i</span> <span class="o">-</span> <span class="mi">1</span>
+            <span class="k">break</span>
+    <span class="n">new_lines</span> <span class="o">=</span> <span class="p">[</span><span class="n">lines</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">itrim</span><span class="p">)]</span>
+    <span class="k">return</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">new_lines</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="read_and_trim"><a class="viewcode-back" href="../../../ocelot.curator.html#ocelot.curator.Contribution.read_and_trim">[docs]</a><span class="k">def</span> <span class="nf">read_and_trim</span><span class="p">(</span><span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">readfile</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">trim_diffraction</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">CifFileError</span><span class="p">(</span><span class="s1">&#39;read and trim failed for </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">filename</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="get_property_md5"><a class="viewcode-back" href="../../../ocelot.curator.html#ocelot.curator.Contribution.get_property_md5">[docs]</a><span class="k">def</span> <span class="nf">get_property_md5</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+    <span class="n">hashobj</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">md5</span><span class="p">()</span>
+    <span class="n">file_object</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span>
+    <span class="n">hashobj</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">file_object</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+    <span class="n">hashed</span> <span class="o">=</span> <span class="n">hashobj</span><span class="o">.</span><span class="n">digest</span><span class="p">()</span>
+    <span class="n">file_object</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">hashed</span></div>
+
+
+<div class="viewcode-block" id="get_property_lattice"><a class="viewcode-back" href="../../../ocelot.curator.html#ocelot.curator.Contribution.get_property_lattice">[docs]</a><span class="k">def</span> <span class="nf">get_property_lattice</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="n">read_and_trim</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="n">clear_cif_from_crystalmaker</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+    <span class="n">structure</span> <span class="o">=</span> <span class="n">Structure</span><span class="o">.</span><span class="n">from_str</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="s1">&#39;cif&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">structure</span><span class="o">.</span><span class="n">lattice</span></div>
+
+
+<div class="viewcode-block" id="get_property_header"><a class="viewcode-back" href="../../../ocelot.curator.html#ocelot.curator.Contribution.get_property_header">[docs]</a><span class="k">def</span> <span class="nf">get_property_header</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="n">read_and_trim</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="n">clear_cif_from_crystalmaker</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+    <span class="n">identifier</span><span class="p">,</span> <span class="n">d</span> <span class="o">=</span> <span class="n">get_pmg_dict</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">identifier</span></div>
+
+
+<div class="viewcode-block" id="get_property_basename"><a class="viewcode-back" href="../../../ocelot.curator.html#ocelot.curator.Contribution.get_property_basename">[docs]</a><span class="k">def</span> <span class="nf">get_property_basename</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_unique_files"><a class="viewcode-back" href="../../../ocelot.curator.html#ocelot.curator.Contribution.get_unique_files">[docs]</a><span class="k">def</span> <span class="nf">get_unique_files</span><span class="p">(</span><span class="n">absolute_path_to_files</span><span class="p">,</span> <span class="n">unique_property</span><span class="o">=</span><span class="s1">&#39;md5&#39;</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">unique_property</span> <span class="o">==</span> <span class="s1">&#39;md5&#39;</span><span class="p">:</span>
+        <span class="n">get_property</span> <span class="o">=</span> <span class="n">get_property_md5</span>
+
+    <span class="k">elif</span> <span class="n">unique_property</span> <span class="o">==</span> <span class="s1">&#39;lattice&#39;</span><span class="p">:</span>
+        <span class="n">get_property</span> <span class="o">=</span> <span class="n">get_property_lattice</span>
+
+    <span class="k">elif</span> <span class="n">unique_property</span> <span class="o">==</span> <span class="s1">&#39;cifheader&#39;</span><span class="p">:</span>
+        <span class="n">get_property</span> <span class="o">=</span> <span class="n">get_property_header</span>
+
+    <span class="k">elif</span> <span class="n">unique_property</span> <span class="o">==</span> <span class="s1">&#39;basename&#39;</span><span class="p">:</span>
+        <span class="n">get_property</span> <span class="o">=</span> <span class="n">get_property_basename</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;not implemented property: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">unique_property</span><span class="p">))</span>
+
+    <span class="n">absolute_path_to_files</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">absolute_path_to_files</span><span class="p">)</span>
+    <span class="n">path_to_property</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+    <span class="n">property_exceptions</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">full_path</span> <span class="ow">in</span> <span class="n">absolute_path_to_files</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">file_property</span> <span class="o">=</span> <span class="n">get_property</span><span class="p">(</span><span class="n">full_path</span><span class="p">)</span>
+            <span class="n">path_to_property</span><span class="p">[</span><span class="n">full_path</span><span class="p">]</span> <span class="o">=</span> <span class="n">file_property</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="n">property_exceptions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">full_path</span><span class="p">)</span>
+            <span class="k">continue</span>
+
+    <span class="n">property_to_path</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">path_to_property</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">property_to_path</span><span class="p">[</span><span class="n">v</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="n">property_to_path</span><span class="p">[</span><span class="n">v</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">k</span><span class="p">]</span>
+
+    <span class="n">unique_path_to_dup_paths</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">unique_path_to_property</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+    <span class="n">unique_paths</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">prop</span> <span class="ow">in</span> <span class="n">property_to_path</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="n">paths</span> <span class="o">=</span> <span class="n">property_to_path</span><span class="p">[</span><span class="n">prop</span><span class="p">]</span>
+        <span class="n">upath</span> <span class="o">=</span> <span class="n">paths</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">paths</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">unique_path_to_dup_paths</span><span class="p">[</span><span class="n">paths</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="n">paths</span>
+        <span class="n">unique_path_to_property</span><span class="p">[</span><span class="n">upath</span><span class="p">]</span> <span class="o">=</span> <span class="n">prop</span>
+        <span class="n">unique_paths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">upath</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">unique_paths</span><span class="p">,</span> <span class="n">unique_path_to_property</span><span class="p">,</span> <span class="n">unique_path_to_dup_paths</span><span class="p">,</span> <span class="n">property_exceptions</span></div>
+
+
+<div class="viewcode-block" id="curate_cifstring"><a class="viewcode-back" href="../../../ocelot.curator.html#ocelot.curator.Contribution.curate_cifstring">[docs]</a><span class="k">def</span> <span class="nf">curate_cifstring</span><span class="p">(</span><span class="n">cifstring</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    :return</span>
+<span class="sd">    integrity_class</span>
+<span class="sd">        3 can run all calculations</span>
+<span class="sd">        2 can only run geometric analyses</span>
+<span class="sd">        1 do not run any calculations (exception)</span>
+<span class="sd">    outputs</span>
+<span class="sd">        files written by this function</span>
+<span class="sd">    structural_schemas</span>
+<span class="sd">        structural_schemas[&#39;configuration&#39;]: the major config</span>
+<span class="sd">        structural_schemas[&#39;molgraphs&#39;]: a list of unique molgraphs from the major config, rsorted by # of atoms</span>
+<span class="sd">        structural_schemas[&#39;molsmiles&#39;]: a list of unique molecular smiles from the major config, rsorted by # of atoms</span>
+<span class="sd">    identifier</span>
+<span class="sd">        hashconfig(major_config)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">integrity_class</span> <span class="o">=</span> <span class="mi">3</span>
+    <span class="n">outputs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">structural_schemas</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+    <span class="n">dp</span> <span class="o">=</span> <span class="n">DisParser</span><span class="p">(</span><span class="n">cifstring</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;--- begin DisParser.to_configs ---&#39;</span><span class="p">)</span>
+        <span class="n">dis_pstructure</span><span class="p">,</span> <span class="n">dis_unwrap_str</span><span class="p">,</span> <span class="n">dis_mols</span><span class="p">,</span> <span class="n">config_infos</span> <span class="o">=</span> <span class="n">dp</span><span class="o">.</span><span class="n">to_configs</span><span class="p">(</span><span class="n">write_files</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                                                                               <span class="n">vanilla</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># if True writes conf_x.cif, configs is a list of pmg Structure</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="n">emsg</span> <span class="o">=</span> <span class="s1">&#39;ERROR: dp.to_configs failed!&#39;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">emsg</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">CuratorError</span><span class="p">(</span><span class="n">emsg</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">config_infos</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]:</span>
+        <span class="n">emsg</span> <span class="o">=</span> <span class="s1">&#39;ERROR: vanilla to_configs found too many configs&#39;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">emsg</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">CuratorError</span><span class="p">(</span><span class="n">emsg</span><span class="p">)</span>
+    <span class="n">disorder_class</span> <span class="o">=</span> <span class="n">dp</span><span class="o">.</span><span class="n">classification</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;disorder class: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">disorder_class</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;--- end DisParser.to_configs ---</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;--- begin composition check ---&#39;</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">cif_comp</span> <span class="o">=</span> <span class="n">Composition</span><span class="p">(</span><span class="n">dp</span><span class="o">.</span><span class="n">cifdata</span><span class="p">[</span><span class="s1">&#39;_chemical_formula_sum&#39;</span><span class="p">])</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;_chemical_formula_sum: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">cif_comp</span><span class="p">))</span>
+    <span class="k">except</span> <span class="p">(</span><span class="ne">KeyError</span><span class="p">,</span> <span class="n">CompositionError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">cif_comp</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">WEAK_WMSG</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">&#39;_chemical_formula_sum does not exist or cannot be parsed&#39;</span><span class="p">))</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">comp_str</span> <span class="o">=</span> <span class="n">dp</span><span class="o">.</span><span class="n">cifdata</span><span class="p">[</span><span class="s1">&#39;_chemical_formula_moiety&#39;</span><span class="p">]</span>
+        <span class="n">moiety_comps</span> <span class="o">=</span> <span class="p">[</span><span class="n">Composition</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">comp_str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)]</span>
+        <span class="n">moiety_comps</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">moiety_comps</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;_chemical_formula_moiety:&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">moiety_comp</span> <span class="ow">in</span> <span class="n">moiety_comps</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;-- </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">moiety_comp</span><span class="p">))</span>
+    <span class="k">except</span> <span class="p">(</span><span class="ne">KeyError</span><span class="p">,</span> <span class="n">CompositionError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">WEAK_WMSG</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">&#39;_chemical_formula_moiety does not exist or cannot be parsed&#39;</span><span class="p">))</span>
+    <span class="n">major_config_structure</span><span class="p">,</span> <span class="n">major_occu</span> <span class="o">=</span> <span class="n">config_infos</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;major config comps: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">major_config_structure</span><span class="o">.</span><span class="n">composition</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;major config occu: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">major_occu</span><span class="p">))</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cif_comp</span><span class="p">,</span> <span class="n">Composition</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">major_config_structure</span><span class="o">.</span><span class="n">composition</span> <span class="o">==</span> <span class="n">cif_comp</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">WEAK_WMSG</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">&#39;major comps does not match _chemical_formula_sum&#39;</span><span class="p">))</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">minor_config_structure</span><span class="p">,</span> <span class="n">minor_occu</span> <span class="o">=</span> <span class="n">config_infos</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;minor config comps: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">minor_config_structure</span><span class="o">.</span><span class="n">composition</span><span class="p">))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;minor config occu: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">minor_occu</span><span class="p">))</span>
+        <span class="n">major_minor_comps_match</span> <span class="o">=</span> <span class="n">minor_config_structure</span><span class="o">.</span><span class="n">composition</span> <span class="o">==</span> <span class="n">major_config_structure</span>
+        <span class="k">if</span> <span class="n">major_minor_comps_match</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">WEAK_WMSG</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">&#39;minor and major comps do not match&#39;</span><span class="p">))</span>
+    <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;--- end composition check ---</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;--- begin major config check ---&#39;</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">major_config</span> <span class="o">=</span> <span class="n">Config</span><span class="o">.</span><span class="n">from_labeled_clean_pstructure</span><span class="p">(</span><span class="n">major_config_structure</span><span class="p">,</span> <span class="n">major_occu</span><span class="p">)</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="n">emsg</span> <span class="o">=</span> <span class="s1">&#39;ERROR: cannot parse major config structure into a config!&#39;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">emsg</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">CuratorError</span><span class="p">(</span><span class="n">emsg</span><span class="p">)</span>
+    <span class="n">structural_schemas</span><span class="p">[</span><span class="s1">&#39;configuration&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">major_config</span><span class="o">.</span><span class="n">as_dict</span><span class="p">()</span>
+    <span class="n">major_config_cif</span> <span class="o">=</span> <span class="s1">&#39;curated_major_config.cif&#39;</span>
+    <span class="n">major_config</span><span class="o">.</span><span class="n">pstructure</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s1">&#39;cif&#39;</span><span class="p">,</span> <span class="n">major_config_cif</span><span class="p">)</span>
+    <span class="n">outputs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">/</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">(),</span> <span class="n">major_config_cif</span><span class="p">))</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">major_config</span><span class="o">.</span><span class="n">molconformers_all_legit</span><span class="p">():</span>
+        <span class="n">emsg</span> <span class="o">=</span> <span class="s1">&#39;ERROR: cannot convert all molconformers to rdkit mol&#39;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">emsg</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">CuratorError</span><span class="p">(</span><span class="n">emsg</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;major config moiety comps:&#39;</span><span class="p">)</span>
+    <span class="n">mc</span><span class="p">:</span> <span class="n">MolConformer</span>
+    <span class="n">max_nradicals</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="n">imc</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">mc</span> <span class="ow">in</span> <span class="n">major_config</span><span class="o">.</span><span class="n">molconformers</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;  -- imc </span><span class="si">{}</span><span class="s1">: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">imc</span><span class="p">,</span> <span class="n">mc</span><span class="o">.</span><span class="n">composition</span><span class="p">))</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">rdmol</span><span class="p">,</span> <span class="n">smiles</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">mc</span><span class="o">.</span><span class="n">to_rdmol</span><span class="p">(</span><span class="n">charged_fragments</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">Chem</span><span class="o">.</span><span class="n">SanitizeMol</span><span class="p">(</span><span class="n">rdmol</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">WMSG</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">&#39;rdmol sanitize failed, integrity_class is set to 2&#39;</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">integrity_class</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="n">integrity_class</span> <span class="o">=</span> <span class="mi">2</span>
+        <span class="n">nradicals</span> <span class="o">=</span> <span class="n">mc</span><span class="o">.</span><span class="n">is_missing_hydrogen</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;     missing hydrogen: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">nradicals</span><span class="p">))</span>
+        <span class="n">mc_xyzfils</span> <span class="o">=</span> <span class="s1">&#39;curated_molconformer_</span><span class="si">{}</span><span class="s1">_</span><span class="si">{}</span><span class="s1">.xyz&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">imc</span><span class="p">,</span> <span class="n">nradicals</span><span class="p">)</span>
+        <span class="n">mc</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s1">&#39;xyz&#39;</span><span class="p">,</span> <span class="n">mc_xyzfils</span><span class="p">)</span>
+        <span class="n">outputs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mc_xyzfils</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">nradicals</span> <span class="o">&gt;</span> <span class="n">max_nradicals</span><span class="p">:</span>
+            <span class="n">max_nradicals</span> <span class="o">=</span> <span class="n">nradicals</span>
+        <span class="n">imc</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="n">molsmiles</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">mc</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">major_config</span><span class="o">.</span><span class="n">molconformers</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="c1"># imol == imc, imol is not assigned based on len(mc), so use another for loop to do this</span>
+        <span class="n">molsmiles</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mc</span><span class="o">.</span><span class="n">smiles</span><span class="p">)</span>
+    <span class="n">structural_schemas</span><span class="p">[</span><span class="s1">&#39;molsmiles&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">molsmiles</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="n">max_nradicals</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">WMSG</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">&#39;major config missing hydrogen, integrity_class is set to 2&#39;</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">integrity_class</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">integrity_class</span> <span class="o">=</span> <span class="mi">2</span>
+
+    <span class="n">unique_molgraphs</span> <span class="o">=</span> <span class="n">major_config</span><span class="o">.</span><span class="n">molgraph_set</span><span class="p">()</span>
+    <span class="n">structural_schemas</span><span class="p">[</span><span class="s1">&#39;molgraphs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">umg</span><span class="o">.</span><span class="n">as_dict</span><span class="p">()</span> <span class="k">for</span> <span class="n">umg</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">unique_molgraphs</span><span class="p">),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">))]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">unique_molgraphs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">emsg</span> <span class="o">=</span> <span class="s1">&#39;ERROR: more than one unique molecule in the major config!&#39;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">emsg</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">CuratorError</span><span class="p">(</span><span class="n">emsg</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;--- end major config check ---</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;integrity_class: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">integrity_class</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">integrity_class</span><span class="p">,</span> <span class="n">outputs</span><span class="p">,</span> <span class="n">structural_schemas</span><span class="p">,</span> <span class="n">major_config</span><span class="o">.</span><span class="n">hashconfig</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="Contribution"><a class="viewcode-back" href="../../../ocelot.curator.html#ocelot.curator.Contribution.Contribution">[docs]</a><span class="k">class</span> <span class="nc">Contribution</span><span class="p">:</span>
+<div class="viewcode-block" id="Contribution.__init__"><a class="viewcode-back" href="../../../ocelot.curator.html#ocelot.curator.Contribution.Contribution.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_access</span><span class="p">,</span> <span class="n">folder_path</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_access</span> <span class="o">=</span> <span class="n">data_access</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">folder_path</span> <span class="o">=</span> <span class="n">folder_path</span></div>
+
+<div class="viewcode-block" id="Contribution.collect_rawdata"><a class="viewcode-back" href="../../../ocelot.curator.html#ocelot.curator.Contribution.Contribution.collect_rawdata">[docs]</a>    <span class="k">def</span> <span class="nf">collect_rawdata</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">collect_folder</span><span class="p">,</span> <span class="n">get_extra_property_from_path</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        RawData</span>
+<span class="sd">            = content (cif_string no diffraction)</span>
+<span class="sd">                + data_access</span>
+<span class="sd">                + _id (data_access &amp; cif_header)</span>
+<span class="sd">        :param collect_folder: a folder to store cif files without diffraction info</span>
+<span class="sd">        :param get_extra_property_from_path: the path here means the absolute path of a file in self.folder_path</span>
+<span class="sd">        :return:</span>
+<span class="sd">            collected_filepaths: absolute path</span>
+<span class="sd">            raw_data_list: a list of RawData</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">filepaths</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">/**/*.cif&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">folder_path</span><span class="p">),</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;the path to this contribution is: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">folder_path</span><span class="p">))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;# of cif files: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">filepaths</span><span class="p">)))</span>
+        <span class="k">for</span> <span class="n">cif_property</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;basename&#39;</span><span class="p">,</span> <span class="s1">&#39;md5&#39;</span><span class="p">,</span> <span class="s1">&#39;lattice&#39;</span><span class="p">,</span> <span class="s1">&#39;cifheader&#39;</span><span class="p">]:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;---- checking property: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">cif_property</span><span class="p">))</span>
+            <span class="n">unique_paths</span><span class="p">,</span> <span class="n">unique_path_to_property</span><span class="p">,</span> <span class="n">unique_path_to_dup_paths</span><span class="p">,</span> <span class="n">property_exceptions</span> <span class="o">=</span> <span class="n">get_unique_files</span><span class="p">(</span>
+                <span class="n">filepaths</span><span class="p">,</span> <span class="n">cif_property</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;# of cif files with duplicate: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">unique_path_to_dup_paths</span><span class="o">.</span><span class="n">keys</span><span class="p">())))</span>
+            <span class="k">for</span> <span class="n">unique_path</span> <span class="ow">in</span> <span class="n">unique_path_to_dup_paths</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">unique_path</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">dup</span> <span class="ow">in</span> <span class="n">unique_path_to_dup_paths</span><span class="p">[</span><span class="n">unique_path</span><span class="p">]:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;-- </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dup</span><span class="p">))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;# of cif files with exceptions: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">property_exceptions</span><span class="p">)))</span>
+            <span class="k">for</span> <span class="n">exception_path</span> <span class="ow">in</span> <span class="n">property_exceptions</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">exception_path</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;# of cif files unique: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">unique_paths</span><span class="p">)))</span>
+            <span class="n">filepaths</span> <span class="o">=</span> <span class="n">unique_paths</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;cif without diffraction info will be written to: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">collect_folder</span><span class="p">))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;please note exceptions will not be written&#39;</span><span class="p">)</span>
+
+        <span class="n">createdir</span><span class="p">(</span><span class="n">collect_folder</span><span class="p">)</span>
+        <span class="n">collected_filepaths</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">def</span> <span class="nf">get_property</span><span class="p">(</span><span class="n">abspath</span><span class="p">):</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">({</span><span class="s1">&#39;basename&#39;</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">abspath</span><span class="p">)})</span>
+            <span class="k">if</span> <span class="n">get_extra_property_from_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">d</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">exprops</span> <span class="o">=</span> <span class="n">get_extra_property_from_path</span><span class="p">(</span><span class="n">abspath</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">exprops</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                    <span class="n">d</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">exprops</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+            <span class="k">return</span> <span class="n">d</span>
+
+        <span class="n">raw_data_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">jsonfiles</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">abspath</span> <span class="ow">in</span> <span class="n">unique_paths</span><span class="p">:</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="n">read_and_trim</span><span class="p">(</span><span class="n">abspath</span><span class="p">)</span>
+            <span class="n">collected_filepath</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">/</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">collect_folder</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">abspath</span><span class="p">))</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">collected_filepath</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+            <span class="n">collected_filepaths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">collected_filepath</span><span class="p">)</span>
+            <span class="n">raw_data_id</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">--</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_access</span><span class="p">,</span> <span class="n">get_property_header</span><span class="p">(</span><span class="n">abspath</span><span class="p">))</span>
+            <span class="n">raw_data</span> <span class="o">=</span> <span class="n">RawData</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_access</span><span class="p">,</span> <span class="n">raw_data_id</span><span class="p">,</span> <span class="n">get_property</span><span class="p">(</span><span class="n">abspath</span><span class="p">))</span>
+            <span class="n">rawdatajson_filepath</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">/</span><span class="si">{}</span><span class="s1">.json&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">collect_folder</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">abspath</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;.cif&#39;</span><span class="p">))</span>
+            <span class="n">raw_data</span><span class="o">.</span><span class="n">to_jsonfile</span><span class="p">(</span><span class="n">rawdatajson_filepath</span><span class="p">)</span>
+            <span class="n">raw_data_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">raw_data</span><span class="p">)</span>
+            <span class="n">jsonfiles</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rawdatajson_filepath</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">collected_filepaths</span><span class="p">,</span> <span class="n">raw_data_list</span><span class="p">,</span> <span class="n">jsonfiles</span></div>
+
+<div class="viewcode-block" id="Contribution.collect_with_log"><a class="viewcode-back" href="../../../ocelot.curator.html#ocelot.curator.Contribution.Contribution.collect_with_log">[docs]</a>    <span class="k">def</span> <span class="nf">collect_with_log</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">log_folder</span><span class="p">,</span> <span class="n">collect_folder</span><span class="p">,</span> <span class="n">get_property_from_path</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">log_file</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">/collect_</span><span class="si">{}</span><span class="s1">.log&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">log_folder</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_access</span><span class="p">)</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">log_file</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span> <span class="o">=</span> <span class="n">f</span>
+        <span class="n">collected_filepaths</span><span class="p">,</span> <span class="n">raw_data_list</span><span class="p">,</span> <span class="n">jsonfilepaths</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">collect_rawdata</span><span class="p">(</span><span class="n">collect_folder</span><span class="p">,</span> <span class="n">get_property_from_path</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">__stdout__</span>
+        <span class="k">return</span> <span class="n">collected_filepaths</span><span class="p">,</span> <span class="n">raw_data_list</span><span class="p">,</span> <span class="n">jsonfilepaths</span></div>
+
+<div class="viewcode-block" id="Contribution.curate_one"><a class="viewcode-back" href="../../../ocelot.curator.html#ocelot.curator.Contribution.Contribution.curate_one">[docs]</a>    <span class="k">def</span> <span class="nf">curate_one</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rawdata</span><span class="p">:</span> <span class="n">RawData</span><span class="p">,</span> <span class="n">wdir</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        CuratedData</span>
+<span class="sd">        = content(structural_schemas)</span>
+<span class="sd">        + data_access( RawData.data_access)</span>
+<span class="sd">        + _id(hashconfig or &#39;failed RawData._id&#39;)</span>
+<span class="sd">        + properties: {integrity_class: x, rawdataid: RawData._id, method: ...}</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">stdout_original</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span>
+        <span class="n">logfile</span> <span class="o">=</span> <span class="n">wdir</span> <span class="o">+</span> <span class="s1">&#39;/curate.log&#39;</span>
+        <span class="n">jsonfile</span> <span class="o">=</span> <span class="n">wdir</span> <span class="o">+</span> <span class="s1">&#39;/</span><span class="si">{}</span><span class="s1">.json&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">rawdata</span><span class="o">.</span><span class="n">data_properties</span><span class="p">[</span><span class="s1">&#39;basename&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;.cif&#39;</span><span class="p">))</span>
+        <span class="n">prev_run</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">logfile</span><span class="p">)</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">jsonfile</span><span class="p">):</span>
+            <span class="n">mtime</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">getmtime</span><span class="p">(</span><span class="n">logfile</span><span class="p">)</span>
+            <span class="n">movefile</span><span class="p">(</span><span class="n">logfile</span><span class="p">,</span> <span class="n">wdir</span> <span class="o">+</span> <span class="s1">&#39;/curate-</span><span class="si">{}</span><span class="s1">.log&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mtime</span><span class="p">))</span>
+            <span class="n">prev_run</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">whereami</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">wdir</span><span class="p">)</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">logfile</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span> <span class="o">=</span> <span class="n">f</span>
+        <span class="k">if</span> <span class="n">prev_run</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;found previous log file and json file, try to read json&#39;</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">curate_data</span> <span class="o">=</span> <span class="n">CuratedData</span><span class="o">.</span><span class="n">from_jsonfile</span><span class="p">(</span><span class="n">jsonfile</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;done!&#39;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">curate_data</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;failed, rerun curate_one&#39;</span><span class="p">)</span>
+                <span class="k">pass</span>
+        <span class="n">cifstring</span> <span class="o">=</span> <span class="n">rawdata</span><span class="o">.</span><span class="n">data_content</span>
+        <span class="n">rawcif</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;raw.cif&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span>
+        <span class="n">rawcif</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">cifstring</span><span class="p">)</span>
+        <span class="n">rawcif</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="n">props</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">integrity_class</span><span class="p">,</span> <span class="n">outputs</span><span class="p">,</span> <span class="n">structural_schemas</span><span class="p">,</span> <span class="n">identifier</span> <span class="o">=</span> <span class="n">curate_cifstring</span><span class="p">(</span><span class="n">cifstring</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">CuratorError</span><span class="p">:</span>
+            <span class="n">integrity_class</span><span class="p">,</span> <span class="n">outputs</span><span class="p">,</span> <span class="n">structural_schemas</span><span class="p">,</span> <span class="n">identifier</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
+            <span class="n">identifier</span> <span class="o">=</span> <span class="s1">&#39;FAILED:</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">rawdata</span><span class="o">.</span><span class="n">_id</span><span class="p">)</span>
+        <span class="n">props</span><span class="p">[</span><span class="s1">&#39;integrity_class&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">integrity_class</span>
+        <span class="n">props</span><span class="p">[</span><span class="s1">&#39;rawdataid&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">rawdata</span><span class="o">.</span><span class="n">_id</span>
+        <span class="n">props</span><span class="p">[</span><span class="s1">&#39;method&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;@method: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">inspect</span><span class="o">.</span><span class="n">stack</span><span class="p">()[</span><span class="mi">0</span><span class="p">][</span><span class="mi">3</span><span class="p">])</span>
+        <span class="n">props</span><span class="p">[</span><span class="s1">&#39;wdir&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">wdir</span>
+        <span class="n">curated_data</span> <span class="o">=</span> <span class="n">CuratedData</span><span class="p">(</span>
+            <span class="n">data_content</span><span class="o">=</span><span class="n">structural_schemas</span><span class="p">,</span>
+            <span class="n">data_access</span><span class="o">=</span><span class="n">rawdata</span><span class="o">.</span><span class="n">data_access</span><span class="p">,</span>
+            <span class="n">_id</span><span class="o">=</span><span class="n">identifier</span><span class="p">,</span>
+            <span class="n">data_properties</span><span class="o">=</span><span class="n">props</span>
+        <span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">jsonfile</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">cdata_json</span><span class="p">:</span>
+            <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">curated_data</span><span class="o">.</span><span class="n">as_dict</span><span class="p">(),</span> <span class="n">cdata_json</span><span class="p">,</span> <span class="bp">cls</span><span class="o">=</span><span class="n">mj</span><span class="o">.</span><span class="n">MontyEncoder</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span> <span class="o">=</span> <span class="n">stdout_original</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">whereami</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">curated_data</span></div>
+
+<div class="viewcode-block" id="Contribution.curate_all"><a class="viewcode-back" href="../../../ocelot.curator.html#ocelot.curator.Contribution.Contribution.curate_all">[docs]</a>    <span class="k">def</span> <span class="nf">curate_all</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logfolder</span><span class="p">,</span> <span class="n">rawdata_list</span><span class="p">:</span> <span class="p">[</span><span class="n">RawData</span><span class="p">],</span> <span class="n">wdir_for_curate</span><span class="p">,</span> <span class="n">unittimelimit</span><span class="o">=</span><span class="mi">60</span><span class="p">):</span>
+        <span class="n">log_file</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">/curate_</span><span class="si">{}</span><span class="s1">.log&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">logfolder</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_access</span><span class="p">)</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">log_file</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span> <span class="o">=</span> <span class="n">f</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;curate all at: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">wdir_for_curate</span><span class="p">))</span>
+        <span class="n">createdir</span><span class="p">(</span><span class="n">wdir_for_curate</span><span class="p">)</span>
+        <span class="n">rawdata</span><span class="p">:</span> <span class="n">RawData</span>
+        <span class="n">curated_data_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">classes</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">({</span><span class="mi">1</span><span class="p">:</span> <span class="p">[],</span> <span class="mi">2</span><span class="p">:</span> <span class="p">[],</span> <span class="mi">3</span><span class="p">:</span> <span class="p">[]})</span>
+        <span class="n">timeout_entries</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">rawdata</span> <span class="ow">in</span> <span class="n">rawdata_list</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;WORKING ON: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">rawdata</span><span class="o">.</span><span class="n">_id</span><span class="p">))</span>
+            <span class="n">this_wdir</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">/</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">wdir_for_curate</span><span class="p">,</span> <span class="n">rawdata</span><span class="o">.</span><span class="n">data_properties</span><span class="p">[</span><span class="s1">&#39;basename&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;.cif&#39;</span><span class="p">))</span>
+            <span class="n">createdir</span><span class="p">(</span><span class="n">this_wdir</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;- in folder: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">this_wdir</span><span class="p">))</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">with</span> <span class="n">time_limit</span><span class="p">(</span><span class="n">unittimelimit</span><span class="p">):</span>
+                    <span class="n">curated_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">curate_one</span><span class="p">(</span><span class="n">rawdata</span><span class="p">,</span> <span class="n">this_wdir</span><span class="p">)</span>
+            <span class="k">except</span> <span class="n">TimeoutException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">timeout_entries</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">this_wdir</span><span class="p">)</span>
+                <span class="k">continue</span>
+            <span class="n">curated_data_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">curated_data</span><span class="p">)</span>
+            <span class="n">integrity_class</span> <span class="o">=</span> <span class="n">curated_data</span><span class="o">.</span><span class="n">data_properties</span><span class="p">[</span><span class="s1">&#39;integrity_class&#39;</span><span class="p">]</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;- integrity_class: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">integrity_class</span><span class="p">))</span>
+            <span class="n">classes</span><span class="p">[</span><span class="n">integrity_class</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">curated_data</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">integrity_class</span> <span class="ow">in</span> <span class="n">classes</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">headermsg</span> <span class="o">=</span> <span class="s1">&#39;### integrity class: </span><span class="si">{}</span><span class="s1"> ###&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">integrity_class</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;#&#39;</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">headermsg</span><span class="p">))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">headermsg</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;#&#39;</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">headermsg</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">cdata</span> <span class="ow">in</span> <span class="n">classes</span><span class="p">[</span><span class="n">integrity_class</span><span class="p">]:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">cdata</span><span class="o">.</span><span class="n">data_properties</span><span class="p">[</span><span class="s1">&#39;wdir&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;/curated_major_config.cif&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;### timeout wdirs ###&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">timeout_entry</span> <span class="ow">in</span> <span class="n">timeout_entries</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">timeout_entry</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">__stdout__</span>
+        <span class="k">return</span> <span class="n">curated_data_list</span><span class="p">,</span> <span class="n">classes</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Ai, Qianxiang
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

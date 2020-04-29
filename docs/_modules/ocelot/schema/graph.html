@@ -21,10 +21,10 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../../../_static/jquery.js"></script>
-        <script type="text/javascript" src="../../../_static/underscore.js"></script>
-        <script type="text/javascript" src="../../../_static/doctools.js"></script>
-        <script type="text/javascript" src="../../../_static/language_data.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
     
     <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
@@ -154,17 +154,22 @@
             
   <h1>Source code for ocelot.schema.graph</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">itertools</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">import</span> <span class="nn">hashlib</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
 <span class="kn">from</span> <span class="nn">operator</span> <span class="kn">import</span> <span class="n">eq</span>
-
+<span class="kn">from</span> <span class="nn">ocelot.routines.fileop</span> <span class="kn">import</span> <span class="n">stringkey</span><span class="p">,</span> <span class="n">intkey</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 <span class="kn">import</span> <span class="nn">networkx</span> <span class="k">as</span> <span class="nn">nx</span>
 <span class="kn">import</span> <span class="nn">networkx.algorithms.isomorphism</span> <span class="k">as</span> <span class="nn">iso</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">networkx</span> <span class="kn">import</span> <span class="n">Graph</span>
 <span class="kn">from</span> <span class="nn">pymatgen.core.periodic_table</span> <span class="kn">import</span> <span class="n">Element</span>
 <span class="kn">from</span> <span class="nn">pymatgen.vis.structure_vtk</span> <span class="kn">import</span> <span class="n">EL_COLORS</span>
+<span class="kn">from</span> <span class="nn">rdkit</span> <span class="kn">import</span> <span class="n">Chem</span>
 
 <span class="kn">from</span> <span class="nn">ocelot.routines.conformerparser</span> <span class="kn">import</span> <span class="n">ACParser</span>
+<span class="kn">from</span> <span class="nn">ocelot.schema.rdfunc</span> <span class="kn">import</span> <span class="n">RdFunc</span>
 
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">a graph of integer nodes with a &quot;symbol&quot; attribute</span>
@@ -181,18 +186,64 @@
 <div class="viewcode-block" id="to_fracrgb"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.graph.to_fracrgb">[docs]</a><span class="k">def</span> <span class="nf">to_fracrgb</span><span class="p">(</span><span class="n">t</span><span class="p">):</span>
     <span class="k">return</span> <span class="p">[</span><span class="n">x</span> <span class="o">/</span> <span class="mi">255</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">t</span><span class="p">]</span></div>
 
+<div class="viewcode-block" id="GraphError"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.graph.GraphError">[docs]</a><span class="k">class</span> <span class="nc">GraphError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span> <span class="k">pass</span></div>
 
-<div class="viewcode-block" id="GraphNotConnectedError"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.graph.GraphNotConnectedError">[docs]</a><span class="k">class</span> <span class="nc">GraphNotConnectedError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
-    <span class="k">pass</span></div>
+<div class="viewcode-block" id="hashstr2int"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.graph.hashstr2int">[docs]</a><span class="k">def</span> <span class="nf">hashstr2int</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">hashmethod</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">):</span>
+    <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">hashmethod</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">(),</span> <span class="mi">16</span><span class="p">)</span> <span class="o">%</span> <span class="mi">10</span><span class="o">**</span><span class="mi">8</span></div>
 
 
 <div class="viewcode-block" id="BasicGraph"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.graph.BasicGraph">[docs]</a><span class="k">class</span> <span class="nc">BasicGraph</span><span class="p">:</span>
 
 <div class="viewcode-block" id="BasicGraph.__init__"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.graph.BasicGraph.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph</span><span class="p">:</span> <span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">graph</span> <span class="o">=</span> <span class="n">graph</span></div>
+        <span class="c1"># self.rings = nx.minimum_cycle_basis(self.graph)  # technically sssr</span>
+        <span class="c1"># self.rings = sorted(self.rings, key=lambda x: len(x))</span>
+        <span class="c1"># self.nrings = len(self.rings)</span>
 
     <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">)</span>
+
+    <span class="c1"># TODO find a better way to hash a graph schema</span>
+    <span class="k">def</span> <span class="fm">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">hash_nxgraph</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="p">)</span>
+        <span class="c1"># return self.hash_via_smiles(self)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">props_for_hash</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        see https://stackoverflow.com/questions/46999771/</span>
+<span class="sd">        use with caution...</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">triangles</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="p">)</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">number_of_cliques</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="p">)</span>
+        <span class="n">ele</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">get_node_attributes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;symbol&#39;</span><span class="p">)</span>
+        <span class="n">dv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">degree</span>
+        <span class="n">props</span> <span class="o">=</span> <span class="p">[(</span><span class="n">dv</span><span class="p">[</span><span class="n">v</span><span class="p">],</span> <span class="n">t</span><span class="p">[</span><span class="n">v</span><span class="p">],</span> <span class="n">c</span><span class="p">[</span><span class="n">v</span><span class="p">],</span> <span class="n">ele</span><span class="p">[</span><span class="n">v</span><span class="p">])</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="p">]</span>
+        <span class="n">props</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">props</span>
+
+<div class="viewcode-block" id="BasicGraph.hash_via_smiles"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.graph.BasicGraph.hash_via_smiles">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">hash_via_smiles</span><span class="p">(</span><span class="n">mg</span><span class="p">):</span>
+        <span class="n">smiles</span><span class="p">,</span> <span class="n">rdmol</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">mg</span><span class="o">.</span><span class="n">to_rdmol</span><span class="p">()</span>
+        <span class="c1"># return hash(&quot;{}: {}&quot;.format(mg.__class__.__name__, smiles))</span>
+        <span class="k">return</span> <span class="n">hashstr2int</span><span class="p">(</span><span class="n">smiles</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="BasicGraph.hash_nxgraph"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.graph.BasicGraph.hash_nxgraph">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">hash_nxgraph</span><span class="p">(</span><span class="n">g</span><span class="p">:</span> <span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">):</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">triangles</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">number_of_cliques</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>
+        <span class="n">ele</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">get_node_attributes</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="s1">&#39;symbol&#39;</span><span class="p">)</span>
+        <span class="n">dv</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">degree</span>
+        <span class="n">props</span> <span class="o">=</span> <span class="p">[(</span><span class="n">dv</span><span class="p">[</span><span class="n">v</span><span class="p">],</span> <span class="n">t</span><span class="p">[</span><span class="n">v</span><span class="p">],</span> <span class="n">c</span><span class="p">[</span><span class="n">v</span><span class="p">],</span> <span class="n">ele</span><span class="p">[</span><span class="n">v</span><span class="p">])</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">g</span><span class="p">]</span>
+        <span class="n">props</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">props</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">hashstr2int</span><span class="p">(</span><span class="n">s</span><span class="p">)</span></div>
+        <span class="c1"># return hash(tuple(props))</span>
+        <span class="c1"># pnGraph=pn.Graph(g.number_of_nodes());</span>
+        <span class="c1"># edg=list(g.edges);</span>
+        <span class="c1"># for E in edg:</span>
+        <span class="c1">#     pnGraph.connect_vertex(E[0],E[1]);</span>
+        <span class="c1"># return hash(pn.certificate(pnGraph));</span>
 
     <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">outs</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">:&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)]</span>
@@ -202,11 +253,14 @@
 
     <span class="k">def</span> <span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        equality is measured based on graph isomorphism</span>
+<span class="sd">        equality is measured based on graph isomorphism if smiles hash failed</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">g1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">graph</span>
-        <span class="n">g2</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">graph</span>
-        <span class="k">return</span> <span class="n">nx</span><span class="o">.</span><span class="n">is_isomorphic</span><span class="p">(</span><span class="n">g1</span><span class="p">,</span> <span class="n">g2</span><span class="p">,</span> <span class="n">node_match</span><span class="o">=</span><span class="n">iso</span><span class="o">.</span><span class="n">generic_node_match</span><span class="p">(</span><span class="s1">&#39;symbol&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">eq</span><span class="p">))</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">hash</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">==</span> <span class="nb">hash</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="n">g1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">graph</span>
+            <span class="n">g2</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">graph</span>
+            <span class="k">return</span> <span class="n">nx</span><span class="o">.</span><span class="n">is_isomorphic</span><span class="p">(</span><span class="n">g1</span><span class="p">,</span> <span class="n">g2</span><span class="p">,</span> <span class="n">node_match</span><span class="o">=</span><span class="n">iso</span><span class="o">.</span><span class="n">generic_node_match</span><span class="p">(</span><span class="s1">&#39;symbol&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">eq</span><span class="p">))</span>
 
 <div class="viewcode-block" id="BasicGraph.graph_similarity"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.graph.BasicGraph.graph_similarity">[docs]</a>    <span class="k">def</span> <span class="nf">graph_similarity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -232,8 +286,17 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">nx</span><span class="o">.</span><span class="n">get_node_attributes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;symbol&#39;</span><span class="p">)</span>
 
+<div class="viewcode-block" id="BasicGraph.from_smiles"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.graph.BasicGraph.from_smiles">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_smiles</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">smiles</span><span class="p">:</span><span class="nb">str</span><span class="p">):</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">MolFromSmiles</span><span class="p">(</span><span class="n">smiles</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s1">&#39;H&#39;</span> <span class="ow">in</span> <span class="n">smiles</span> <span class="ow">or</span> <span class="s1">&#39;h&#39;</span> <span class="ow">in</span> <span class="n">smiles</span><span class="p">:</span>
+            <span class="n">hm</span> <span class="o">=</span> <span class="n">m</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">hm</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">AddHs</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_rdmol</span><span class="p">(</span><span class="n">hm</span><span class="p">)</span></div>
+
 <div class="viewcode-block" id="BasicGraph.from_rdmol"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.graph.BasicGraph.from_rdmol">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">from_rdmol</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">rdmol</span><span class="p">,</span> <span class="n">atomidx2nodename</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">from_rdmol</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">rdmol</span><span class="p">:</span> <span class="n">Chem</span><span class="o">.</span><span class="n">Mol</span><span class="p">,</span> <span class="n">atomidx2nodename</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        :param rdmol:</span>
 <span class="sd">        :param atomidx2nodename: the dict to convert atomidx in rdmol to graph node, atomidx2nodename[rdmolid] == nodename</span>
@@ -261,18 +324,19 @@
                     <span class="n">bond</span><span class="o">.</span><span class="n">GetEndAtomIdx</span><span class="p">(),</span>
                 <span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">nx</span><span class="o">.</span><span class="n">is_connected</span><span class="p">(</span><span class="n">g</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="n">GraphNotConnectedError</span><span class="p">(</span><span class="s1">&#39;the graph is not connected!&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">GraphError</span><span class="p">(</span><span class="s1">&#39;the graph is not connected!&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">g</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="BasicGraph.from_dict"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.graph.BasicGraph.from_dict">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
-        <span class="n">g</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">from_dict_of_lists</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;graph_dict_of_lists&#39;</span><span class="p">])</span>
-        <span class="n">nx</span><span class="o">.</span><span class="n">set_node_attributes</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;graph_node_symbols&#39;</span><span class="p">])</span>
+    <span class="k">def</span> <span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">d</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="n">g</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">from_dict_of_lists</span><span class="p">(</span><span class="n">intkey</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;graph_dict_of_lists&#39;</span><span class="p">]))</span>
+        <span class="n">nx</span><span class="o">.</span><span class="n">set_node_attributes</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">intkey</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;graph_node_symbols&#39;</span><span class="p">]),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;symbol&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">g</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="BasicGraph.to_rdmol"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.graph.BasicGraph.to_rdmol">[docs]</a>    <span class="k">def</span> <span class="nf">to_rdmol</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sani</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">charged_fragments</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">force_single</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">expliciths</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="BasicGraph.to_rdmol"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.graph.BasicGraph.to_rdmol">[docs]</a>    <span class="k">def</span> <span class="nf">to_rdmol</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sani</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">charged_fragments</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">force_single</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">expliciths</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        convert to rdmol</span>
+<span class="sd">        convert to rdmol, it will first try to convert to a radical, if failed b/c of rdkit valence rules,</span>
+<span class="sd">        it will try to convert to charged fragment</span>
 
 <span class="sd">        :param sani: switch to call default sanitizer of rdkit</span>
 <span class="sd">        :param int charge: molecule charge</span>
@@ -285,6 +349,7 @@
         <span class="n">nodes</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="kc">True</span><span class="p">)),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
         <span class="n">atomidx2nodename</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># d[atom idx in the new rdmol] = original graph node</span>
         <span class="n">nodename2atomidx</span> <span class="o">=</span> <span class="p">{}</span>
+
 
         <span class="n">atom_number_list</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">nodes</span><span class="p">)):</span>
@@ -304,19 +369,35 @@
                     <span class="n">new_ac</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
                     <span class="n">new_ac</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
 
-        <span class="n">ap</span> <span class="o">=</span> <span class="n">ACParser</span><span class="p">(</span><span class="n">sani</span><span class="o">=</span><span class="n">sani</span><span class="p">,</span> <span class="n">ac</span><span class="o">=</span><span class="n">new_ac</span><span class="p">,</span> <span class="n">atomnumberlist</span><span class="o">=</span><span class="n">atom_number_list</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="n">charge</span><span class="p">)</span>
-        <span class="n">mol</span><span class="p">,</span> <span class="n">smiles</span> <span class="o">=</span> <span class="n">ap</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">charged_fragments</span><span class="o">=</span><span class="n">charged_fragments</span><span class="p">,</span> <span class="n">force_single</span><span class="o">=</span><span class="n">force_single</span><span class="p">,</span> <span class="n">expliciths</span><span class="o">=</span><span class="n">expliciths</span><span class="p">)</span>
+        <span class="n">apriori_radicals</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;joints&#39;</span><span class="p">):</span>  <span class="c1"># LBYL</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">joints</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="n">apriori_radicals</span><span class="p">[</span><span class="n">nodename2atomidx</span><span class="p">[</span><span class="n">k</span><span class="p">]]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">joints</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">apriori_radicals</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="n">ap</span> <span class="o">=</span> <span class="n">ACParser</span><span class="p">(</span><span class="n">sani</span><span class="o">=</span><span class="n">sani</span><span class="p">,</span> <span class="n">ac</span><span class="o">=</span><span class="n">new_ac</span><span class="p">,</span> <span class="n">atomnumberlist</span><span class="o">=</span><span class="n">atom_number_list</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="n">charge</span><span class="p">,</span> <span class="n">apriori_radicals</span><span class="o">=</span><span class="n">apriori_radicals</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">charged_fragments</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">mol</span><span class="p">,</span> <span class="n">smiles</span> <span class="o">=</span> <span class="n">ap</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">charged_fragments</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">force_single</span><span class="o">=</span><span class="n">force_single</span><span class="p">,</span> <span class="n">expliciths</span><span class="o">=</span><span class="n">expliciths</span><span class="p">)</span>
+            <span class="k">except</span> <span class="n">Chem</span><span class="o">.</span><span class="n">rdchem</span><span class="o">.</span><span class="n">AtomValenceException</span><span class="p">:</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;AP parser cannot use radical scheme, trying to use charged frag&#39;</span><span class="p">)</span>
+                <span class="n">mol</span><span class="p">,</span> <span class="n">smiles</span> <span class="o">=</span> <span class="n">ap</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">charged_fragments</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">force_single</span><span class="o">=</span><span class="n">force_single</span><span class="p">,</span> <span class="n">expliciths</span><span class="o">=</span><span class="n">expliciths</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">mol</span><span class="p">,</span> <span class="n">smiles</span> <span class="o">=</span> <span class="n">ap</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">charged_fragments</span><span class="o">=</span><span class="n">charged_fragments</span><span class="p">,</span> <span class="n">force_single</span><span class="o">=</span><span class="n">force_single</span><span class="p">,</span> <span class="n">expliciths</span><span class="o">=</span><span class="n">expliciths</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">mol</span><span class="p">,</span> <span class="n">smiles</span><span class="p">,</span> <span class="n">atomidx2nodename</span><span class="p">,</span> <span class="n">nodename2atomidx</span></div>
 
 <div class="viewcode-block" id="BasicGraph.as_dict"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.graph.BasicGraph.as_dict">[docs]</a>    <span class="k">def</span> <span class="nf">as_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">d</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
         <span class="n">d</span><span class="p">[</span><span class="s1">&#39;@module&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__module__</span>
         <span class="n">d</span><span class="p">[</span><span class="s1">&#39;@class&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span>
-        <span class="n">d</span><span class="p">[</span><span class="s1">&#39;graph_dict_of_lists&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">to_dict_of_lists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="p">)</span>
-        <span class="n">d</span><span class="p">[</span><span class="s1">&#39;graph_node_symbols&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">symbols</span><span class="p">)</span>
+        <span class="n">d</span><span class="p">[</span><span class="s1">&#39;graph_node_symbols&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">stringkey</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">symbols</span><span class="p">)</span>
+        <span class="n">d</span><span class="p">[</span><span class="s1">&#39;graph_dict_of_lists&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">stringkey</span><span class="p">(</span><span class="n">nx</span><span class="o">.</span><span class="n">to_dict_of_lists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="p">))</span>
+        <span class="c1"># d[&#39;rings&#39;] = self.rings</span>
+        <span class="c1"># d[&#39;nrings&#39;] = self.nrings</span>
         <span class="k">return</span> <span class="n">d</span></div>
 
-<div class="viewcode-block" id="BasicGraph.draw"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.graph.BasicGraph.draw">[docs]</a>    <span class="k">def</span> <span class="nf">draw</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">600</span><span class="p">):</span>
+<div class="viewcode-block" id="BasicGraph.draw"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.graph.BasicGraph.draw">[docs]</a>    <span class="k">def</span> <span class="nf">draw</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">600</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        draw graph, using jmol color scheme for elements</span>
 
@@ -327,7 +408,7 @@
         <span class="n">draw_chemgraph</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">dpi</span><span class="p">)</span></div></div>
 
 
-<div class="viewcode-block" id="draw_chemgraph"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.graph.draw_chemgraph">[docs]</a><span class="k">def</span> <span class="nf">draw_chemgraph</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">600</span><span class="p">):</span>
+<div class="viewcode-block" id="draw_chemgraph"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.graph.draw_chemgraph">[docs]</a><span class="k">def</span> <span class="nf">draw_chemgraph</span><span class="p">(</span><span class="n">graph</span><span class="p">:</span> <span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">,</span> <span class="n">output</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">600</span><span class="p">):</span>
     <span class="n">f</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
     <span class="n">symbols</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">get_node_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;symbol&#39;</span><span class="p">)</span>
     <span class="n">colors</span> <span class="o">=</span> <span class="p">[</span><span class="n">to_fracrgb</span><span class="p">(</span><span class="n">EL_COLORS</span><span class="p">[</span><span class="s1">&#39;Jmol&#39;</span><span class="p">][</span><span class="n">symbols</span><span class="p">[</span><span class="n">n</span><span class="p">]])</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">graph</span><span class="p">]</span>
@@ -337,7 +418,7 @@
 
 <div class="viewcode-block" id="FragmentGraph"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.graph.FragmentGraph">[docs]</a><span class="k">class</span> <span class="nc">FragmentGraph</span><span class="p">(</span><span class="n">BasicGraph</span><span class="p">):</span>
 
-<div class="viewcode-block" id="FragmentGraph.__init__"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.graph.FragmentGraph.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph</span><span class="p">,</span> <span class="n">joints</span><span class="p">,</span> <span class="n">partition_scheme</span><span class="o">=</span><span class="s1">&#39;lgcr&#39;</span><span class="p">):</span>
+<div class="viewcode-block" id="FragmentGraph.__init__"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.graph.FragmentGraph.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph</span><span class="p">:</span> <span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">,</span> <span class="n">joints</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">partition_scheme</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        fragment is a BasicGraph with joints</span>
 
@@ -350,44 +431,40 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">partition_scheme</span> <span class="o">=</span> <span class="n">partition_scheme</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">graph</span> <span class="o">=</span> <span class="n">graph</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">joints</span> <span class="o">=</span> <span class="n">joints</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rings</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">minimum_cycle_basis</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="p">)</span>  <span class="c1"># technically sssr</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rings</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rings</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">))</span></div>
 
         <span class="c1"># we don&#39;t need ring graph in frag, that should be used in partition process</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">rings</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">minimum_cycle_basis</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">rings</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rings</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">nrings</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rings</span><span class="p">)</span></div>
+        <span class="c1"># self.rings = nx.minimum_cycle_basis(self.graph)</span>
+        <span class="c1"># self.rings = sorted(self.rings, key=lambda x: len(x))</span>
+        <span class="c1"># self.nrings = len(self.rings)</span>
 
 <div class="viewcode-block" id="FragmentGraph.as_dict"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.graph.FragmentGraph.as_dict">[docs]</a>    <span class="k">def</span> <span class="nf">as_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">d</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">as_dict</span><span class="p">()</span>
-        <span class="n">d</span><span class="p">[</span><span class="s1">&#39;joints&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">joints</span>
-        <span class="n">d</span><span class="p">[</span><span class="s1">&#39;rings&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rings</span>
-        <span class="n">d</span><span class="p">[</span><span class="s1">&#39;nrings&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nrings</span>
+        <span class="n">d</span><span class="p">[</span><span class="s1">&#39;joints&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">stringkey</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">joints</span><span class="p">)</span>
         <span class="n">d</span><span class="p">[</span><span class="s1">&#39;partition_scheme&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">partition_scheme</span>
         <span class="k">return</span> <span class="n">d</span></div>
 
 <div class="viewcode-block" id="FragmentGraph.from_dict"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.graph.FragmentGraph.from_dict">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
-        <span class="n">g</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">from_dict_of_lists</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;graph_dict_of_lists&#39;</span><span class="p">])</span>
-        <span class="n">nx</span><span class="o">.</span><span class="n">set_node_attributes</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;graph_node_symbols&#39;</span><span class="p">])</span>
-        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;joints&#39;</span><span class="p">])</span></div></div>
+    <span class="k">def</span> <span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">d</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="n">g</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">from_dict_of_lists</span><span class="p">(</span><span class="n">intkey</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;graph_dict_of_lists&#39;</span><span class="p">]))</span>
+        <span class="n">nx</span><span class="o">.</span><span class="n">set_node_attributes</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">intkey</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;graph_node_symbols&#39;</span><span class="p">]),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;symbol&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">intkey</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;joints&#39;</span><span class="p">]),</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;partition_scheme&#39;</span><span class="p">])</span></div></div>
 
 
-<div class="viewcode-block" id="BackboneGraph"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.graph.BackboneGraph">[docs]</a><span class="k">class</span> <span class="nc">BackboneGraph</span><span class="p">(</span><span class="n">FragmentGraph</span><span class="p">):</span>
+<div class="viewcode-block" id="BackboneGraph"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.graph.BackboneGraph">[docs]</a><span class="k">class</span> <span class="nc">BackboneGraph</span><span class="p">(</span><span class="n">FragmentGraph</span><span class="p">):</span>  <span class="c1"># is this necessary?</span>
 <div class="viewcode-block" id="BackboneGraph.__init__"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.graph.BackboneGraph.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph</span><span class="p">,</span> <span class="n">joints</span><span class="p">,</span> <span class="n">partition_scheme</span><span class="o">=</span><span class="s1">&#39;lgcr&#39;</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">joints</span><span class="p">,</span> <span class="n">partition_scheme</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">ringfp</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">rings</span><span class="p">])</span></div>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">joints</span><span class="p">,</span> <span class="n">partition_scheme</span><span class="p">)</span></div></div>
+        <span class="c1"># self.ringfp = set([len(r) for r in self.rings])</span>
 
-<div class="viewcode-block" id="BackboneGraph.as_dict"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.graph.BackboneGraph.as_dict">[docs]</a>    <span class="k">def</span> <span class="nf">as_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">d</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">as_dict</span><span class="p">()</span>
-        <span class="n">d</span><span class="p">[</span><span class="s1">&#39;ringfp&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ringfp</span>
-        <span class="k">return</span> <span class="n">d</span></div></div>
-
-
-<div class="viewcode-block" id="SideJointError"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.graph.SideJointError">[docs]</a><span class="k">class</span> <span class="nc">SideJointError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
-    <span class="k">pass</span></div>
+    <span class="c1"># def as_dict(self):</span>
+    <span class="c1">#     d = super().as_dict()</span>
+    <span class="c1">#     # d[&#39;ringfp&#39;] = self.ringfp</span>
+    <span class="c1">#     return d</span>
 
 
 <div class="viewcode-block" id="SidechainGraph"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.graph.SidechainGraph">[docs]</a><span class="k">class</span> <span class="nc">SidechainGraph</span><span class="p">(</span><span class="n">FragmentGraph</span><span class="p">):</span>
-<div class="viewcode-block" id="SidechainGraph.__init__"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.graph.SidechainGraph.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph</span><span class="p">,</span> <span class="n">joints</span><span class="p">,</span> <span class="n">partition_scheme</span><span class="o">=</span><span class="s1">&#39;lgcr&#39;</span><span class="p">):</span>
+<div class="viewcode-block" id="SidechainGraph.__init__"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.graph.SidechainGraph.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph</span><span class="p">,</span> <span class="n">joints</span><span class="p">,</span> <span class="n">partition_scheme</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        it is not possible for a side chain to have two frag-joints connected to one bone-joint, as this should be</span>
 <span class="sd">        already in backbone</span>
@@ -399,23 +476,27 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">joints</span><span class="p">,</span> <span class="n">partition_scheme</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">joints</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">SideJointError</span><span class="p">(</span><span class="s1">&#39;sidechain has more than one side joint... impossible!&#39;</span><span class="p">)</span>
+            <span class="c1"># in general, sc from chrom partition should not be used</span>
+            <span class="c1"># warnings.warn(&#39;sidechain has more than one side joint... this could happen when using chrom partition&#39;)</span>
+            <span class="k">raise</span> <span class="n">GraphError</span><span class="p">(</span><span class="s1">&#39;sidechain has more than one side joint... impossible!&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">joints</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">GraphError</span><span class="p">(</span><span class="s1">&#39;sidechain has no side joint, the molceule may not be a connected graph&#39;</span><span class="p">)</span>
         <span class="n">sc_joint</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">joints</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="mi">0</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">rankmap</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="p">:</span>
             <span class="n">rank</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">shortest_path_length</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="n">node</span><span class="p">,</span> <span class="n">target</span><span class="o">=</span><span class="n">sc_joint</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">rankmap</span><span class="p">[</span><span class="n">node</span><span class="p">]</span> <span class="o">=</span> <span class="n">rank</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">rankmap</span><span class="p">[</span><span class="n">node</span><span class="p">]</span> <span class="o">=</span> <span class="n">rank</span></div>
             <span class="c1"># self.graph.nodes[node][&#39;rank&#39;] = rank</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nrings</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">hasring</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">hasring</span> <span class="o">=</span> <span class="kc">False</span></div>
+        <span class="c1"># if self.nrings &gt; 0:</span>
+        <span class="c1">#     self.hasring = True</span>
+        <span class="c1"># else:</span>
+        <span class="c1">#     self.hasring = False</span>
 
 <div class="viewcode-block" id="SidechainGraph.as_dict"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.graph.SidechainGraph.as_dict">[docs]</a>    <span class="k">def</span> <span class="nf">as_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">d</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">as_dict</span><span class="p">()</span>
-        <span class="n">d</span><span class="p">[</span><span class="s1">&#39;hasring&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hasring</span>
-        <span class="n">d</span><span class="p">[</span><span class="s1">&#39;rankmap&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rankmap</span>
+        <span class="c1"># d[&#39;hasring&#39;] = self.hasring</span>
+        <span class="n">d</span><span class="p">[</span><span class="s1">&#39;rankmap&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">stringkey</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rankmap</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">d</span></div></div>
 
 
@@ -431,6 +512,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">rings</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">minimum_cycle_basis</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="p">)</span>  <span class="c1"># technically sssr</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">rings</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rings</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">nrings</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rings</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nrings</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;you are init a MolGraph with no ring!&#39;</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">ring_graph</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">ij</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">combinations</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nrings</span><span class="p">),</span> <span class="mi">2</span><span class="p">):</span>
@@ -446,20 +529,21 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">connected_rings</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_rings</span><span class="p">(</span><span class="s1">&#39;nconnect&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>  <span class="c1"># for rubrene len(self.connected_rings[0]) == 8</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">fused_rings</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_rings</span><span class="p">(</span><span class="s1">&#39;nshare&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>  <span class="c1"># for rubrene len(self.fused_rings[0]) == 4</span>
         <span class="c1"># notice if two rings share2 then they must connect1</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">connected_rings</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">lgcr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">connected_rings</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rings</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">lgcr</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">rings</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">lgcr</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fused_rings</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">GraphError</span><span class="p">(</span><span class="s1">&#39;no rings in the MolGraph!&#39;</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">lgfr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fused_rings</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rings</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">lgfr</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">rings</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">lgfr</span> <span class="o">=</span> <span class="kc">None</span></div>
+            <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">GraphError</span><span class="p">(</span><span class="s1">&#39;no rings in the MolGraph!&#39;</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="MolGraph.from_basicgraph"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.graph.MolGraph.from_basicgraph">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_basicgraph</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">basicgraph</span><span class="p">:</span> <span class="n">BasicGraph</span><span class="p">):</span>
@@ -478,22 +562,107 @@
         <span class="k">return</span> <span class="p">[[</span><span class="bp">self</span><span class="o">.</span><span class="n">rings</span><span class="p">[</span><span class="n">iring</span><span class="p">]</span> <span class="k">for</span> <span class="n">iring</span> <span class="ow">in</span> <span class="n">c</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span>
                 <span class="nb">sorted</span><span class="p">(</span><span class="n">nx</span><span class="o">.</span><span class="n">connected_components</span><span class="p">(</span><span class="n">subgraph</span><span class="p">),</span> <span class="n">key</span><span class="o">=</span><span class="nb">len</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)]</span></div>
 
-<div class="viewcode-block" id="MolGraph.partition"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.graph.MolGraph.partition">[docs]</a>    <span class="k">def</span> <span class="nf">partition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bone_selection</span><span class="o">=</span><span class="s1">&#39;lgfr&#39;</span><span class="p">,</span> <span class="n">additional_ring_criteria</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="MolGraph.get_joints_and_subgraph"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.graph.MolGraph.get_joints_and_subgraph">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">get_joints_and_subgraph</span><span class="p">(</span><span class="n">subg1_nodes</span><span class="p">:</span> <span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">g</span><span class="p">:</span> <span class="n">Graph</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        we assume subg1 \cap subg2 == empty and subg1 + subg2 == g</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">sg1</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">()</span>
+        <span class="n">sg2</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">()</span>  <span class="c1"># this is the graph of anything other than bone nodes</span>
+        <span class="n">symbols</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">get_node_attributes</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="s1">&#39;symbol&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">g</span><span class="p">:</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="n">symbols</span><span class="p">[</span><span class="n">node</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">subg1_nodes</span><span class="p">:</span>
+                <span class="n">sg1</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">symbol</span><span class="o">=</span><span class="n">s</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">sg2</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">symbol</span><span class="o">=</span><span class="n">s</span><span class="p">)</span>
+
+        <span class="n">joints_subg1_as_keys</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">joints_subg2_as_keys</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">nbrs</span> <span class="ow">in</span> <span class="n">g</span><span class="o">.</span><span class="n">adj</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">nbr</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">nbrs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">subg1_nodes</span> <span class="ow">and</span> <span class="n">nbr</span> <span class="ow">in</span> <span class="n">subg1_nodes</span><span class="p">:</span>
+                    <span class="n">sg1</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">nbr</span><span class="p">,</span> <span class="o">**</span><span class="n">d</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">n</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">subg1_nodes</span> <span class="ow">and</span> <span class="n">nbr</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">subg1_nodes</span><span class="p">:</span>
+                    <span class="n">sg2</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">nbr</span><span class="p">,</span> <span class="o">**</span><span class="n">d</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">subg1_nodes</span> <span class="ow">and</span> <span class="n">nbr</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">subg1_nodes</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">n</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">joints_subg1_as_keys</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                        <span class="n">joints_subg1_as_keys</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">nbr</span><span class="p">]</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">joints_subg1_as_keys</span><span class="p">[</span><span class="n">n</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nbr</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">n</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">subg1_nodes</span> <span class="ow">and</span> <span class="n">nbr</span> <span class="ow">in</span> <span class="n">subg1_nodes</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">n</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">joints_subg2_as_keys</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                        <span class="n">joints_subg2_as_keys</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">nbr</span><span class="p">]</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">joints_subg2_as_keys</span><span class="p">[</span><span class="n">n</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nbr</span><span class="p">)</span>
+
+        <span class="n">sg1</span><span class="o">.</span><span class="n">graph</span><span class="p">[</span><span class="s1">&#39;joints&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">joints_subg1_as_keys</span>
+
+        <span class="n">sg2_components</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">nx</span><span class="o">.</span><span class="n">connected_components</span><span class="p">(</span><span class="n">sg2</span><span class="p">),</span> <span class="n">key</span><span class="o">=</span><span class="nb">len</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+            <span class="n">nodes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+            <span class="n">joints_in_frag</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">joints_subg2_as_keys</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">:</span>
+                    <span class="n">joints_in_frag</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">joints_subg2_as_keys</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+            <span class="n">frag_graph</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">(</span><span class="n">joints</span><span class="o">=</span><span class="n">joints_in_frag</span><span class="p">)</span>  <span class="c1"># joints_in_frag[frag_node] is a list of bone joints</span>
+            <span class="n">frag_graph</span><span class="o">.</span><span class="n">add_nodes_from</span><span class="p">((</span><span class="n">n</span><span class="p">,</span> <span class="n">g</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">n</span><span class="p">])</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">)</span>
+            <span class="n">frag_graph</span><span class="o">.</span><span class="n">add_edges_from</span><span class="p">(</span>
+                <span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">nbr</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">nbrs</span> <span class="ow">in</span> <span class="n">g</span><span class="o">.</span><span class="n">adj</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">nodes</span> <span class="k">for</span> <span class="n">nbr</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">nbrs</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span>
+                <span class="n">nbr</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">)</span>
+            <span class="n">sg2_components</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">frag_graph</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">joints_subg1_as_keys</span><span class="p">,</span> <span class="n">joints_subg2_as_keys</span><span class="p">,</span> <span class="n">sg1</span><span class="p">,</span> <span class="n">sg2_components</span></div>
+
+<div class="viewcode-block" id="MolGraph.get_bone_and_frags_from_nxgraph"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.graph.MolGraph.get_bone_and_frags_from_nxgraph">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">get_bone_and_frags_from_nxgraph</span><span class="p">(</span><span class="n">bone_graph</span><span class="p">:</span> <span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">,</span> <span class="n">fragments</span><span class="p">:</span> <span class="p">[</span><span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">],</span> <span class="n">scheme</span><span class="p">):</span>
+        <span class="n">gb</span> <span class="o">=</span> <span class="n">BackboneGraph</span><span class="p">(</span><span class="n">bone_graph</span><span class="p">,</span> <span class="n">bone_graph</span><span class="o">.</span><span class="n">graph</span><span class="p">[</span><span class="s1">&#39;joints&#39;</span><span class="p">],</span> <span class="n">partition_scheme</span><span class="o">=</span><span class="n">scheme</span><span class="p">)</span>
+        <span class="n">scs</span> <span class="o">=</span> <span class="p">[</span><span class="n">SidechainGraph</span><span class="p">(</span><span class="n">frag_graph</span><span class="p">,</span> <span class="n">frag_graph</span><span class="o">.</span><span class="n">graph</span><span class="p">[</span><span class="s1">&#39;joints&#39;</span><span class="p">],</span> <span class="n">partition_scheme</span><span class="o">=</span><span class="n">scheme</span><span class="p">)</span> <span class="k">for</span> <span class="n">frag_graph</span> <span class="ow">in</span>
+               <span class="n">fragments</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">gb</span><span class="p">,</span> <span class="n">scs</span></div>
+
+<div class="viewcode-block" id="MolGraph.get_chrom_and_frags_from_nxgraph"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.graph.MolGraph.get_chrom_and_frags_from_nxgraph">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">get_chrom_and_frags_from_nxgraph</span><span class="p">(</span><span class="n">chrom_graph</span><span class="p">,</span> <span class="n">fragments</span><span class="p">):</span>
+        <span class="n">cg</span> <span class="o">=</span> <span class="n">FragmentGraph</span><span class="p">(</span><span class="n">chrom_graph</span><span class="p">,</span> <span class="n">chrom_graph</span><span class="o">.</span><span class="n">graph</span><span class="p">[</span><span class="s1">&#39;joints&#39;</span><span class="p">],</span> <span class="s1">&#39;chrom&#39;</span><span class="p">)</span>
+        <span class="n">fgs</span> <span class="o">=</span> <span class="p">[</span><span class="n">FragmentGraph</span><span class="p">(</span><span class="n">frag_graph</span><span class="p">,</span> <span class="n">frag_graph</span><span class="o">.</span><span class="n">graph</span><span class="p">[</span><span class="s1">&#39;joints&#39;</span><span class="p">],</span> <span class="s1">&#39;chrom&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">frag_graph</span> <span class="ow">in</span> <span class="n">fragments</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">cg</span><span class="p">,</span> <span class="n">fgs</span></div>
+
+<div class="viewcode-block" id="MolGraph.partition"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.graph.MolGraph.partition">[docs]</a>    <span class="k">def</span> <span class="nf">partition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bone_selection</span><span class="o">=</span><span class="s1">&#39;lgfr&#39;</span><span class="p">,</span> <span class="n">additional_ring_criteria</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">with_halogen</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        parition the molecule into a backbone graph and a list of fragments (graphs)</span>
 
+<span class="sd">        :param with_halogen:</span>
 <span class="sd">        :param bone_selection:</span>
-<span class="sd">        :param additional_ring_criteria: this should be a function to check whether a ring (a set of siteids) meets additional conditions</span>
+<span class="sd">        :param additional_ring_criteria:</span>
+<span class="sd">            this should be a function to check whether a ring (a set of siteids) meets additional conditions</span>
+<span class="sd">            # this does nothing for chrom scheme</span>
 <span class="sd">        :return:</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">bone_selection</span> <span class="o">==</span> <span class="s1">&#39;lgfr&#39;</span><span class="p">:</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">lgfr</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">return</span> <span class="kc">None</span>
             <span class="n">rings</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lgfr</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">lgcr</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">elif</span> <span class="n">bone_selection</span> <span class="o">==</span> <span class="s1">&#39;lgcr&#39;</span><span class="p">:</span>
             <span class="n">rings</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lgcr</span>
+        <span class="k">elif</span> <span class="n">bone_selection</span> <span class="o">==</span> <span class="s1">&#39;chrom&#39;</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">mol</span><span class="p">,</span> <span class="n">smiles</span><span class="p">,</span> <span class="n">atomidx2nodename</span><span class="p">,</span> <span class="n">nodename2atomidx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_rdmol</span><span class="p">()</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">GraphError</span><span class="p">(</span><span class="s1">&#39;to_rdmol failed in chrom partition!&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">with_halogen</span><span class="p">:</span>
+                <span class="n">cgs</span> <span class="o">=</span> <span class="n">RdFunc</span><span class="o">.</span><span class="n">get_conjugate_group_with_halogen</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">cgs</span> <span class="o">=</span> <span class="n">RdFunc</span><span class="o">.</span><span class="n">get_conjugate_group</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">chromol</span><span class="p">,</span> <span class="n">aid_to_newid_chromol</span> <span class="o">=</span> <span class="n">cgs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">GraphError</span><span class="p">(</span><span class="s1">&#39;rdkit cannot find a chrom here!&#39;</span><span class="p">)</span>
+            <span class="n">aids_in_chromol</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">aid_to_newid_chromol</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+            <span class="n">nodes_in_chromol</span> <span class="o">=</span> <span class="p">[</span><span class="n">atomidx2nodename</span><span class="p">[</span><span class="n">aid</span><span class="p">]</span> <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">aids_in_chromol</span><span class="p">]</span>
+            <span class="n">nodes_not_in_chromol</span> <span class="o">=</span> <span class="p">[</span><span class="n">sid</span> <span class="k">for</span> <span class="n">sid</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">graph</span> <span class="k">if</span> <span class="n">sid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">nodes_in_chromol</span><span class="p">]</span>
+            <span class="n">chromol_joints</span><span class="p">,</span> <span class="n">other_joints</span><span class="p">,</span> <span class="n">chromolsg</span><span class="p">,</span> <span class="n">sg_components</span> <span class="o">=</span> <span class="n">MolGraph</span><span class="o">.</span><span class="n">get_joints_and_subgraph</span><span class="p">(</span>
+                <span class="n">nodes_in_chromol</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">chromolsg</span><span class="p">,</span> <span class="n">sg_components</span>
+        <span class="c1">#</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">GraphError</span><span class="p">(</span><span class="s1">&#39;selection scheme not implemented in graph partition: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">bone_selection</span><span class="p">))</span>
 
         <span class="k">if</span> <span class="n">additional_ring_criteria</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">bonerings</span> <span class="o">=</span> <span class="n">rings</span>
@@ -504,49 +673,8 @@
                     <span class="n">bonerings</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
 
         <span class="n">backbone_nodes</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">item</span> <span class="k">for</span> <span class="n">sublist</span> <span class="ow">in</span> <span class="n">bonerings</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">sublist</span><span class="p">])</span>
-        <span class="n">bone_graph</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">()</span>
-        <span class="n">fragments_graph</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">()</span>  <span class="c1"># this is the graph of anything other than bone nodes</span>
-        <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="p">:</span>
-            <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">symbols</span><span class="p">[</span><span class="n">node</span><span class="p">]</span>
-            <span class="k">if</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">backbone_nodes</span><span class="p">:</span>
-                <span class="n">bone_graph</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">symbol</span><span class="o">=</span><span class="n">s</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">fragments_graph</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">symbol</span><span class="o">=</span><span class="n">s</span><span class="p">)</span>
-
-        <span class="n">joints_bone_as_keys</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="n">joints_frag_as_keys</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">nbrs</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">adj</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="k">for</span> <span class="n">nbr</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">nbrs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-                <span class="k">if</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">backbone_nodes</span> <span class="ow">and</span> <span class="n">nbr</span> <span class="ow">in</span> <span class="n">backbone_nodes</span><span class="p">:</span>
-                    <span class="n">bone_graph</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">nbr</span><span class="p">,</span> <span class="o">**</span><span class="n">d</span><span class="p">)</span>
-                <span class="k">elif</span> <span class="n">n</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">backbone_nodes</span> <span class="ow">and</span> <span class="n">nbr</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">backbone_nodes</span><span class="p">:</span>
-                    <span class="n">fragments_graph</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">nbr</span><span class="p">,</span> <span class="o">**</span><span class="n">d</span><span class="p">)</span>
-                <span class="k">elif</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">backbone_nodes</span> <span class="ow">and</span> <span class="n">nbr</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">backbone_nodes</span><span class="p">:</span>
-                    <span class="k">if</span> <span class="n">n</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">joints_bone_as_keys</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-                        <span class="n">joints_bone_as_keys</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">nbr</span><span class="p">]</span>
-                    <span class="k">else</span><span class="p">:</span>
-                        <span class="n">joints_bone_as_keys</span><span class="p">[</span><span class="n">n</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nbr</span><span class="p">)</span>
-                <span class="k">elif</span> <span class="n">n</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">backbone_nodes</span> <span class="ow">and</span> <span class="n">nbr</span> <span class="ow">in</span> <span class="n">backbone_nodes</span><span class="p">:</span>
-                    <span class="k">if</span> <span class="n">n</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">joints_frag_as_keys</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-                        <span class="n">joints_frag_as_keys</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">nbr</span><span class="p">]</span>
-                    <span class="k">else</span><span class="p">:</span>
-                        <span class="n">joints_frag_as_keys</span><span class="p">[</span><span class="n">n</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nbr</span><span class="p">)</span>
-
-        <span class="n">bone_graph</span><span class="o">.</span><span class="n">graph</span><span class="p">[</span><span class="s1">&#39;joints&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">joints_bone_as_keys</span>
-
-        <span class="n">fragments</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">nx</span><span class="o">.</span><span class="n">connected_components</span><span class="p">(</span><span class="n">fragments_graph</span><span class="p">),</span> <span class="n">key</span><span class="o">=</span><span class="nb">len</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-            <span class="n">nodes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
-            <span class="n">joints_in_frag</span> <span class="o">=</span> <span class="p">{}</span>
-            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">joints_frag_as_keys</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-                <span class="k">if</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">:</span>
-                    <span class="n">joints_in_frag</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">joints_frag_as_keys</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
-            <span class="n">frag_graph</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">(</span><span class="n">joints</span><span class="o">=</span><span class="n">joints_in_frag</span><span class="p">)</span>  <span class="c1"># joints_in_frag[frag_node] is a list of bone joints</span>
-            <span class="n">frag_graph</span><span class="o">.</span><span class="n">add_nodes_from</span><span class="p">((</span><span class="n">n</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">n</span><span class="p">])</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">)</span>
-            <span class="n">frag_graph</span><span class="o">.</span><span class="n">add_edges_from</span><span class="p">(</span>
-                <span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">nbr</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">nbrs</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">adj</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">nodes</span> <span class="k">for</span> <span class="n">nbr</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">nbrs</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span>
-                <span class="n">nbr</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">)</span>
-            <span class="n">fragments</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">frag_graph</span><span class="p">)</span>
+        <span class="n">joints_bone_as_keys</span><span class="p">,</span> <span class="n">joints_frag_as_keys</span><span class="p">,</span> <span class="n">bone_graph</span><span class="p">,</span> <span class="n">fragments</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_joints_and_subgraph</span><span class="p">(</span><span class="n">backbone_nodes</span><span class="p">,</span>
+                                                                                                       <span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">bone_graph</span><span class="p">,</span> <span class="n">fragments</span></div>
 
 <div class="viewcode-block" id="MolGraph.partition_to_bone_frags"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.graph.MolGraph.partition_to_bone_frags">[docs]</a>    <span class="k">def</span> <span class="nf">partition_to_bone_frags</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bone_selection</span><span class="o">=</span><span class="s1">&#39;lgfr&#39;</span><span class="p">,</span> <span class="n">additional_criteria</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -560,10 +688,11 @@
 <span class="sd">        :return:</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">bone_graph</span><span class="p">,</span> <span class="n">fragments</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">partition</span><span class="p">(</span><span class="n">bone_selection</span><span class="p">,</span> <span class="n">additional_criteria</span><span class="p">)</span>
-        <span class="n">gb</span> <span class="o">=</span> <span class="n">BackboneGraph</span><span class="p">(</span><span class="n">bone_graph</span><span class="p">,</span> <span class="n">bone_graph</span><span class="o">.</span><span class="n">graph</span><span class="p">[</span><span class="s1">&#39;joints&#39;</span><span class="p">],</span> <span class="n">partition_scheme</span><span class="o">=</span><span class="n">bone_selection</span><span class="p">)</span>
-        <span class="n">scs</span> <span class="o">=</span> <span class="p">[</span><span class="n">SidechainGraph</span><span class="p">(</span><span class="n">frag_graph</span><span class="p">,</span> <span class="n">frag_graph</span><span class="o">.</span><span class="n">graph</span><span class="p">[</span><span class="s1">&#39;joints&#39;</span><span class="p">],</span> <span class="n">partition_scheme</span><span class="o">=</span><span class="n">bone_selection</span><span class="p">)</span> <span class="k">for</span> <span class="n">frag_graph</span> <span class="ow">in</span>
-               <span class="n">fragments</span><span class="p">]</span>
-        <span class="n">scs</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">scs</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">graph</span><span class="p">),</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">gb</span><span class="p">,</span> <span class="n">scs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_bone_and_frags_from_nxgraph</span><span class="p">(</span><span class="n">bone_graph</span><span class="p">,</span> <span class="n">fragments</span><span class="p">,</span> <span class="n">scheme</span><span class="o">=</span><span class="n">bone_selection</span><span class="p">)</span>
+        <span class="c1"># gb = BackboneGraph(bone_graph, bone_graph.graph[&#39;joints&#39;], partition_scheme=bone_selection)</span>
+        <span class="c1"># scs = [SidechainGraph(frag_graph, frag_graph.graph[&#39;joints&#39;], partition_scheme=bone_selection) for frag_graph in</span>
+        <span class="c1">#        fragments]</span>
+        <span class="c1"># scs = sorted(scs, key=lambda x: len(x.graph), reverse=True)</span>
         <span class="k">return</span> <span class="n">gb</span><span class="p">,</span> <span class="n">scs</span></div></div>
 </pre></div>
 
@@ -577,7 +706,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2019, Ai, Qianxiang
+        &copy; Copyright 2020, Ai, Qianxiang
 
     </p>
   </div>

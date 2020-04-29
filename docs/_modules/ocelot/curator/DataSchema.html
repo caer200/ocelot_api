@@ -1,0 +1,401 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ocelot.curator.DataSchema &mdash; ocelot 0.2 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> ocelot
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#schema">schema</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#disorder">Disorder</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#bone-config">Bone Config</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#backbone-and-sidechain">Backbone and Sidechain</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ocelot.html">ocelot package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">ocelot</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>ocelot.curator.DataSchema</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ocelot.curator.DataSchema</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">datetime</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
+
+<span class="kn">import</span> <span class="nn">license</span>
+<span class="kn">import</span> <span class="nn">pymongo</span>
+<span class="kn">from</span> <span class="nn">monty.json</span> <span class="kn">import</span> <span class="n">MSONable</span>
+<span class="kn">from</span> <span class="nn">monty.json</span> <span class="kn">import</span> <span class="n">MontyDecoder</span>
+<span class="kn">from</span> <span class="nn">monty.json</span> <span class="kn">import</span> <span class="n">MontyEncoder</span>
+
+
+<div class="viewcode-block" id="DataSchemaError"><a class="viewcode-back" href="../../../ocelot.curator.html#ocelot.curator.DataSchema.DataSchemaError">[docs]</a><span class="k">class</span> <span class="nc">DataSchemaError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span> <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="string_acronym"><a class="viewcode-back" href="../../../ocelot.curator.html#ocelot.curator.DataSchema.string_acronym">[docs]</a><span class="k">def</span> <span class="nf">string_acronym</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+    <span class="k">return</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">e</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">s</span><span class="o">.</span><span class="n">split</span><span class="p">())</span></div>
+
+
+<div class="viewcode-block" id="DataProvider"><a class="viewcode-back" href="../../../ocelot.curator.html#ocelot.curator.DataSchema.DataProvider">[docs]</a><span class="k">class</span> <span class="nc">DataProvider</span><span class="p">(</span><span class="n">MSONable</span><span class="p">):</span>
+<div class="viewcode-block" id="DataProvider.__init__"><a class="viewcode-back" href="../../../ocelot.curator.html#ocelot.curator.DataSchema.DataProvider.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">institution</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        this can represent a research group, a journal, or a database</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">institution</span> <span class="o">=</span> <span class="n">institution</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">url</span> <span class="o">=</span> <span class="n">url</span></div>
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">split</span><span class="p">())</span>
+        <span class="n">institution</span> <span class="o">=</span> <span class="n">string_acronym</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">institution</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">-</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">institution</span><span class="p">)</span>
+
+<div class="viewcode-block" id="DataProvider.from_publication_doi"><a class="viewcode-back" href="../../../ocelot.curator.html#ocelot.curator.DataSchema.DataProvider.from_publication_doi">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_publication_doi</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">doi</span><span class="p">):</span>
+        <span class="k">pass</span></div></div>
+
+
+<div class="viewcode-block" id="DataAccess"><a class="viewcode-back" href="../../../ocelot.curator.html#ocelot.curator.DataSchema.DataAccess">[docs]</a><span class="k">class</span> <span class="nc">DataAccess</span><span class="p">(</span><span class="n">MSONable</span><span class="p">):</span>  <span class="c1"># provider + date + lic</span>
+<div class="viewcode-block" id="DataAccess.__init__"><a class="viewcode-back" href="../../../ocelot.curator.html#ocelot.curator.DataSchema.DataAccess.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sharedby</span><span class="p">:</span> <span class="n">DataProvider</span><span class="p">,</span> <span class="n">accessdate</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">date</span><span class="p">,</span> <span class="n">license</span><span class="p">:</span> <span class="n">license</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">License</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sharedby</span> <span class="o">=</span> <span class="n">sharedby</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">accessdate</span> <span class="o">=</span> <span class="n">accessdate</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">license</span> <span class="o">=</span> <span class="n">license</span></div>
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">dp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sharedby</span><span class="o">.</span><span class="fm">__repr__</span><span class="p">()</span>
+        <span class="n">date</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">accessdate</span><span class="o">.</span><span class="n">isoformat</span><span class="p">()</span>
+        <span class="k">return</span> <span class="s1">&#39;-&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">dp</span><span class="p">,</span> <span class="n">date</span><span class="p">])</span>
+
+<div class="viewcode-block" id="DataAccess.as_dict"><a class="viewcode-back" href="../../../ocelot.curator.html#ocelot.curator.DataSchema.DataAccess.as_dict">[docs]</a>    <span class="k">def</span> <span class="nf">as_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="n">d</span><span class="p">[</span><span class="s1">&#39;sharedby&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sharedby</span><span class="o">.</span><span class="n">as_dict</span><span class="p">()</span>
+        <span class="n">d</span><span class="p">[</span><span class="s1">&#39;accessdate&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">accessdate</span><span class="o">.</span><span class="n">isoformat</span><span class="p">()</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">d</span><span class="p">[</span><span class="s1">&#39;license&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">license</span><span class="o">.</span><span class="n">name</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="n">d</span><span class="p">[</span><span class="s1">&#39;license&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="n">d</span></div>
+
+<div class="viewcode-block" id="DataAccess.from_dict"><a class="viewcode-back" href="../../../ocelot.curator.html#ocelot.curator.DataSchema.DataAccess.from_dict">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span>
+            <span class="n">DataProvider</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;sharedby&#39;</span><span class="p">]),</span>
+            <span class="n">datetime</span><span class="o">.</span><span class="n">date</span><span class="o">.</span><span class="n">fromisoformat</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;accessdate&#39;</span><span class="p">]),</span>
+            <span class="n">license</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;license&#39;</span><span class="p">])</span>
+        <span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="DataEntry"><a class="viewcode-back" href="../../../ocelot.curator.html#ocelot.curator.DataSchema.DataEntry">[docs]</a><span class="k">class</span> <span class="nc">DataEntry</span><span class="p">(</span><span class="n">MSONable</span><span class="p">):</span>
+<div class="viewcode-block" id="DataEntry.__init__"><a class="viewcode-back" href="../../../ocelot.curator.html#ocelot.curator.DataSchema.DataEntry.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">data_content</span><span class="p">,</span>
+            <span class="n">data_access</span><span class="p">:</span> <span class="n">DataAccess</span><span class="p">,</span>
+            <span class="n">_id</span><span class="p">:</span> <span class="nb">str</span> <span class="ow">or</span> <span class="nb">bytes</span><span class="p">,</span>
+            <span class="n">data_properties</span><span class="o">=</span><span class="kc">None</span>
+    <span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_content</span> <span class="o">=</span> <span class="n">data_content</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_access</span> <span class="o">=</span> <span class="n">data_access</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_id</span> <span class="o">=</span> <span class="n">_id</span>
+        <span class="k">if</span> <span class="n">data_properties</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">data_properties</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_properties</span> <span class="o">=</span> <span class="n">data_properties</span></div>
+
+<div class="viewcode-block" id="DataEntry.mongo_insert"><a class="viewcode-back" href="../../../ocelot.curator.html#ocelot.curator.DataSchema.DataEntry.mongo_insert">[docs]</a>    <span class="k">def</span> <span class="nf">mongo_insert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mongo_uri</span><span class="p">,</span> <span class="n">database_name</span><span class="p">,</span> <span class="n">collection_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        insert RawData as an entry into a mongodb using pymongo</span>
+
+<span class="sd">        :param mongo_uri: port level is enough</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">collection_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">collection_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span>
+        <span class="n">database</span> <span class="o">=</span> <span class="n">pymongo</span><span class="o">.</span><span class="n">mongo_client</span><span class="o">.</span><span class="n">MongoClient</span><span class="p">(</span><span class="n">host</span><span class="o">=</span><span class="n">mongo_uri</span><span class="p">)[</span><span class="n">database_name</span><span class="p">]</span>
+
+        <span class="n">collection</span> <span class="o">=</span> <span class="n">database</span><span class="p">[</span><span class="n">collection_name</span><span class="p">]</span>
+        <span class="n">existed</span> <span class="o">=</span> <span class="n">collection</span><span class="o">.</span><span class="n">find_one</span><span class="p">({</span><span class="s1">&#39;_id&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_id</span><span class="p">})</span>
+        <span class="n">inserted</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="n">existed</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">collection</span><span class="o">.</span><span class="n">insert_one</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">to_json</span><span class="p">()))</span>
+            <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">acknowledged</span><span class="p">:</span>
+                <span class="n">inserted</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">overwrite</span><span class="p">:</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="n">collection</span><span class="o">.</span><span class="n">replace_one</span><span class="p">({</span><span class="s1">&#39;_id&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_id</span><span class="p">},</span> <span class="bp">self</span><span class="o">.</span><span class="n">as_dict</span><span class="p">())</span>
+                <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">acknowledged</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">: previously existed </span><span class="si">{}</span><span class="s1"> was replaced&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_id</span><span class="p">,</span> <span class="n">result</span><span class="o">.</span><span class="n">matched_count</span><span class="p">))</span>
+                    <span class="n">inserted</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">: previously existed and was NOT updated&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_id</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">inserted</span></div>
+
+<div class="viewcode-block" id="DataEntry.from_jsonfile"><a class="viewcode-back" href="../../../ocelot.curator.html#ocelot.curator.DataSchema.DataEntry.from_jsonfile">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_jsonfile</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">jsonfile</span><span class="p">):</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">jsonfile</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">prev_json</span><span class="p">:</span>
+            <span class="n">prev_jsons</span> <span class="o">=</span> <span class="n">prev_json</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">prev_jsons</span><span class="p">,</span> <span class="bp">cls</span><span class="o">=</span><span class="n">MontyDecoder</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="DataEntry.to_jsonfile"><a class="viewcode-back" href="../../../ocelot.curator.html#ocelot.curator.DataSchema.DataEntry.to_jsonfile">[docs]</a>    <span class="k">def</span> <span class="nf">to_jsonfile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jsonfile</span><span class="p">):</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">jsonfile</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">cdata_json</span><span class="p">:</span>
+            <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">as_dict</span><span class="p">(),</span> <span class="n">cdata_json</span><span class="p">,</span> <span class="bp">cls</span><span class="o">=</span><span class="n">MontyEncoder</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">jsonfile</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">cdata_json</span><span class="p">:</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="n">cdata_json</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">s</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_json</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="n">DataSchemaError</span><span class="p">(</span><span class="s1">&#39;rawjsonfile is different from to_json&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">jsonfile</span></div>
+
+<div class="viewcode-block" id="DataEntry.from_json"><a class="viewcode-back" href="../../../ocelot.curator.html#ocelot.curator.DataSchema.DataEntry.from_json">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_json</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">s</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">s</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="DataEntry.from_mongo"><a class="viewcode-back" href="../../../ocelot.curator.html#ocelot.curator.DataSchema.DataEntry.from_mongo">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_mongo</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">mongo_query</span><span class="p">,</span> <span class="n">mongo_uri</span><span class="p">,</span> <span class="n">database_name</span><span class="p">,</span> <span class="n">collection_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">collection_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">collection_name</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mongo_query</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">mongo_query</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;_id&#39;</span><span class="p">:</span> <span class="n">mongo_query</span><span class="p">}</span>
+        <span class="n">database</span> <span class="o">=</span> <span class="n">pymongo</span><span class="o">.</span><span class="n">mongo_client</span><span class="o">.</span><span class="n">MongoClient</span><span class="p">(</span><span class="n">host</span><span class="o">=</span><span class="n">mongo_uri</span><span class="p">)[</span><span class="n">database_name</span><span class="p">]</span>
+
+        <span class="n">collection</span> <span class="o">=</span> <span class="n">database</span><span class="p">[</span><span class="n">collection_name</span><span class="p">]</span>
+        <span class="n">cursor</span> <span class="o">=</span> <span class="n">collection</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">mongo_query</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">cursor</span><span class="o">.</span><span class="n">count</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">DataSchemaError</span><span class="p">(</span><span class="s1">&#39;return multiple results w. query: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mongo_query</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="n">cursor</span><span class="o">.</span><span class="n">count</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">DataSchemaError</span><span class="p">(</span><span class="s1">&#39;return no results w. query: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mongo_query</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">existed</span> <span class="o">=</span> <span class="n">cursor</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">existed</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="CuratedData"><a class="viewcode-back" href="../../../ocelot.curator.html#ocelot.curator.DataSchema.CuratedData">[docs]</a><span class="k">class</span> <span class="nc">CuratedData</span><span class="p">(</span><span class="n">DataEntry</span><span class="p">):</span>
+
+<div class="viewcode-block" id="CuratedData.mongo_insert"><a class="viewcode-back" href="../../../ocelot.curator.html#ocelot.curator.DataSchema.CuratedData.mongo_insert">[docs]</a>    <span class="k">def</span> <span class="nf">mongo_insert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mongo_uri</span><span class="p">,</span> <span class="n">database_name</span><span class="p">,</span> <span class="n">collection_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                     <span class="n">rawdatacheck</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">rawdatacollection</span><span class="o">=</span><span class="s1">&#39;RawData&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        check if raw data is there</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">collection_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">collection_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span>
+        <span class="n">database</span> <span class="o">=</span> <span class="n">pymongo</span><span class="o">.</span><span class="n">mongo_client</span><span class="o">.</span><span class="n">MongoClient</span><span class="p">(</span><span class="n">host</span><span class="o">=</span><span class="n">mongo_uri</span><span class="p">)[</span><span class="n">database_name</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">rawdatacheck</span><span class="p">:</span>
+            <span class="n">rawcoll</span> <span class="o">=</span> <span class="n">database</span><span class="p">[</span><span class="n">rawdatacollection</span><span class="p">]</span>
+            <span class="n">rawid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_properties</span><span class="p">[</span><span class="s1">&#39;rawdataid&#39;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">rawcoll</span><span class="o">.</span><span class="n">find_one</span><span class="p">({</span><span class="s1">&#39;_id&#39;</span><span class="p">:</span> <span class="n">rawid</span><span class="p">})</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;this curated data relies on non-existing raw data: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">rawid</span><span class="p">))</span>
+                <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="n">collection</span> <span class="o">=</span> <span class="n">database</span><span class="p">[</span><span class="n">collection_name</span><span class="p">]</span>
+        <span class="n">existed</span> <span class="o">=</span> <span class="n">collection</span><span class="o">.</span><span class="n">find_one</span><span class="p">({</span><span class="s1">&#39;_id&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_id</span><span class="p">})</span>
+        <span class="n">inserted</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="n">existed</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">collection</span><span class="o">.</span><span class="n">insert_one</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">to_json</span><span class="p">()))</span>
+            <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">acknowledged</span><span class="p">:</span>
+                <span class="n">inserted</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">overwrite</span><span class="p">:</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="n">collection</span><span class="o">.</span><span class="n">replace_one</span><span class="p">({</span><span class="s1">&#39;_id&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_id</span><span class="p">},</span> <span class="bp">self</span><span class="o">.</span><span class="n">as_dict</span><span class="p">())</span>
+                <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">acknowledged</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">: previously existed </span><span class="si">{}</span><span class="s1"> was replaced&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_id</span><span class="p">,</span> <span class="n">result</span><span class="o">.</span><span class="n">matched_count</span><span class="p">))</span>
+                    <span class="n">inserted</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">: previously existed and was NOT updated&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_id</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">inserted</span></div></div>
+
+
+<div class="viewcode-block" id="RawData"><a class="viewcode-back" href="../../../ocelot.curator.html#ocelot.curator.DataSchema.RawData">[docs]</a><span class="k">class</span> <span class="nc">RawData</span><span class="p">(</span><span class="n">DataEntry</span><span class="p">):</span> <span class="k">pass</span></div>
+
+
+<span class="n">JohnAnthony_UKY</span> <span class="o">=</span> <span class="n">DataProvider</span><span class="p">(</span><span class="s1">&#39;John Anthony&#39;</span><span class="p">,</span> <span class="s1">&#39;University of Kentucky&#39;</span><span class="p">,</span> <span class="s1">&#39;https://chem.as.uky.edu/users/anthony&#39;</span><span class="p">)</span>
+<span class="n">MikeHaley_UO</span> <span class="o">=</span> <span class="n">DataProvider</span><span class="p">(</span><span class="s1">&#39;Mike Haley&#39;</span><span class="p">,</span> <span class="s1">&#39;University of Oregon&#39;</span><span class="p">,</span> <span class="s1">&#39;https://haleylab.uoregon.edu/&#39;</span><span class="p">)</span>
+<span class="n">CSD_CCDC</span> <span class="o">=</span> <span class="n">DataProvider</span><span class="p">(</span><span class="s1">&#39;Cambridge Structural Database&#39;</span><span class="p">,</span> <span class="s1">&#39;Cambridge Crystallographic Data Centre&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;https://www.ccdc.cam.ac.uk/&#39;</span><span class="p">)</span>
+<span class="n">SeanParkin_UKY</span> <span class="o">=</span> <span class="n">DataProvider</span><span class="p">(</span><span class="s1">&#39;Sean Parkin&#39;</span><span class="p">,</span> <span class="s1">&#39;University of Kentucky&#39;</span><span class="p">,</span> <span class="s1">&#39;https://xray.uky.edu/&#39;</span><span class="p">)</span>
+<span class="c1">#</span>
+<span class="c1"># if __name__ == &#39;__main__&#39;:</span>
+<span class="c1">#     ACCESS_PROVIDER = JohnAnthony_UKY</span>
+<span class="c1">#     ACCESS_DATE = datetime.date(2018, 10, 7)</span>
+<span class="c1">#     ACCESS_LIC = None</span>
+<span class="c1">#     data_access = DataAccess(ACCESS_PROVIDER, ACCESS_DATE, ACCESS_LIC)</span>
+<span class="c1">#     rd = DataEntry(&#39;lalala&#39;, data_access, &#39;test&#39;)</span>
+<span class="c1">#     MLAB_URI = &quot;mongodb://qai222:caer200@ds047782.mlab.com:47782/ocelot_qai?retryWrites=false&quot;</span>
+<span class="c1">#     LCC_VM_URI = &quot;mongodb://ocelot:caer200@10.33.28.79:27017/&quot;</span>
+<span class="c1">#     inserted = rd.mongo_insert(MLAB_URI, &#39;ocelot_qai&#39;)</span>
+<span class="c1">#     print(inserted)</span>
+<span class="c1">#</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Ai, Qianxiang
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

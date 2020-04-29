@@ -21,10 +21,10 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../../../_static/jquery.js"></script>
-        <script type="text/javascript" src="../../../_static/underscore.js"></script>
-        <script type="text/javascript" src="../../../_static/doctools.js"></script>
-        <script type="text/javascript" src="../../../_static/language_data.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
     
     <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
@@ -153,56 +153,113 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ocelot.schema.configuration</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span>
+<span></span><span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
+<span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">groupby</span>
 
+<span class="kn">import</span> <span class="nn">hashlib</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">pymatgen.core.sites</span> <span class="kn">import</span> <span class="n">PeriodicSite</span>
-<span class="kn">from</span> <span class="nn">pymatgen.core.structure</span> <span class="kn">import</span> <span class="n">Structure</span><span class="p">,</span> <span class="n">Molecule</span>
+<span class="kn">from</span> <span class="nn">pymatgen.core.structure</span> <span class="kn">import</span> <span class="n">Molecule</span>
+<span class="kn">from</span> <span class="nn">pymatgen.core.structure</span> <span class="kn">import</span> <span class="n">Structure</span>
 
 <span class="kn">from</span> <span class="nn">ocelot.routines.pbc</span> <span class="kn">import</span> <span class="n">PBCparser</span>
-<span class="kn">from</span> <span class="nn">ocelot.schema.conformer</span> <span class="kn">import</span> <span class="n">ConformerDimer</span><span class="p">,</span> <span class="n">MolConformer</span><span class="p">,</span> <span class="n">conformer_addhmol</span>
+<span class="kn">from</span> <span class="nn">ocelot.schema.conformer</span> <span class="kn">import</span> <span class="n">ConformerDimer</span>
+<span class="kn">from</span> <span class="nn">ocelot.schema.conformer</span> <span class="kn">import</span> <span class="n">ConformerError</span>
+<span class="kn">from</span> <span class="nn">ocelot.schema.conformer</span> <span class="kn">import</span> <span class="n">MolConformer</span>
+<span class="kn">from</span> <span class="nn">ocelot.schema.conformer</span> <span class="kn">import</span> <span class="n">conformer_addhmol</span>
 
 
 <div class="viewcode-block" id="Config"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.configuration.Config">[docs]</a><span class="k">class</span> <span class="nc">Config</span><span class="p">:</span>
-    <span class="n">zreal</span><span class="p">:</span> <span class="nb">int</span>
-    <span class="n">unwrap_structure</span><span class="p">:</span> <span class="n">Structure</span>
-    <span class="n">mols</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Molecule</span><span class="p">]</span>
-    <span class="n">pstructure</span><span class="p">:</span> <span class="n">Structure</span>
+    <span class="n">molconformers</span><span class="p">:</span> <span class="p">[</span><span class="n">MolConformer</span><span class="p">]</span>
 
-<div class="viewcode-block" id="Config.__init__"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.configuration.Config.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pstructure</span><span class="p">):</span>
+<div class="viewcode-block" id="Config.__init__"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.configuration.Config.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">molconformers</span><span class="p">,</span> <span class="n">unwrap_clean_pstructure</span><span class="p">:</span> <span class="n">Structure</span><span class="p">,</span> <span class="n">occu</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        :param pstructure: Structure without disorder</span>
+<span class="sd">        :param unwrap_clean_pstructure: Structure without disorder</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">pstructure</span> <span class="o">=</span> <span class="n">pstructure</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">mols</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">molconformers</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">unwrap_structure</span> <span class="o">=</span> <span class="n">PBCparser</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pstructure</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">zreal</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mols</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">z</span> <span class="o">=</span> <span class="nb">len</span><span class="p">([</span><span class="n">omol</span> <span class="k">for</span> <span class="n">omol</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">molconformers</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">omol</span><span class="o">.</span><span class="n">is_solvent</span><span class="p">])</span>  <span class="c1"># no solvent!</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">z</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">zreal</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pstructure</span> <span class="o">=</span> <span class="n">unwrap_clean_pstructure</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">molconformers</span> <span class="o">=</span> <span class="n">molconformers</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">molconformers</span><span class="p">)):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">imols</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">([</span><span class="n">s</span><span class="o">.</span><span class="n">properties</span><span class="p">[</span><span class="s1">&#39;imol&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">molconformers</span><span class="p">[</span><span class="n">i</span><span class="p">]]))</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">imols</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">molconformers</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">conformer_properties</span><span class="p">[</span><span class="s1">&#39;imol&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">imols</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;imol field was not assigned!&#39;</span><span class="p">)</span>
+                <span class="k">continue</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">z</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">molconformers</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">z_nonsolvent</span> <span class="o">=</span> <span class="nb">len</span><span class="p">([</span><span class="n">m</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">molconformers</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">m</span><span class="o">.</span><span class="n">is_solvent</span><span class="p">])</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">z_nonsolvent</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">z</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">hassolvent</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">hassolvent</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">z</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">molconformers</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">conformer_properties</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;index in the cell&#39;</span><span class="p">:</span> <span class="n">i</span><span class="p">}</span></div>
-        <span class="c1"># self.dimers_array, self.transv_fcs = self.get_dimers_array(2)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">occu</span> <span class="o">=</span> <span class="n">occu</span></div>
+
+    <span class="c1"># def __init__(self, pstructure: Structure, occu=1.0, assign_siteids=False):</span>
+    <span class="c1">#     &quot;&quot;&quot;</span>
+    <span class="c1">#     :param pstructure: Structure without disorder</span>
+    <span class="c1">#     &quot;&quot;&quot;</span>
+    <span class="c1">#     self.pstructure = deepcopy(pstructure)</span>
+    <span class="c1">#</span>
+    <span class="c1">#     if assign_siteids:</span>
+    <span class="c1">#         print(&#39;assign siteid when init a config&#39;)</span>
+    <span class="c1">#         for isite in range(len(self.pstructure)):</span>
+    <span class="c1">#             self.pstructure[isite].properties[&#39;siteid&#39;] = isite</span>
+    <span class="c1">#     self.mols, self.unwrap_structure, self.psiteblocks = PBCparser.unwrap_and_squeeze(self.pstructure)</span>
+    <span class="c1">#     # self.mols, self.molconformers, self.unwrap_structure = PBCparser.squeeze(self.pstructure)</span>
+    <span class="c1">#</span>
+    <span class="c1">#     self.molconformers = [MolConformer.from_pmgmol(m) for m in self.mols]</span>
+    <span class="c1">#</span>
+    <span class="c1">#     self.z = len(self.molconformers)</span>
+    <span class="c1">#     self.z_nonsolvent = len([m for m in self.molconformers if not m.is_solvent])</span>
+    <span class="c1">#     if self.z_nonsolvent &lt; self.z:</span>
+    <span class="c1">#         self.hassolvent = True</span>
+    <span class="c1">#     else:</span>
+    <span class="c1">#         self.hassolvent = False</span>
+    <span class="c1">#     for i in range(self.z):</span>
+    <span class="c1">#         self.molconformers[i].conformer_properties = {</span>
+    <span class="c1">#             &#39;index in the cell&#39;: i}  # this is just imol for sites in the mc</span>
+    <span class="c1">#     self.occu = occu</span>
+    <span class="c1">#     # self.dimers_array, self.transv_fcs = self.get_dimers_array(2)</span>
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="s1">&#39;configuration with occu: </span><span class="si">{}</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">occu</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">psite</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pstructure</span><span class="o">.</span><span class="n">sites</span><span class="p">:</span>
+        <span class="c1"># for psite in self.pstructure.sites:</span>
+            <span class="n">s</span> <span class="o">+=</span> <span class="n">psite</span><span class="o">.</span><span class="fm">__repr__</span><span class="p">()</span>
+            <span class="n">s</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span>
+            <span class="n">s</span> <span class="o">+=</span> <span class="n">psite</span><span class="o">.</span><span class="n">properties</span><span class="o">.</span><span class="fm">__repr__</span><span class="p">()</span>
+            <span class="n">s</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="k">return</span> <span class="n">s</span>
+
+<div class="viewcode-block" id="Config.molconformers_all_legit"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.configuration.Config.molconformers_all_legit">[docs]</a>    <span class="k">def</span> <span class="nf">molconformers_all_legit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">all</span><span class="p">(</span><span class="n">mc</span><span class="o">.</span><span class="n">can_rdmol</span> <span class="k">for</span> <span class="n">mc</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">molconformers</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Config.molgraph_set"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.configuration.Config.molgraph_set">[docs]</a>    <span class="k">def</span> <span class="nf">molgraph_set</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">molgraphs</span> <span class="o">=</span> <span class="p">[</span><span class="n">mc</span><span class="o">.</span><span class="n">graph</span> <span class="k">for</span> <span class="n">mc</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">molconformers</span><span class="p">]</span>
+        <span class="k">return</span> <span class="nb">set</span><span class="p">(</span><span class="n">molgraphs</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Config.as_dict"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.configuration.Config.as_dict">[docs]</a>    <span class="k">def</span> <span class="nf">as_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dimermaxfold</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        keys are</span>
 
-<span class="sd">        pymatgen_structure, mols, omols, z, dimers_dict_array</span>
+<span class="sd">        pymatgen_structure, mols, mcs, z, dimers_dict_array, occu</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;@module&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__module__</span><span class="p">,</span> <span class="s2">&quot;@class&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span>
-             <span class="s1">&#39;pymatgen_structure&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">pstructure</span><span class="o">.</span><span class="n">as_dict</span><span class="p">(),</span> <span class="s1">&#39;mols&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">m</span><span class="o">.</span><span class="n">as_dict</span><span class="p">()</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">mols</span><span class="p">],</span>
-             <span class="s1">&#39;mcs&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">m</span><span class="o">.</span><span class="n">as_dict</span><span class="p">()</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">molconformers</span><span class="p">],</span> <span class="s1">&#39;z&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">z</span><span class="p">}</span>
+             <span class="s1">&#39;clean_unwrap_structure&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">pstructure</span><span class="o">.</span><span class="n">as_dict</span><span class="p">(),</span>
+             <span class="s1">&#39;molconformers&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">m</span><span class="o">.</span><span class="n">as_dict</span><span class="p">()</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">molconformers</span><span class="p">],</span>
+             <span class="s1">&#39;z&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">z</span><span class="p">,</span>
+             <span class="s1">&#39;occu&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">occu</span><span class="p">}</span>
 
-        <span class="n">dimers_array</span><span class="p">,</span> <span class="n">transv_fcs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_dimers_array</span><span class="p">(</span><span class="n">dimermaxfold</span><span class="p">)</span>
-        <span class="n">dimers_dictarray</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">z</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">z</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">transv_fcs</span><span class="p">)),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">z</span><span class="p">):</span>
-            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">z</span><span class="p">):</span>
-                <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">transv_fcs</span><span class="p">)):</span>
-                    <span class="n">dimers_dictarray</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">][</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">dimers_array</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">][</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">as_dict</span><span class="p">()</span>
-        <span class="n">d</span><span class="p">[</span><span class="s1">&#39;dimers_dict_array&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">dimers_dictarray</span>
+        <span class="c1"># dimers_array, transv_fcs = self.get_dimers_array(dimermaxfold, fast=True)</span>
+        <span class="c1"># dimers_dictarray = np.empty((self.z, self.z, len(transv_fcs)), dtype=dict)</span>
+        <span class="c1"># for i in range(self.z):</span>
+        <span class="c1">#     for j in range(self.z):</span>
+        <span class="c1">#         for k in range(len(transv_fcs)):</span>
+        <span class="c1">#             dimers_dictarray[i][j][k] = dimers_array[i][j][k].as_dict()</span>
+        <span class="c1"># d[&#39;dimers_dict_array&#39;] = dimers_dictarray</span>
+        <span class="c1"># d[&#39;dimers_dict_array_maxfold&#39;] = dimermaxfold</span>
         <span class="k">return</span> <span class="n">d</span></div>
 
 <div class="viewcode-block" id="Config.from_dict"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.configuration.Config.from_dict">[docs]</a>    <span class="nd">@classmethod</span>
@@ -212,8 +269,25 @@
 
 <span class="sd">        pymatgen_structure</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">pstructure</span> <span class="o">=</span> <span class="n">Structure</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;pymatgen_structure&#39;</span><span class="p">])</span>
-        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">pstructure</span><span class="p">)</span></div>
+        <span class="n">pstructure</span> <span class="o">=</span> <span class="n">Structure</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;clean_unwrap_structure&#39;</span><span class="p">])</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">occu</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;occu&#39;</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="n">occu</span> <span class="o">=</span> <span class="mf">1.0</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_pstructure</span><span class="p">(</span><span class="n">pstructure</span><span class="p">,</span> <span class="n">occu</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Config.hashconfig"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.configuration.Config.hashconfig">[docs]</a>    <span class="k">def</span> <span class="nf">hashconfig</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hashmethod</span><span class="o">=</span><span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">):</span>
+        <span class="n">latt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pstructure</span><span class="o">.</span><span class="n">lattice</span>
+        <span class="n">latt_str</span> <span class="o">=</span> <span class="s1">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;</span><span class="si">{:.3f}</span><span class="s1">&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="mi">9</span><span class="p">)</span>
+        <span class="n">latt_str</span> <span class="o">=</span> <span class="n">latt_str</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">*</span><span class="n">latt</span><span class="o">.</span><span class="n">matrix</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
+        <span class="n">comp_str</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pstructure</span><span class="o">.</span><span class="n">composition</span><span class="o">.</span><span class="fm">__repr__</span><span class="p">()</span>
+
+        <span class="c1"># or use smiles</span>
+        <span class="n">mg_props</span> <span class="o">=</span> <span class="p">[</span><span class="n">mg</span><span class="o">.</span><span class="n">props_for_hash</span> <span class="k">for</span> <span class="n">mg</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">molgraph_set</span><span class="p">()]</span>
+        <span class="n">mg_props</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+        <span class="n">mg_str</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">mg_props</span><span class="p">)</span>
+        <span class="n">combine</span> <span class="o">=</span> <span class="s1">&#39;---&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">latt_str</span><span class="p">,</span> <span class="n">comp_str</span><span class="p">,</span> <span class="n">mg_str</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">hashmethod</span><span class="p">(</span><span class="n">combine</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="Config.get_dimers_array"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.configuration.Config.get_dimers_array">[docs]</a>    <span class="k">def</span> <span class="nf">get_dimers_array</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">maxfold</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">fast</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">symm</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -240,7 +314,7 @@
             <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">z</span><span class="p">):</span>
                 <span class="n">var_omol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">molconformers</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
                 <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">used_transv_fcs</span><span class="p">)):</span>
-                    <span class="n">transv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">unwrap_structure</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">get_cartesian_coords</span><span class="p">(</span><span class="n">used_transv_fcs</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
+                    <span class="n">transv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pstructure</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">get_cartesian_coords</span><span class="p">(</span><span class="n">used_transv_fcs</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
                     <span class="k">if</span> <span class="n">fast</span><span class="p">:</span>
                         <span class="n">var_omol_k</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">var_omol</span><span class="p">)</span>
                         <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">var_omol_k</span><span class="p">)):</span>
@@ -272,21 +346,58 @@
         <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">terminated_backbone_hmols</span><span class="p">:</span>
             <span class="n">backbone_sites</span> <span class="o">+=</span> <span class="n">b</span><span class="o">.</span><span class="n">sites</span>
 
-        <span class="n">boneonly_psites</span> <span class="o">=</span> <span class="p">[</span><span class="n">PeriodicSite</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">species_string</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">coords</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">unwrap_structure</span><span class="o">.</span><span class="n">lattice</span><span class="p">,</span> <span class="n">to_unit_cell</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                                        <span class="n">coords_are_cartesian</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">boneonly_psites</span> <span class="o">=</span> <span class="p">[</span><span class="n">PeriodicSite</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">species_string</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">coords</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pstructure</span><span class="o">.</span><span class="n">lattice</span><span class="p">,</span> <span class="n">to_unit_cell</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                                        <span class="n">coords_are_cartesian</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">properties</span><span class="p">)</span>
                            <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">backbone_sites</span><span class="p">]</span>
         <span class="n">boneonly_pstructure</span> <span class="o">=</span> <span class="n">Structure</span><span class="o">.</span><span class="n">from_sites</span><span class="p">(</span><span class="n">boneonly_psites</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">Config</span><span class="p">(</span><span class="n">boneonly_pstructure</span><span class="p">),</span> <span class="n">boneonly_pstructure</span><span class="p">,</span> <span class="n">terminated_backbone_hmols</span></div>
+        <span class="n">boneonly_molconformers</span> <span class="o">=</span> <span class="p">[</span><span class="n">MolConformer</span><span class="o">.</span><span class="n">from_pmgmol</span><span class="p">(</span><span class="n">m</span><span class="p">)</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">terminated_backbone_hmols</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">Config</span><span class="p">(</span><span class="n">boneonly_molconformers</span><span class="p">,</span> <span class="n">boneonly_pstructure</span><span class="p">,</span> <span class="n">occu</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">occu</span><span class="p">),</span> <span class="n">boneonly_pstructure</span><span class="p">,</span> <span class="n">terminated_backbone_hmols</span></div>
+
+<div class="viewcode-block" id="Config.from_pstructure"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.configuration.Config.from_pstructure">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_pstructure</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">pstructure</span><span class="p">:</span> <span class="n">Structure</span><span class="p">,</span> <span class="n">occu</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">assign_siteids</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="n">structure</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">pstructure</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">assign_siteids</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;assign siteid when init a config&#39;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">isite</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">structure</span><span class="p">)):</span>
+                <span class="n">structure</span><span class="p">[</span><span class="n">isite</span><span class="p">]</span><span class="o">.</span><span class="n">properties</span><span class="p">[</span><span class="s1">&#39;siteid&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">isite</span>
+        <span class="n">mols</span><span class="p">,</span> <span class="n">unwrap_structure</span><span class="p">,</span> <span class="n">psiteblocks</span> <span class="o">=</span> <span class="n">PBCparser</span><span class="o">.</span><span class="n">unwrap_and_squeeze</span><span class="p">(</span><span class="n">structure</span><span class="p">)</span>
+        <span class="n">molconformers</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">mols</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">mc</span> <span class="o">=</span> <span class="n">MolConformer</span><span class="o">.</span><span class="n">from_pmgmol</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+                <span class="n">molconformers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mc</span><span class="p">)</span>
+            <span class="k">except</span> <span class="n">ConformerError</span><span class="p">:</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;conformer init failed for one molecule in the cell&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">molconformers</span><span class="p">,</span> <span class="n">unwrap_structure</span><span class="p">,</span> <span class="n">occu</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Config.from_labeled_clean_pstructure"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.configuration.Config.from_labeled_clean_pstructure">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_labeled_clean_pstructure</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">pstructure</span><span class="p">:</span> <span class="n">Structure</span><span class="p">,</span> <span class="n">occu</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
+        <span class="n">unwrap_structure</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">pstructure</span><span class="p">)</span>
+        <span class="n">psites</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">unwrap_structure</span><span class="o">.</span><span class="n">sites</span><span class="p">)</span>
+        <span class="n">k</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">properties</span><span class="p">[</span><span class="s1">&#39;imol&#39;</span><span class="p">]</span>
+        <span class="n">psites</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="n">k</span><span class="p">)</span>
+        <span class="n">mols</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">imol</span><span class="p">,</span> <span class="n">group</span> <span class="ow">in</span> <span class="n">groupby</span><span class="p">(</span><span class="n">psites</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">k</span><span class="p">):</span>
+            <span class="n">mols</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Molecule</span><span class="o">.</span><span class="n">from_sites</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">group</span><span class="p">)))</span>
+        <span class="n">molconformers</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">mols</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">mc</span> <span class="o">=</span> <span class="n">MolConformer</span><span class="o">.</span><span class="n">from_pmgmol</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+                <span class="n">molconformers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mc</span><span class="p">)</span>
+            <span class="k">except</span> <span class="n">ConformerError</span><span class="p">:</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;conformer init failed for one molecule in the cell&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">molconformers</span><span class="p">,</span> <span class="n">unwrap_structure</span><span class="p">,</span> <span class="n">occu</span><span class="p">)</span></div>
+
 
 <div class="viewcode-block" id="Config.from_cifstring"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.configuration.Config.from_cifstring">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_cifstring</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">string</span><span class="p">):</span>
         <span class="n">s</span> <span class="o">=</span> <span class="n">Structure</span><span class="o">.</span><span class="n">from_str</span><span class="p">(</span><span class="n">string</span><span class="p">,</span> <span class="n">fmt</span><span class="o">=</span><span class="s1">&#39;cif&#39;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">s</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_pstructure</span><span class="p">(</span><span class="n">s</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Config.from_file"><a class="viewcode-back" href="../../../ocelot.schema.html#ocelot.schema.configuration.Config.from_file">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">from_file</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">from_file</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">assign_siteids</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="n">s</span> <span class="o">=</span> <span class="n">Structure</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">s</span><span class="p">)</span></div></div>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_pstructure</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">assign_siteids</span><span class="o">=</span><span class="n">assign_siteids</span><span class="p">)</span></div></div>
 </pre></div>
 
            </div>
@@ -299,7 +410,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2019, Ai, Qianxiang
+        &copy; Copyright 2020, Ai, Qianxiang
 
     </p>
   </div>

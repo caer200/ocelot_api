@@ -1,0 +1,508 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ocelot.curator package &mdash; ocelot 0.2 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="ocelot.routines package" href="ocelot.routines.html" />
+    <link rel="prev" title="ocelot package" href="ocelot.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> ocelot
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html#schema">schema</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html#disorder">Disorder</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html#bone-config">Bone Config</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html#backbone-and-sidechain">Backbone and Sidechain</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="ocelot.html">ocelot package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="ocelot.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">ocelot.curator package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ocelot.curator.Contribution">ocelot.curator.Contribution module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ocelot.curator.DataSchema">ocelot.curator.DataSchema module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ocelot.curator">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="ocelot.routines.html">ocelot.routines package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ocelot.schema.html">ocelot.schema package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ocelot.task.html">ocelot.task package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="ocelot.html#module-ocelot">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">ocelot</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="ocelot.html">ocelot package</a> &raquo;</li>
+        
+      <li>ocelot.curator package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/ocelot.curator.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="ocelot-curator-package">
+<h1>ocelot.curator package<a class="headerlink" href="#ocelot-curator-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-ocelot.curator.Contribution">
+<span id="ocelot-curator-contribution-module"></span><h2>ocelot.curator.Contribution module<a class="headerlink" href="#module-ocelot.curator.Contribution" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="ocelot.curator.Contribution.Contribution">
+<em class="property">class </em><code class="sig-prename descclassname">ocelot.curator.Contribution.</code><code class="sig-name descname">Contribution</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data_access</span></em>, <em class="sig-param"><span class="n">folder_path</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/curator/Contribution.html#Contribution"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.curator.Contribution.Contribution" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt id="ocelot.curator.Contribution.Contribution.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data_access</span></em>, <em class="sig-param"><span class="n">folder_path</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/curator/Contribution.html#Contribution.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.curator.Contribution.Contribution.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize self.  See help(type(self)) for accurate signature.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ocelot.curator.Contribution.Contribution.collect_rawdata">
+<code class="sig-name descname">collect_rawdata</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">collect_folder</span></em>, <em class="sig-param"><span class="n">get_extra_property_from_path</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/curator/Contribution.html#Contribution.collect_rawdata"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.curator.Contribution.Contribution.collect_rawdata" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>RawData</dt><dd><dl class="simple">
+<dt>= content (cif_string no diffraction)</dt><dd><ul class="simple">
+<li><p>data_access</p></li>
+<li><p>_id (data_access &amp; cif_header)</p></li>
+</ul>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>collect_folder</strong> – a folder to store cif files without diffraction info</p></li>
+<li><p><strong>get_extra_property_from_path</strong> – the path here means the absolute path of a file in self.folder_path</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>collected_filepaths: absolute path
+raw_data_list: a list of RawData</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ocelot.curator.Contribution.Contribution.collect_with_log">
+<code class="sig-name descname">collect_with_log</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">log_folder</span></em>, <em class="sig-param"><span class="n">collect_folder</span></em>, <em class="sig-param"><span class="n">get_property_from_path</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/curator/Contribution.html#Contribution.collect_with_log"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.curator.Contribution.Contribution.collect_with_log" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="ocelot.curator.Contribution.Contribution.curate_all">
+<code class="sig-name descname">curate_all</code><span class="sig-paren">(</span><em class="sig-param">logfolder, rawdata_list: [&lt;class 'ocelot.curator.DataSchema.RawData'&gt;], wdir_for_curate, unittimelimit=60</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/curator/Contribution.html#Contribution.curate_all"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.curator.Contribution.Contribution.curate_all" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="ocelot.curator.Contribution.Contribution.curate_one">
+<code class="sig-name descname">curate_one</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">rawdata</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#ocelot.curator.DataSchema.RawData" title="ocelot.curator.DataSchema.RawData">ocelot.curator.DataSchema.RawData</a></span></em>, <em class="sig-param"><span class="n">wdir</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/curator/Contribution.html#Contribution.curate_one"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.curator.Contribution.Contribution.curate_one" title="Permalink to this definition">¶</a></dt>
+<dd><p>CuratedData
+= content(structural_schemas)
++ data_access( RawData.data_access)
++ _id(hashconfig or ‘failed RawData._id’)
++ properties: {integrity_class: x, rawdataid: RawData._id, method: …}</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py exception">
+<dt id="ocelot.curator.Contribution.CuratorError">
+<em class="property">exception </em><code class="sig-prename descclassname">ocelot.curator.Contribution.</code><code class="sig-name descname">CuratorError</code><a class="reference internal" href="_modules/ocelot/curator/Contribution.html#CuratorError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.curator.Contribution.CuratorError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+</dd></dl>
+
+<dl class="py exception">
+<dt id="ocelot.curator.Contribution.TimeoutException">
+<em class="property">exception </em><code class="sig-prename descclassname">ocelot.curator.Contribution.</code><code class="sig-name descname">TimeoutException</code><a class="reference internal" href="_modules/ocelot/curator/Contribution.html#TimeoutException"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.curator.Contribution.TimeoutException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="ocelot.curator.Contribution.clear_cif_from_crystalmaker">
+<code class="sig-prename descclassname">ocelot.curator.Contribution.</code><code class="sig-name descname">clear_cif_from_crystalmaker</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">s</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/curator/Contribution.html#clear_cif_from_crystalmaker"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.curator.Contribution.clear_cif_from_crystalmaker" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="ocelot.curator.Contribution.curate_cifstring">
+<code class="sig-prename descclassname">ocelot.curator.Contribution.</code><code class="sig-name descname">curate_cifstring</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cifstring</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/curator/Contribution.html#curate_cifstring"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.curator.Contribution.curate_cifstring" title="Permalink to this definition">¶</a></dt>
+<dd><p>:return
+integrity_class</p>
+<blockquote>
+<div><p>3 can run all calculations
+2 can only run geometric analyses
+1 do not run any calculations (exception)</p>
+</div></blockquote>
+<dl class="simple">
+<dt>outputs</dt><dd><p>files written by this function</p>
+</dd>
+<dt>structural_schemas</dt><dd><p>structural_schemas[‘configuration’]: the major config
+structural_schemas[‘molgraphs’]: a list of unique molgraphs from the major config, rsorted by # of atoms
+structural_schemas[‘molsmiles’]: a list of unique molecular smiles from the major config, rsorted by # of atoms</p>
+</dd>
+<dt>identifier</dt><dd><p>hashconfig(major_config)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="ocelot.curator.Contribution.get_property_basename">
+<code class="sig-prename descclassname">ocelot.curator.Contribution.</code><code class="sig-name descname">get_property_basename</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filename</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/curator/Contribution.html#get_property_basename"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.curator.Contribution.get_property_basename" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="ocelot.curator.Contribution.get_property_header">
+<code class="sig-prename descclassname">ocelot.curator.Contribution.</code><code class="sig-name descname">get_property_header</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filename</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/curator/Contribution.html#get_property_header"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.curator.Contribution.get_property_header" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="ocelot.curator.Contribution.get_property_lattice">
+<code class="sig-prename descclassname">ocelot.curator.Contribution.</code><code class="sig-name descname">get_property_lattice</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filename</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/curator/Contribution.html#get_property_lattice"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.curator.Contribution.get_property_lattice" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="ocelot.curator.Contribution.get_property_md5">
+<code class="sig-prename descclassname">ocelot.curator.Contribution.</code><code class="sig-name descname">get_property_md5</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filename</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/curator/Contribution.html#get_property_md5"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.curator.Contribution.get_property_md5" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="ocelot.curator.Contribution.get_unique_files">
+<code class="sig-prename descclassname">ocelot.curator.Contribution.</code><code class="sig-name descname">get_unique_files</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">absolute_path_to_files</span></em>, <em class="sig-param"><span class="n">unique_property</span><span class="o">=</span><span class="default_value">'md5'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/curator/Contribution.html#get_unique_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.curator.Contribution.get_unique_files" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="ocelot.curator.Contribution.read_and_trim">
+<code class="sig-prename descclassname">ocelot.curator.Contribution.</code><code class="sig-name descname">read_and_trim</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filename</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/curator/Contribution.html#read_and_trim"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.curator.Contribution.read_and_trim" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="ocelot.curator.Contribution.readfile">
+<code class="sig-prename descclassname">ocelot.curator.Contribution.</code><code class="sig-name descname">readfile</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">file</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/curator/Contribution.html#readfile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.curator.Contribution.readfile" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="ocelot.curator.Contribution.time_limit">
+<code class="sig-prename descclassname">ocelot.curator.Contribution.</code><code class="sig-name descname">time_limit</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">seconds</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/curator/Contribution.html#time_limit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.curator.Contribution.time_limit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="ocelot.curator.Contribution.trim_diffraction">
+<code class="sig-prename descclassname">ocelot.curator.Contribution.</code><code class="sig-name descname">trim_diffraction</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cifstring</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">start_trim</span><span class="o">=</span><span class="default_value">'_atom_site_aniso_label'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/curator/Contribution.html#trim_diffraction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.curator.Contribution.trim_diffraction" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-ocelot.curator.DataSchema">
+<span id="ocelot-curator-dataschema-module"></span><h2>ocelot.curator.DataSchema module<a class="headerlink" href="#module-ocelot.curator.DataSchema" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="ocelot.curator.DataSchema.CuratedData">
+<em class="property">class </em><code class="sig-prename descclassname">ocelot.curator.DataSchema.</code><code class="sig-name descname">CuratedData</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data_content</span></em>, <em class="sig-param"><span class="n">data_access</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#ocelot.curator.DataSchema.DataAccess" title="ocelot.curator.DataSchema.DataAccess">ocelot.curator.DataSchema.DataAccess</a></span></em>, <em class="sig-param"><span class="n">_id</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">data_properties</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/curator/DataSchema.html#CuratedData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.curator.DataSchema.CuratedData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#ocelot.curator.DataSchema.DataEntry" title="ocelot.curator.DataSchema.DataEntry"><code class="xref py py-class docutils literal notranslate"><span class="pre">ocelot.curator.DataSchema.DataEntry</span></code></a></p>
+<dl class="py method">
+<dt id="ocelot.curator.DataSchema.CuratedData.mongo_insert">
+<code class="sig-name descname">mongo_insert</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mongo_uri</span></em>, <em class="sig-param"><span class="n">database_name</span></em>, <em class="sig-param"><span class="n">collection_name</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">overwrite</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">rawdatacheck</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">rawdatacollection</span><span class="o">=</span><span class="default_value">'RawData'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/curator/DataSchema.html#CuratedData.mongo_insert"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.curator.DataSchema.CuratedData.mongo_insert" title="Permalink to this definition">¶</a></dt>
+<dd><p>check if raw data is there</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="ocelot.curator.DataSchema.DataAccess">
+<em class="property">class </em><code class="sig-prename descclassname">ocelot.curator.DataSchema.</code><code class="sig-name descname">DataAccess</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sharedby</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#ocelot.curator.DataSchema.DataProvider" title="ocelot.curator.DataSchema.DataProvider">ocelot.curator.DataSchema.DataProvider</a></span></em>, <em class="sig-param"><span class="n">accessdate</span><span class="p">:</span> <span class="n">datetime.date</span></em>, <em class="sig-param"><span class="n">license</span><span class="p">:</span> <span class="n">license.base.License</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/curator/DataSchema.html#DataAccess"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.curator.DataSchema.DataAccess" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">monty.json.MSONable</span></code></p>
+<dl class="py method">
+<dt id="ocelot.curator.DataSchema.DataAccess.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sharedby</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#ocelot.curator.DataSchema.DataProvider" title="ocelot.curator.DataSchema.DataProvider">ocelot.curator.DataSchema.DataProvider</a></span></em>, <em class="sig-param"><span class="n">accessdate</span><span class="p">:</span> <span class="n">datetime.date</span></em>, <em class="sig-param"><span class="n">license</span><span class="p">:</span> <span class="n">license.base.License</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/curator/DataSchema.html#DataAccess.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.curator.DataSchema.DataAccess.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize self.  See help(type(self)) for accurate signature.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ocelot.curator.DataSchema.DataAccess.as_dict">
+<code class="sig-name descname">as_dict</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; dict<a class="reference internal" href="_modules/ocelot/curator/DataSchema.html#DataAccess.as_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.curator.DataSchema.DataAccess.as_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>A JSON serializable dict representation of an object.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ocelot.curator.DataSchema.DataAccess.from_dict">
+<em class="property">classmethod </em><code class="sig-name descname">from_dict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">d</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/curator/DataSchema.html#DataAccess.from_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.curator.DataSchema.DataAccess.from_dict" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>d</strong> – Dict representation.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>MSONable class.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="ocelot.curator.DataSchema.DataEntry">
+<em class="property">class </em><code class="sig-prename descclassname">ocelot.curator.DataSchema.</code><code class="sig-name descname">DataEntry</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data_content</span></em>, <em class="sig-param"><span class="n">data_access</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#ocelot.curator.DataSchema.DataAccess" title="ocelot.curator.DataSchema.DataAccess">ocelot.curator.DataSchema.DataAccess</a></span></em>, <em class="sig-param"><span class="n">_id</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">data_properties</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/curator/DataSchema.html#DataEntry"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.curator.DataSchema.DataEntry" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">monty.json.MSONable</span></code></p>
+<dl class="py method">
+<dt id="ocelot.curator.DataSchema.DataEntry.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data_content</span></em>, <em class="sig-param"><span class="n">data_access</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#ocelot.curator.DataSchema.DataAccess" title="ocelot.curator.DataSchema.DataAccess">ocelot.curator.DataSchema.DataAccess</a></span></em>, <em class="sig-param"><span class="n">_id</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">data_properties</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/curator/DataSchema.html#DataEntry.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.curator.DataSchema.DataEntry.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize self.  See help(type(self)) for accurate signature.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ocelot.curator.DataSchema.DataEntry.from_json">
+<em class="property">classmethod </em><code class="sig-name descname">from_json</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">s</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/curator/DataSchema.html#DataEntry.from_json"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.curator.DataSchema.DataEntry.from_json" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="ocelot.curator.DataSchema.DataEntry.from_jsonfile">
+<em class="property">classmethod </em><code class="sig-name descname">from_jsonfile</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">jsonfile</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/curator/DataSchema.html#DataEntry.from_jsonfile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.curator.DataSchema.DataEntry.from_jsonfile" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="ocelot.curator.DataSchema.DataEntry.from_mongo">
+<em class="property">classmethod </em><code class="sig-name descname">from_mongo</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mongo_query</span></em>, <em class="sig-param"><span class="n">mongo_uri</span></em>, <em class="sig-param"><span class="n">database_name</span></em>, <em class="sig-param"><span class="n">collection_name</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/curator/DataSchema.html#DataEntry.from_mongo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.curator.DataSchema.DataEntry.from_mongo" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="ocelot.curator.DataSchema.DataEntry.mongo_insert">
+<code class="sig-name descname">mongo_insert</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mongo_uri</span></em>, <em class="sig-param"><span class="n">database_name</span></em>, <em class="sig-param"><span class="n">collection_name</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">overwrite</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/curator/DataSchema.html#DataEntry.mongo_insert"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.curator.DataSchema.DataEntry.mongo_insert" title="Permalink to this definition">¶</a></dt>
+<dd><p>insert RawData as an entry into a mongodb using pymongo</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>mongo_uri</strong> – port level is enough</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ocelot.curator.DataSchema.DataEntry.to_jsonfile">
+<code class="sig-name descname">to_jsonfile</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">jsonfile</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/curator/DataSchema.html#DataEntry.to_jsonfile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.curator.DataSchema.DataEntry.to_jsonfile" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="ocelot.curator.DataSchema.DataProvider">
+<em class="property">class </em><code class="sig-prename descclassname">ocelot.curator.DataSchema.</code><code class="sig-name descname">DataProvider</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">institution</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">url</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/curator/DataSchema.html#DataProvider"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.curator.DataSchema.DataProvider" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">monty.json.MSONable</span></code></p>
+<dl class="py method">
+<dt id="ocelot.curator.DataSchema.DataProvider.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">institution</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">url</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/curator/DataSchema.html#DataProvider.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.curator.DataSchema.DataProvider.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>this can represent a research group, a journal, or a database</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ocelot.curator.DataSchema.DataProvider.from_publication_doi">
+<em class="property">classmethod </em><code class="sig-name descname">from_publication_doi</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">doi</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/curator/DataSchema.html#DataProvider.from_publication_doi"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.curator.DataSchema.DataProvider.from_publication_doi" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py exception">
+<dt id="ocelot.curator.DataSchema.DataSchemaError">
+<em class="property">exception </em><code class="sig-prename descclassname">ocelot.curator.DataSchema.</code><code class="sig-name descname">DataSchemaError</code><a class="reference internal" href="_modules/ocelot/curator/DataSchema.html#DataSchemaError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.curator.DataSchema.DataSchemaError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="ocelot.curator.DataSchema.RawData">
+<em class="property">class </em><code class="sig-prename descclassname">ocelot.curator.DataSchema.</code><code class="sig-name descname">RawData</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data_content</span></em>, <em class="sig-param"><span class="n">data_access</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#ocelot.curator.DataSchema.DataAccess" title="ocelot.curator.DataSchema.DataAccess">ocelot.curator.DataSchema.DataAccess</a></span></em>, <em class="sig-param"><span class="n">_id</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">data_properties</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/curator/DataSchema.html#RawData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.curator.DataSchema.RawData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#ocelot.curator.DataSchema.DataEntry" title="ocelot.curator.DataSchema.DataEntry"><code class="xref py py-class docutils literal notranslate"><span class="pre">ocelot.curator.DataSchema.DataEntry</span></code></a></p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="ocelot.curator.DataSchema.string_acronym">
+<code class="sig-prename descclassname">ocelot.curator.DataSchema.</code><code class="sig-name descname">string_acronym</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">s</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ocelot/curator/DataSchema.html#string_acronym"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ocelot.curator.DataSchema.string_acronym" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-ocelot.curator">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-ocelot.curator" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="ocelot.routines.html" class="btn btn-neutral float-right" title="ocelot.routines package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="ocelot.html" class="btn btn-neutral float-left" title="ocelot package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Ai, Qianxiang
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

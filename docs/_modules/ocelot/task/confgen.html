@@ -1,0 +1,502 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ocelot.task.confgen &mdash; ocelot 0.2 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> ocelot
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#schema">schema</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#disorder">Disorder</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#bone-config">Bone Config</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#backbone-and-sidechain">Backbone and Sidechain</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ocelot.html">ocelot package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">ocelot</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>ocelot.task.confgen</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ocelot.task.confgen</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">given a molecular specification (smiles) get distinct conformers via rdkit</span>
+
+<span class="sd">the molecule should already have hydrogen explicitly added, i.e. from hsmiles or addhs</span>
+
+<span class="sd">workflow:</span>
+<span class="sd">    rdkit conf gen [prune_in_gen] --&gt; [ff minimize] --&gt; prune_by_energy --&gt; prune_by_rmsd</span>
+
+<span class="sd">ref</span>
+<span class="sd">http://rdkit.blogspot.com/2014/08/optimizing-diversity-picking-in-rdkit.html</span>
+<span class="sd">https://squonk.it/docs/cells/RDKit%20Diverse%20Subset%20Picker/</span>
+<span class="sd">https://github.com/skearnes/rdkit-utils/blob/master/rdkit_utils/conformers.py</span>
+<span class="sd">https://new.pharmacelera.com/scripts/rdkit-conformation-generation-script/</span>
+<span class="sd">https://www.rdkit.org/UGM/2012/Ebejer_20110926_RDKit_1stUGM.pdf</span>
+<span class="sd">http://rdkit.org/docs_temp/Cookbook.html#parallel-conformation-generation</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="n">__author__</span> <span class="o">=</span> <span class="s2">&quot;qianxiang ai, parker sornberger&quot;</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">rdkit</span> <span class="kn">import</span> <span class="n">Chem</span>
+<span class="kn">from</span> <span class="nn">rdkit.Chem</span> <span class="kn">import</span> <span class="n">AllChem</span>
+<span class="kn">from</span> <span class="nn">ocelot.schema.rdfunc</span> <span class="kn">import</span> <span class="n">RdFunc</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+
+
+<div class="viewcode-block" id="ConfGenError"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.confgen.ConfGenError">[docs]</a><span class="k">class</span> <span class="nc">ConfGenError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span> <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="ConfGen"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.confgen.ConfGen">[docs]</a><span class="k">class</span> <span class="nc">ConfGen</span><span class="p">:</span>
+
+<div class="viewcode-block" id="ConfGen.__init__"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.confgen.ConfGen.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">m</span><span class="p">:</span> <span class="n">Chem</span><span class="o">.</span><span class="n">Mol</span><span class="p">,</span> <span class="n">mol_name</span><span class="o">=</span><span class="s1">&#39;rdmol&#39;</span><span class="p">,</span> <span class="n">nconf</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mingen</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">maxgen</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="n">nthread</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">rngseed</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
+                 <span class="n">prune_in_gen</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">minimize</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">ff</span><span class="o">=</span><span class="s1">&#39;MMFF94s&#39;</span><span class="p">,</span> <span class="n">prune_by_energy</span><span class="o">=</span><span class="mi">100</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mol_name</span> <span class="o">=</span> <span class="n">mol_name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">m</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">Mol</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>  <span class="c1"># get a new mol</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">m</span><span class="o">.</span><span class="n">RemoveAllConformers</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mingen</span> <span class="o">=</span> <span class="n">mingen</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">maxgen</span> <span class="o">=</span> <span class="n">maxgen</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rngseed</span> <span class="o">=</span> <span class="n">rngseed</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">nconf</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">nconf</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">nconf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ideal_conf_num</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">m</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mingen</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">maxgen</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">prune_in_gen</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">prune_in_gen</span><span class="p">)</span>  <span class="c1"># this is the threshold</span>
+        <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;prune_in_gen will not be carried out&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">prune_in_gen</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">minimize</span> <span class="o">=</span> <span class="n">minimize</span>
+        <span class="k">if</span> <span class="n">ff</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;UFF&#39;</span><span class="p">,</span> <span class="s1">&#39;MMFF94&#39;</span><span class="p">,</span> <span class="s1">&#39;MMFF94s&#39;</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="n">ConfGenError</span><span class="p">(</span><span class="s1">&#39;force field: </span><span class="si">{}</span><span class="s1"> not understood!&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ff</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ff</span> <span class="o">=</span> <span class="n">ff</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">nthread</span> <span class="o">=</span> <span class="n">nthread</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">prune_by_energy</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">prune_by_energy</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ConfGen.is_hydrogen_explicit"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.confgen.ConfGen.is_hydrogen_explicit">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">is_hydrogen_explicit</span><span class="p">(</span><span class="n">m</span><span class="p">:</span> <span class="n">Chem</span><span class="o">.</span><span class="n">Mol</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="s1">&#39;h&#39;</span> <span class="o">==</span> <span class="n">a</span><span class="o">.</span><span class="n">GetSymbol</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">m</span><span class="o">.</span><span class="n">GetAtoms</span><span class="p">()):</span>
+            <span class="k">raise</span> <span class="n">ConfGenError</span><span class="p">(</span><span class="s1">&#39;no explicit hydrogen in this rdkit mol!&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ConfGen.from_smiles"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.confgen.ConfGen.from_smiles">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_smiles</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">smiles</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">mingen</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">maxgen</span><span class="o">=</span><span class="mi">300</span><span class="p">):</span>
+        <span class="k">if</span> <span class="s1">&#39;h&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">smiles</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="n">ConfGenError</span><span class="p">(</span><span class="s1">&#39;no h in the smiles!&#39;</span><span class="p">)</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">MolFromSmiles</span><span class="p">(</span><span class="n">smiles</span><span class="p">)</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">AddHs</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">mingen</span><span class="o">=</span><span class="n">mingen</span><span class="p">,</span> <span class="n">maxgen</span><span class="o">=</span><span class="n">maxgen</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ConfGen.ideal_conf_num"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.confgen.ConfGen.ideal_conf_num">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">ideal_conf_num</span><span class="p">(</span><span class="n">some_molecule</span><span class="p">:</span> <span class="n">Chem</span><span class="o">.</span><span class="n">Mol</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mi">300</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        return the number of conformers that need to be generated to sample the conf space of a molecule</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">rotatable_bonds</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">AllChem</span><span class="o">.</span><span class="n">CalcNumRotatableBonds</span><span class="p">(</span><span class="n">some_molecule</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">rotatable_bonds</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="n">conf_number</span> <span class="o">=</span> <span class="nb">min</span>
+        <span class="k">elif</span> <span class="n">rotatable_bonds</span> <span class="o">&gt;</span> <span class="mi">6</span><span class="p">:</span>
+            <span class="n">conf_number</span> <span class="o">=</span> <span class="nb">max</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">conf_number</span> <span class="o">=</span> <span class="p">(</span><span class="n">rotatable_bonds</span> <span class="o">**</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">conf_number</span></div>
+
+<div class="viewcode-block" id="ConfGen.genconfs_ETKDG"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.confgen.ConfGen.genconfs_ETKDG">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">genconfs_ETKDG</span><span class="p">(</span><span class="n">m</span><span class="p">:</span> <span class="n">Chem</span><span class="o">.</span><span class="n">Mol</span><span class="p">,</span> <span class="n">nconf</span><span class="p">,</span> <span class="n">nthreads</span><span class="p">,</span> <span class="n">rmsprune</span><span class="p">,</span> <span class="n">rngseed</span><span class="p">):</span>
+        <span class="c1"># confids = AllChem.EmbedMultipleConfs(m, numConfs=nconf, params=AllChem.ETKDG(), pruneRmsThresh=rmsprune,</span>
+        <span class="c1">#                                  numThreads=nthreads, randomSeed=rngseed)</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="n">AllChem</span><span class="o">.</span><span class="n">ETKDG</span><span class="p">()</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">numThreads</span> <span class="o">=</span> <span class="n">nthreads</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">randomSeed</span> <span class="o">=</span> <span class="n">rngseed</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">pruneRmsThresh</span> <span class="o">=</span> <span class="n">rmsprune</span>
+        <span class="n">confids</span> <span class="o">=</span> <span class="n">AllChem</span><span class="o">.</span><span class="n">EmbedMultipleConfs</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">numConfs</span><span class="o">=</span><span class="n">nconf</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">,</span> <span class="p">)</span>
+        <span class="k">return</span> <span class="n">m</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">confids</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ConfGen.cal_energy"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.confgen.ConfGen.cal_energy">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">cal_energy</span><span class="p">(</span><span class="n">m</span><span class="p">:</span> <span class="n">Chem</span><span class="o">.</span><span class="n">Mol</span><span class="p">,</span> <span class="n">cid</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">ff</span><span class="o">=</span><span class="s1">&#39;MMFF94s&#39;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="s1">&#39;MMFF&#39;</span> <span class="ow">in</span> <span class="n">ff</span><span class="p">:</span>
+            <span class="n">molecule_properties</span> <span class="o">=</span> <span class="n">AllChem</span><span class="o">.</span><span class="n">MMFFGetMoleculeProperties</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">mmffVariant</span><span class="o">=</span><span class="n">ff</span><span class="p">)</span>
+            <span class="n">force_field</span> <span class="o">=</span> <span class="n">AllChem</span><span class="o">.</span><span class="n">MMFFGetMoleculeForceField</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">molecule_properties</span><span class="p">,</span> <span class="n">confId</span><span class="o">=</span><span class="n">cid</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">force_field</span> <span class="o">=</span> <span class="n">AllChem</span><span class="o">.</span><span class="n">UFFGetMoleculeForceField</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">confId</span><span class="o">=</span><span class="n">cid</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">force_field</span><span class="o">.</span><span class="n">CalcEnergy</span><span class="p">())</span></div>
+
+<div class="viewcode-block" id="ConfGen.genconfs_prune_by_energy"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.confgen.ConfGen.genconfs_prune_by_energy">[docs]</a>    <span class="k">def</span> <span class="nf">genconfs_prune_by_energy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># energy in kcal/mol</span>
+        <span class="n">m</span><span class="p">,</span> <span class="n">confids</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">genconfs_ETKDG</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">m</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nconf</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nthread</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">prune_in_gen</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">rngseed</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">minimize</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s1">&#39;MMFF&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ff</span><span class="p">:</span>
+                <span class="n">ff_results</span> <span class="o">=</span> <span class="n">AllChem</span><span class="o">.</span><span class="n">MMFFOptimizeMoleculeConfs</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">mmffVariant</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ff</span><span class="p">,</span> <span class="n">numThreads</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nthread</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="s1">&#39;UFF&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ff</span><span class="p">:</span>
+                <span class="n">ff_results</span> <span class="o">=</span> <span class="n">AllChem</span><span class="o">.</span><span class="n">UFFOptimizeMoleculeConfs</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">numThreads</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nthread</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">ConfGenError</span><span class="p">(</span><span class="s1">&#39;force field </span><span class="si">{}</span><span class="s1"> not understood!&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ff</span><span class="p">))</span>
+            <span class="n">energies</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">ff_results</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">energies</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cal_energy</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">cid</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ff</span><span class="p">)</span> <span class="k">for</span> <span class="n">cid</span> <span class="ow">in</span> <span class="n">confids</span><span class="p">]</span>
+        <span class="n">energies</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">energies</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">minenergy</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">energies</span><span class="p">)</span>
+        <span class="n">new</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">Mol</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+        <span class="n">new</span><span class="o">.</span><span class="n">RemoveAllConformers</span><span class="p">()</span>
+        <span class="n">new_energies</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">confids</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">energies</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">minenergy</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">prune_by_energy</span><span class="p">:</span>
+                <span class="n">conf</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">GetConformer</span><span class="p">(</span><span class="n">confids</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+                <span class="n">new</span><span class="o">.</span><span class="n">AddConformer</span><span class="p">(</span><span class="n">conf</span><span class="p">,</span> <span class="n">assignId</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">new_energies</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">energies</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">new</span><span class="p">,</span> <span class="n">new_energies</span></div>
+
+<div class="viewcode-block" id="ConfGen.prune_by_rmsd"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.confgen.ConfGen.prune_by_rmsd">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">prune_by_rmsd</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">energies</span><span class="p">,</span> <span class="n">max_conformers</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rmsd_threshold</span><span class="o">=</span><span class="mf">0.5</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        conformer in m should be assigned consecutive ids with delta=1</span>
+
+<span class="sd">        :param energies:</span>
+<span class="sd">        :param m:</span>
+<span class="sd">        :param max_conformers:</span>
+<span class="sd">        :param rmsd_threshold:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">rmsd_condensed</span> <span class="o">=</span> <span class="n">AllChem</span><span class="o">.</span><span class="n">GetConformerRMSMatrix</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+        <span class="c1"># rmsd_condensed = ConfGen.GetBestRMSMatrix(m)</span>
+        <span class="k">if</span> <span class="n">max_conformers</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">max_conformers</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">GetConformers</span><span class="p">())</span>
+        <span class="c1"># Returns the RMS matrix of the conformers of a molecule.</span>
+        <span class="c1"># As a side-effect, the conformers will be aligned to the first conformer (i.e. the reference)</span>
+        <span class="c1"># and will left in the aligned state.</span>
+        <span class="kn">from</span> <span class="nn">scipy.spatial.distance</span> <span class="kn">import</span> <span class="n">squareform</span>
+        <span class="n">rmsd_mat</span> <span class="o">=</span> <span class="n">squareform</span><span class="p">(</span><span class="n">rmsd_condensed</span><span class="p">)</span>
+        <span class="c1"># print(rmsd_mat[0,2])</span>
+        <span class="c1"># print(ConfGen.GetBestRMSConf(m, 0, 2))</span>
+        <span class="c1"># print(ConfGen.GetBestRMSConf(m, 2, 0))</span>
+        <span class="n">atom_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">GetSymbol</span><span class="p">()</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">m</span><span class="o">.</span><span class="n">GetAtoms</span><span class="p">()]</span>
+        <span class="c1"># RdFunc.conf2xyz(m.GetConformer(2), &#39;2.xyz&#39;, atom_list, &#39;2&#39;)</span>
+        <span class="c1"># RdFunc.conf2xyz(m.GetConformer(0), &#39;0.xyz&#39;, atom_list, &#39;0&#39;)</span>
+        <span class="n">keep</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">discard</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">confids</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">m</span><span class="o">.</span><span class="n">GetConformers</span><span class="p">():</span>
+            <span class="n">cid</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">GetId</span><span class="p">()</span>
+            <span class="n">confids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cid</span><span class="p">)</span>
+            <span class="c1"># always keep lowest-energy conformer</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">keep</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">keep</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cid</span><span class="p">)</span>
+                <span class="k">continue</span>
+
+            <span class="c1"># discard conformers after max_conformers is reached</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">keep</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">max_conformers</span><span class="p">:</span>
+                <span class="n">discard</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cid</span><span class="p">)</span>
+                <span class="k">continue</span>
+
+            <span class="c1"># get RMSD to selected conformers</span>
+            <span class="n">this_rmsd</span> <span class="o">=</span> <span class="n">rmsd_mat</span><span class="p">[</span><span class="n">cid</span><span class="p">][</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">keep</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)]</span>
+
+            <span class="c1"># discard conformers within the RMSD threshold</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">this_rmsd</span> <span class="o">&gt;=</span> <span class="n">rmsd_threshold</span><span class="p">):</span>
+                <span class="n">keep</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cid</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">discard</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cid</span><span class="p">)</span>
+        <span class="n">m_after_prune</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">Mol</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+        <span class="n">m_after_prune</span><span class="o">.</span><span class="n">RemoveAllConformers</span><span class="p">()</span>
+        <span class="n">n_energies</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">keep</span><span class="p">:</span>
+            <span class="n">conf</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">GetConformer</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+            <span class="n">n_energies</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">energies</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="n">m_after_prune</span><span class="o">.</span><span class="n">AddConformer</span><span class="p">(</span><span class="n">conf</span><span class="p">,</span> <span class="n">assignId</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">m_after_prune</span><span class="p">,</span> <span class="n">n_energies</span></div>
+
+<div class="viewcode-block" id="ConfGen.GetBestRMSConf"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.confgen.ConfGen.GetBestRMSConf">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">GetBestRMSConf</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">rdkit.Chem.rdMolAlign</span> <span class="kn">import</span> <span class="n">GetBestRMS</span>
+        <span class="c1"># Chem.AssignStereochemistry(mol,cleanIt=True,force=True,flagPossibleStereoCenters=True)</span>
+        <span class="n">mol_prob</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">Mol</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>
+        <span class="c1"># from collections import defaultdict</span>
+        <span class="c1"># equivs = defaultdict(set)</span>
+        <span class="c1"># matches = m.GetSubstructMatches(m,uniquify=False)</span>
+        <span class="c1"># for match in matches:</span>
+        <span class="c1">#     for idx1,idx2 in enumerate(match): equivs[idx1].add(idx2)</span>
+        <span class="c1"># print(equivs)</span>
+
+
+        <span class="c1"># from copy import deepcopy</span>
+        <span class="c1"># mol_prob = deepcopy(mol)</span>
+        <span class="c1"># map = [[(a.GetIdx(), a.GetIdx()) for a in mol.GetAtoms()]]</span>
+        <span class="c1"># [atom.GetProp(&#39;_CIPRank&#39;) for atom in m.GetAtoms()]</span>
+        <span class="c1"># map = []</span>
+        <span class="c1"># for a in mol.GetAtoms():</span>
+        <span class="c1">#     symm_eqs = [a.GetIdx()]</span>
+        <span class="c1">#     for b in mol.GetAtoms():</span>
+        <span class="c1">#         if b.GetIdx() != a.GetIdx() and a.GetProp(&#39;_CIPRank&#39;) == b.GetProp(&#39;_CIPRank&#39;):</span>
+        <span class="c1">#             symm_eqs.append(b.GetIdx())</span>
+        <span class="c1">#     map.append(symm_eqs)</span>
+        <span class="c1"># print(map)</span>
+        <span class="c1"># combs = []</span>
+        <span class="c1"># for i in range(len(map)):</span>
+        <span class="c1">#     possible_ids = map[i]</span>
+        <span class="c1">#     for pid in possible_ids:</span>
+        <span class="c1">#         if pid not in combs:</span>
+        <span class="c1">#             combs.append(pid)</span>
+        <span class="c1">#             break</span>
+        <span class="c1"># import itertools</span>
+        <span class="c1"># map = list(itertools.product(*map))</span>
+        <span class="c1"># print(len(map))</span>
+        <span class="c1"># print([a.GetSymbol() for a in mol.GetAtoms()])</span>
+        <span class="c1"># print(map)</span>
+        <span class="k">return</span> <span class="n">GetBestRMS</span><span class="p">(</span><span class="n">mol_prob</span><span class="p">,</span> <span class="n">mol</span><span class="p">,</span> <span class="n">prbId</span><span class="o">=</span><span class="n">j</span><span class="p">,</span> <span class="n">refId</span><span class="o">=</span><span class="n">i</span><span class="p">,)</span><span class="c1"># maxMatches=2000000)</span></div>
+
+
+<div class="viewcode-block" id="ConfGen.GetBestRMSMatrix"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.confgen.ConfGen.GetBestRMSMatrix">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">GetBestRMSMatrix</span><span class="p">(</span><span class="n">mol</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        the problem of AllChem.GetConformerRMSMatrix(m) is that it uses AlignMolConformers</span>
+<span class="sd">        this assumes atom order is the same, which may not be the case if the molecule has symmetry</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">rdkit.Chem.rdMolAlign</span> <span class="kn">import</span> <span class="n">GetBestRMS</span>
+        <span class="n">mol_prob</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">Mol</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>
+        <span class="n">rmsvals</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">confIds</span> <span class="o">=</span> <span class="p">[</span><span class="n">conf</span><span class="o">.</span><span class="n">GetId</span><span class="p">()</span> <span class="k">for</span> <span class="n">conf</span> <span class="ow">in</span> <span class="n">mol</span><span class="o">.</span><span class="n">GetConformers</span><span class="p">()]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">confIds</span><span class="p">)):</span>
+            <span class="n">rmsvals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="n">GetBestRMS</span><span class="p">(</span><span class="n">mol_prob</span><span class="p">,</span> <span class="n">mol</span><span class="p">,</span> <span class="n">prbId</span><span class="o">=</span><span class="n">i</span><span class="p">,</span> <span class="n">refId</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="c1"># loop over the conformations (except the reference one)</span>
+        <span class="n">cmat</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">confIds</span><span class="p">)):</span>
+            <span class="n">cmat</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rmsvals</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">])</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span>
+                <span class="n">cmat</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">GetBestRMS</span><span class="p">(</span><span class="n">mol_prob</span><span class="p">,</span> <span class="n">mol</span><span class="p">,</span> <span class="n">prbId</span><span class="o">=</span><span class="n">j</span><span class="p">,</span> <span class="n">refId</span><span class="o">=</span><span class="n">i</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">cmat</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ConfGen.cluster_by_rmsd"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.confgen.ConfGen.cluster_by_rmsd">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">cluster_by_rmsd</span><span class="p">(</span><span class="n">m</span><span class="p">:</span> <span class="n">Chem</span><span class="o">.</span><span class="n">Mol</span><span class="p">,</span> <span class="n">energies</span><span class="p">,</span> <span class="n">rmsd_threshold</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        conformer in m should be assigned consecutive ids with delta=1</span>
+
+<span class="sd">        :param energies:</span>
+<span class="sd">        :param m:</span>
+<span class="sd">        :param rmsd_threshold:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">rmsd_condensed</span> <span class="o">=</span> <span class="n">AllChem</span><span class="o">.</span><span class="n">GetConformerRMSMatrix</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+        <span class="c1"># rmsd_condensed = ConfGen.GetBestRMSMatrix(m)</span>
+        <span class="kn">from</span> <span class="nn">rdkit.ML.Cluster.Butina</span> <span class="kn">import</span> <span class="n">ClusterData</span>
+        <span class="n">clusters</span> <span class="o">=</span> <span class="n">ClusterData</span><span class="p">(</span><span class="n">rmsd_condensed</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">GetConformers</span><span class="p">()),</span> <span class="n">distThresh</span><span class="o">=</span><span class="n">rmsd_threshold</span><span class="p">,</span> <span class="n">isDistData</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">m_after_prune</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">Mol</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+        <span class="n">m_after_prune</span><span class="o">.</span><span class="n">RemoveAllConformers</span><span class="p">()</span>
+        <span class="n">n_energies</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">clusters</span><span class="p">:</span>
+            <span class="n">conf</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">GetConformer</span><span class="p">(</span><span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">n_energies</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">energies</span><span class="p">[</span><span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">]])</span>
+            <span class="n">m_after_prune</span><span class="o">.</span><span class="n">AddConformer</span><span class="p">(</span><span class="n">conf</span><span class="p">,</span> <span class="n">assignId</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">m_after_prune</span><span class="p">,</span> <span class="n">n_energies</span></div>
+
+<div class="viewcode-block" id="ConfGen.genconfs"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.confgen.ConfGen.genconfs">[docs]</a>    <span class="k">def</span> <span class="nf">genconfs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">flavor</span><span class="o">=</span><span class="s2">&quot;prune&quot;</span><span class="p">,</span> <span class="n">write_confs</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">prune_max_conformer</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">rmsd_threshold</span><span class="o">=</span><span class="mf">0.5</span><span class="p">):</span>
+        <span class="n">m_prune_by_eng</span><span class="p">,</span> <span class="n">energies</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">genconfs_prune_by_energy</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">flavor</span> <span class="o">==</span> <span class="s2">&quot;prune&quot;</span><span class="p">:</span>
+            <span class="n">m_after</span><span class="p">,</span> <span class="n">e_after</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prune_by_rmsd</span><span class="p">(</span><span class="n">m_prune_by_eng</span><span class="p">,</span> <span class="n">energies</span><span class="o">=</span><span class="n">energies</span><span class="p">,</span> <span class="n">max_conformers</span><span class="o">=</span><span class="n">prune_max_conformer</span><span class="p">,</span>
+                                                  <span class="n">rmsd_threshold</span><span class="o">=</span><span class="n">rmsd_threshold</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">flavor</span> <span class="o">==</span> <span class="s1">&#39;cluster&#39;</span><span class="p">:</span>
+            <span class="n">m_after</span><span class="p">,</span> <span class="n">e_after</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster_by_rmsd</span><span class="p">(</span><span class="n">m_prune_by_eng</span><span class="p">,</span> <span class="n">energies</span><span class="o">=</span><span class="n">energies</span><span class="p">,</span>
+                                                    <span class="n">rmsd_threshold</span><span class="o">=</span><span class="n">rmsd_threshold</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ConfGenError</span><span class="p">(</span><span class="s1">&#39;flavor </span><span class="si">{}</span><span class="s1"> not understood&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">flavor</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">write_confs</span><span class="p">:</span>
+            <span class="n">atom_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">GetSymbol</span><span class="p">()</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">m_after</span><span class="o">.</span><span class="n">GetAtoms</span><span class="p">()]</span>
+            <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">m_after</span><span class="o">.</span><span class="n">GetConformers</span><span class="p">():</span>
+                <span class="n">cid</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">GetId</span><span class="p">()</span>
+                <span class="n">energy</span> <span class="o">=</span> <span class="n">e_after</span><span class="p">[</span><span class="n">cid</span><span class="p">]</span>
+                <span class="n">comment</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> energy: </span><span class="si">{:.4f}</span><span class="s1"> kcal/mol&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ff</span><span class="p">,</span> <span class="n">energy</span><span class="p">)</span>
+                <span class="n">RdFunc</span><span class="o">.</span><span class="n">conf2xyz</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">_</span><span class="si">{}</span><span class="s2">.xyz&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mol_name</span><span class="p">,</span> <span class="n">cid</span><span class="p">),</span> <span class="n">atom_list</span><span class="p">,</span> <span class="n">comment</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">m_after</span><span class="p">,</span> <span class="n">e_after</span></div>
+
+<div class="viewcode-block" id="ConfGen.show_confs_diversity"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.confgen.ConfGen.show_confs_diversity">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">show_confs_diversity</span><span class="p">(</span><span class="n">m</span><span class="p">:</span> <span class="n">Chem</span><span class="o">.</span><span class="n">Mol</span><span class="p">,</span> <span class="n">energies</span><span class="p">:</span> <span class="p">[</span><span class="nb">float</span><span class="p">]):</span>
+        <span class="c1"># TODO find a way to display the diversity in/clusters of the conformers generated</span>
+        <span class="c1">#  m should be a rdkit molecule with conformers generated and confomer ids assigned</span>
+        <span class="c1">#  s.t. energies[conformer_id] = energy</span>
+        <span class="c1">#  possible descriptor of diversity:</span>
+        <span class="c1">#       energies,</span>
+        <span class="c1">#       shape descriptors, e.g. AllChem.ShapeTanimotoDist</span>
+        <span class="c1">#       rmsd spread, e.g. https://www.rdkit.org/docs/Cookbook.html#rmsd-calculation-between-n-molecules</span>
+        <span class="c1">#       dimension reduction method for rmsd matrix, e.g. http://sketchmap.org/</span>
+        <span class="c1">#  notice we can take the advantage that all conformers share the same molecule, i.e. atom order does not matter</span>
+        <span class="k">pass</span></div></div>
+
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Ai, Qianxiang
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

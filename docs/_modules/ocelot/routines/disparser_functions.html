@@ -1,0 +1,537 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ocelot.routines.disparser_functions &mdash; ocelot 0.2 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> ocelot
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#schema">schema</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#disorder">Disorder</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#bone-config">Bone Config</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#backbone-and-sidechain">Backbone and Sidechain</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ocelot.html">ocelot package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">ocelot</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>ocelot.routines.disparser_functions</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ocelot.routines.disparser_functions</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">itertools</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
+
+<span class="kn">import</span> <span class="nn">networkx</span> <span class="k">as</span> <span class="nn">nx</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">pymatgen.core.operations</span> <span class="kn">import</span> <span class="n">SymmOp</span>
+<span class="kn">from</span> <span class="nn">pymatgen.core.periodic_table</span> <span class="kn">import</span> <span class="n">Element</span>
+<span class="kn">from</span> <span class="nn">pymatgen.core.structure</span> <span class="kn">import</span> <span class="n">PeriodicSite</span>
+<span class="kn">from</span> <span class="nn">pymatgen.io.cif</span> <span class="kn">import</span> <span class="n">CifFile</span>
+<span class="kn">from</span> <span class="nn">pymatgen.io.cif</span> <span class="kn">import</span> <span class="n">_get_cod_data</span>
+<span class="kn">from</span> <span class="nn">pymatgen.io.cif</span> <span class="kn">import</span> <span class="n">str2float</span>
+<span class="kn">from</span> <span class="nn">pymatgen.io.cif</span> <span class="kn">import</span> <span class="n">sub_spgrp</span>
+<span class="kn">from</span> <span class="nn">pymatgen.symmetry.groups</span> <span class="kn">import</span> <span class="n">SYMM_DATA</span>
+<span class="kn">from</span> <span class="nn">pymatgen.symmetry.groups</span> <span class="kn">import</span> <span class="n">SpaceGroup</span>
+<span class="kn">from</span> <span class="nn">pymatgen.util.coord</span> <span class="kn">import</span> <span class="n">pbc_shortest_vectors</span>
+<span class="kn">from</span> <span class="nn">scipy.spatial.distance</span> <span class="kn">import</span> <span class="n">cdist</span>
+
+<span class="kn">from</span> <span class="nn">ocelot.routines.pbc</span> <span class="kn">import</span> <span class="n">PBCparser</span>
+
+
+<div class="viewcode-block" id="CifFileError"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.disparser_functions.CifFileError">[docs]</a><span class="k">class</span> <span class="nc">CifFileError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span> <span class="k">pass</span></div>
+
+<span class="n">possible_symm_labels</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;_symmetry_equiv_pos_as_xyz&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;_symmetry_equiv_pos_as_xyz_&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;_space_group_symop_operation_xyz&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;_space_group_symop_operation_xyz_&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;_symmetry_space_group_name_H-M&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;_symmetry_space_group_name_H_M&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;_symmetry_space_group_name_H-M_&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;_symmetry_space_group_name_H_M_&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;_space_group_name_Hall&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;_space_group_name_Hall_&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;_space_group_name_H-M_alt&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;_space_group_name_H-M_alt_&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;_symmetry_space_group_name_hall&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;_symmetry_space_group_name_hall_&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;_symmetry_space_group_name_h-m&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;_symmetry_space_group_name_h-m_&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;_space_group_IT_number&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;_space_group_IT_number_&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;_symmetry_Int_Tables_number&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;_symmetry_Int_Tables_number_&quot;</span><span class="p">]</span>
+
+<span class="n">latt_labels</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;_cell_length_a&#39;</span><span class="p">,</span> <span class="s1">&#39;_cell_length_b&#39;</span><span class="p">,</span> <span class="s1">&#39;_cell_length_c&#39;</span><span class="p">,</span> <span class="s1">&#39;_cell_angle_alpha&#39;</span><span class="p">,</span> <span class="s1">&#39;_cell_angle_beta&#39;</span><span class="p">,</span> <span class="s1">&#39;_cell_angle_gamma&#39;</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="n">chemistry_labels</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;_cell_formula_units_Z&#39;</span><span class="p">,</span> <span class="s1">&#39;_chemical_formula_moiety&#39;</span><span class="p">,</span> <span class="s1">&#39;_chemical_formula_sum&#39;</span>
+<span class="p">]</span>
+
+<span class="n">coord_labels</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;_atom_site_label&#39;</span><span class="p">,</span> <span class="s1">&#39;_atom_site_type_symbol&#39;</span><span class="p">,</span> <span class="s1">&#39;_atom_site_fract_x&#39;</span><span class="p">,</span> <span class="s1">&#39;_atom_site_fract_y&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;_atom_site_fract_z&#39;</span>
+<span class="p">]</span>
+
+<span class="n">disorder_labels</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;_atom_site_occupancy&#39;</span><span class="p">,</span> <span class="s1">&#39;_atom_site_disorder_group&#39;</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="n">space_groups</span> <span class="o">=</span> <span class="p">{</span><span class="n">sub_spgrp</span><span class="p">(</span><span class="n">k</span><span class="p">):</span> <span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">SYMM_DATA</span><span class="p">[</span><span class="s1">&#39;space_group_encoding&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()}</span>
+<span class="n">space_groups</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">sub_spgrp</span><span class="p">(</span><span class="n">k</span><span class="p">):</span> <span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">SYMM_DATA</span><span class="p">[</span><span class="s1">&#39;space_group_encoding&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()})</span>
+
+
+<div class="viewcode-block" id="get_pmg_dict"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.disparser_functions.get_pmg_dict">[docs]</a><span class="k">def</span> <span class="nf">get_pmg_dict</span><span class="p">(</span><span class="n">cifstring</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    use pmg dict to parse cifstring, only deal with one structure per file</span>
+
+<span class="sd">    :param cifstring:</span>
+<span class="sd">    :return:</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cifdata</span> <span class="o">=</span> <span class="n">CifFile</span><span class="o">.</span><span class="n">from_string</span><span class="p">(</span><span class="n">cifstring</span><span class="p">)</span><span class="o">.</span><span class="n">data</span>
+    <span class="n">idnetifiers</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">cifdata</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">idnetifiers</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;W: find more than 1 structures in this cif file!&#39;</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">idnetifiers</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;W: no structure found by pymatgen parser!&#39;</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">identifier</span> <span class="o">=</span> <span class="n">idnetifiers</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">CifFileError</span><span class="p">(</span><span class="s1">&#39;no identifier found in the ciffile!&#39;</span><span class="p">)</span>
+    <span class="n">pymatgen_dict</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">cifdata</span><span class="o">.</span><span class="n">items</span><span class="p">())[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">data</span>
+
+    <span class="c1"># jmol writes &#39;_atom_site_type_symbol&#39;, but not &#39;_atom_site_label&#39;</span>
+    <span class="k">if</span> <span class="s1">&#39;_atom_site_label&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">pymatgen_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;W: _atom_site_label not found in parsed dict&#39;</span><span class="p">)</span>
+        <span class="n">atom_site_label</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">symbols</span> <span class="o">=</span> <span class="n">pymatgen_dict</span><span class="p">[</span><span class="s1">&#39;_atom_site_type_symbol&#39;</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">symbols</span><span class="p">)):</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="n">symbols</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">atom_site_label</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">i</span><span class="p">))</span>
+        <span class="n">pymatgen_dict</span><span class="p">[</span><span class="s1">&#39;_atom_site_label&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">atom_site_label</span>
+    <span class="k">return</span> <span class="n">identifier</span><span class="p">,</span> <span class="n">pymatgen_dict</span></div>
+
+
+<div class="viewcode-block" id="apply_symmop"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.disparser_functions.apply_symmop">[docs]</a><span class="k">def</span> <span class="nf">apply_symmop</span><span class="p">(</span><span class="n">psites</span><span class="p">,</span> <span class="n">ops</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    symmop and xyz in cif file:</span>
+
+<span class="sd">    lets say xyz -- op1 --&gt; x&#39;y&#39;z&#39; and xyz -- op2 --&gt; x!y!z! and</span>
+<span class="sd">    it is possible to have x&#39;y&#39;z&#39; is_close x!y!z!</span>
+
+<span class="sd">    this means one should take only x&#39;y&#39;z&#39; or x!y!z!, aka op1 is equivalent to op2 due to the symmetry implicated by</span>
+<span class="sd">    xyz/the asymmectric unit, e.g. ALOVOO.cif -- Z=2, asymmectric unit given by cif is one molecule, but there&#39;re 4 ops</span>
+
+<span class="sd">    so we need first check if the cif file behaves like this</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">op_xyzs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">op</span> <span class="ow">in</span> <span class="n">ops</span><span class="p">:</span>
+        <span class="n">n_xyzs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">ps</span> <span class="ow">in</span> <span class="n">psites</span><span class="p">:</span>
+            <span class="n">new_coord</span> <span class="o">=</span> <span class="n">op</span><span class="o">.</span><span class="n">operate</span><span class="p">(</span><span class="n">ps</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">)</span>
+            <span class="c1"># new_coord = np.array([i - math.floor(i) for i in new_coord])</span>
+            <span class="n">n_xyzs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_coord</span><span class="p">)</span>
+        <span class="n">op_xyzs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">n_xyzs</span><span class="p">)</span>
+
+    <span class="n">latt</span> <span class="o">=</span> <span class="n">psites</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">lattice</span>
+
+    <span class="k">def</span> <span class="nf">pbc_dist</span><span class="p">(</span><span class="n">fc1</span><span class="p">,</span> <span class="n">fc2</span><span class="p">,</span> <span class="n">lattice</span><span class="p">):</span>
+        <span class="n">v</span><span class="p">,</span> <span class="n">d2</span> <span class="o">=</span> <span class="n">pbc_shortest_vectors</span><span class="p">(</span><span class="n">lattice</span><span class="p">,</span> <span class="n">fc1</span><span class="p">,</span> <span class="n">fc2</span><span class="p">,</span> <span class="n">return_d2</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">d2</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+
+    <span class="k">def</span> <span class="nf">pbc_distmat</span><span class="p">(</span><span class="n">fcl1</span><span class="p">,</span> <span class="n">fcl2</span><span class="p">):</span>
+        <span class="n">distmat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">fcl1</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">fcl1</span><span class="p">)))</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">fcl1</span><span class="p">)):</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">fcl1</span><span class="p">)):</span>
+                <span class="n">distmat</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">pbc_dist</span><span class="p">(</span><span class="n">fcl1</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">fcl2</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">latt</span><span class="p">)</span>
+                <span class="n">distmat</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">distmat</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">distmat</span>
+
+    <span class="k">def</span> <span class="nf">two_xyzs_close</span><span class="p">(</span><span class="n">xyzs1</span><span class="p">,</span> <span class="n">xyzs2</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">):</span>
+        <span class="n">dmat</span> <span class="o">=</span> <span class="n">pbc_distmat</span><span class="p">(</span><span class="n">xyzs1</span><span class="p">,</span> <span class="n">xyzs2</span><span class="p">)</span>
+        <span class="n">almost_zeros</span> <span class="o">=</span> <span class="n">dmat</span><span class="p">[(</span><span class="n">dmat</span> <span class="o">&lt;</span> <span class="n">tol</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">almost_zeros</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="n">op_identities</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">ops</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">ops</span><span class="p">)),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">combinations</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ops</span><span class="p">)),</span> <span class="mi">2</span><span class="p">):</span>
+        <span class="n">ixyzs</span> <span class="o">=</span> <span class="n">op_xyzs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">jxyzs</span> <span class="o">=</span> <span class="n">op_xyzs</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">two_xyzs_close</span><span class="p">(</span><span class="n">ixyzs</span><span class="p">,</span> <span class="n">jxyzs</span><span class="p">):</span>
+            <span class="n">op_identities</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">op_identities</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="n">groups</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">0</span><span class="p">]]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ops</span><span class="p">)):</span>
+        <span class="k">for</span> <span class="n">ig</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">groups</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">op_identities</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">groups</span><span class="p">[</span><span class="n">ig</span><span class="p">]):</span>
+                <span class="n">groups</span><span class="p">[</span><span class="n">ig</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="n">item</span> <span class="k">for</span> <span class="n">sublist</span> <span class="ow">in</span> <span class="n">groups</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">sublist</span><span class="p">]:</span>
+            <span class="n">groups</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">i</span><span class="p">])</span>
+    <span class="n">unique_ops</span> <span class="o">=</span> <span class="p">[</span><span class="n">ops</span><span class="p">[</span><span class="n">g</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">groups</span><span class="p">]</span>
+
+    <span class="n">new_psites</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">ps</span> <span class="ow">in</span> <span class="n">psites</span><span class="p">:</span>
+        <span class="n">iasym</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">op</span> <span class="ow">in</span> <span class="n">unique_ops</span><span class="p">:</span>
+            <span class="n">new_coord</span> <span class="o">=</span> <span class="n">op</span><span class="o">.</span><span class="n">operate</span><span class="p">(</span><span class="n">ps</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">)</span>
+            <span class="n">new_coord</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">i</span> <span class="o">-</span> <span class="n">math</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">new_coord</span><span class="p">])</span>
+            <span class="n">new_properties</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">ps</span><span class="o">.</span><span class="n">properties</span><span class="p">)</span>
+            <span class="n">new_properties</span><span class="p">[</span><span class="s1">&#39;iasym&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">iasym</span>
+            <span class="n">new_ps</span> <span class="o">=</span> <span class="n">PeriodicSite</span><span class="p">(</span><span class="n">ps</span><span class="o">.</span><span class="n">species_string</span><span class="p">,</span> <span class="n">new_coord</span><span class="p">,</span> <span class="n">ps</span><span class="o">.</span><span class="n">lattice</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">new_properties</span><span class="p">))</span>
+            <span class="n">new_psites</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_ps</span><span class="p">)</span>
+            <span class="n">iasym</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="k">return</span> <span class="n">new_psites</span><span class="p">,</span> <span class="n">unique_ops</span></div>
+
+
+<div class="viewcode-block" id="braket2float"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.disparser_functions.braket2float">[docs]</a><span class="k">def</span> <span class="nf">braket2float</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">str2float</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;cannot parse </span><span class="si">{}</span><span class="s1"> into float&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">s</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="get_symmop"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.disparser_functions.get_symmop">[docs]</a><span class="k">def</span> <span class="nf">get_symmop</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+    <span class="n">symops</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">symmetry_label</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;_symmetry_equiv_pos_as_xyz&quot;</span><span class="p">,</span>
+                           <span class="s2">&quot;_symmetry_equiv_pos_as_xyz_&quot;</span><span class="p">,</span>
+                           <span class="s2">&quot;_space_group_symop_operation_xyz&quot;</span><span class="p">,</span>
+                           <span class="s2">&quot;_space_group_symop_operation_xyz_&quot;</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">symmetry_label</span><span class="p">):</span>
+            <span class="n">xyz</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">symmetry_label</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">xyz</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;A 1-line symmetry op P1 CIF is detected!&quot;</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+                <span class="n">xyz</span> <span class="o">=</span> <span class="p">[</span><span class="n">xyz</span><span class="p">]</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">symops</span> <span class="o">=</span> <span class="p">[</span><span class="n">SymmOp</span><span class="o">.</span><span class="n">from_xyz_string</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+                          <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">xyz</span><span class="p">]</span>
+                <span class="k">break</span>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                <span class="k">continue</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">symops</span><span class="p">:</span>
+        <span class="c1"># Try to parse symbol</span>
+        <span class="k">for</span> <span class="n">symmetry_label</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;_symmetry_space_group_name_H-M&quot;</span><span class="p">,</span>
+                               <span class="s2">&quot;_symmetry_space_group_name_H_M&quot;</span><span class="p">,</span>
+                               <span class="s2">&quot;_symmetry_space_group_name_H-M_&quot;</span><span class="p">,</span>
+                               <span class="s2">&quot;_symmetry_space_group_name_H_M_&quot;</span><span class="p">,</span>
+                               <span class="s2">&quot;_space_group_name_Hall&quot;</span><span class="p">,</span>
+                               <span class="s2">&quot;_space_group_name_Hall_&quot;</span><span class="p">,</span>
+                               <span class="s2">&quot;_space_group_name_H-M_alt&quot;</span><span class="p">,</span>
+                               <span class="s2">&quot;_space_group_name_H-M_alt_&quot;</span><span class="p">,</span>
+                               <span class="s2">&quot;_symmetry_space_group_name_hall&quot;</span><span class="p">,</span>
+                               <span class="s2">&quot;_symmetry_space_group_name_hall_&quot;</span><span class="p">,</span>
+                               <span class="s2">&quot;_symmetry_space_group_name_h-m&quot;</span><span class="p">,</span>
+                               <span class="s2">&quot;_symmetry_space_group_name_h-m_&quot;</span><span class="p">]:</span>
+            <span class="n">sg</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">symmetry_label</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">sg</span><span class="p">:</span>
+                <span class="n">sg</span> <span class="o">=</span> <span class="n">sub_spgrp</span><span class="p">(</span><span class="n">sg</span><span class="p">)</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">spg</span> <span class="o">=</span> <span class="n">space_groups</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">sg</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">spg</span><span class="p">:</span>
+                        <span class="n">symops</span> <span class="o">=</span> <span class="n">SpaceGroup</span><span class="p">(</span><span class="n">spg</span><span class="p">)</span><span class="o">.</span><span class="n">symmetry_ops</span>
+                        <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;No _symmetry_equiv_pos_as_xyz type key found. &quot;</span> \
+                              <span class="s2">&quot;Spacegroup from </span><span class="si">%s</span><span class="s2"> used.&quot;</span> <span class="o">%</span> <span class="n">symmetry_label</span>
+                        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+                        <span class="k">break</span>
+                <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                    <span class="c1"># Ignore any errors</span>
+                    <span class="k">pass</span>
+
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">_get_cod_data</span><span class="p">():</span>
+                        <span class="k">if</span> <span class="n">sg</span> <span class="o">==</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;\s+&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+                                        <span class="n">d</span><span class="p">[</span><span class="s2">&quot;hermann_mauguin&quot;</span><span class="p">]):</span>
+                            <span class="n">xyz</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;symops&quot;</span><span class="p">]</span>
+                            <span class="n">symops</span> <span class="o">=</span> <span class="p">[</span><span class="n">SymmOp</span><span class="o">.</span><span class="n">from_xyz_string</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+                                      <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">xyz</span><span class="p">]</span>
+                            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;No _symmetry_equiv_pos_as_xyz type key found. &quot;</span> \
+                                  <span class="s2">&quot;Spacegroup from </span><span class="si">%s</span><span class="s2"> used.&quot;</span> <span class="o">%</span> <span class="n">symmetry_label</span>
+                            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+                            <span class="k">break</span>
+                <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                    <span class="k">continue</span>
+
+                <span class="k">if</span> <span class="n">symops</span><span class="p">:</span>
+                    <span class="k">break</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">symops</span><span class="p">:</span>
+        <span class="c1"># Try to parse International number</span>
+        <span class="k">for</span> <span class="n">symmetry_label</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;_space_group_IT_number&quot;</span><span class="p">,</span>
+                               <span class="s2">&quot;_space_group_IT_number_&quot;</span><span class="p">,</span>
+                               <span class="s2">&quot;_symmetry_Int_Tables_number&quot;</span><span class="p">,</span>
+                               <span class="s2">&quot;_symmetry_Int_Tables_number_&quot;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">symmetry_label</span><span class="p">):</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">i</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">braket2float</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">symmetry_label</span><span class="p">)))</span>
+                    <span class="n">symops</span> <span class="o">=</span> <span class="n">SpaceGroup</span><span class="o">.</span><span class="n">from_int_number</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">.</span><span class="n">symmetry_ops</span>
+                    <span class="k">break</span>
+                <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                    <span class="k">continue</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">symops</span><span class="p">:</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;No _symmetry_equiv_pos_as_xyz type key found. &quot;</span> \
+              <span class="s2">&quot;Defaulting to P1.&quot;</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="n">symops</span> <span class="o">=</span> <span class="p">[</span><span class="n">SymmOp</span><span class="o">.</span><span class="n">from_xyz_string</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;z&#39;</span><span class="p">]]</span>
+
+    <span class="k">return</span> <span class="n">symops</span></div>
+
+
+<div class="viewcode-block" id="get_connected_pblock"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.disparser_functions.get_connected_pblock">[docs]</a><span class="k">def</span> <span class="nf">get_connected_pblock</span><span class="p">(</span><span class="n">pblocks</span><span class="p">,</span> <span class="n">cutoff</span><span class="o">=</span><span class="mf">4.0</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">get_coords</span><span class="p">(</span><span class="n">pb</span><span class="p">:</span> <span class="p">[</span><span class="n">PeriodicSite</span><span class="p">]):</span>
+        <span class="n">coords</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">pb</span><span class="p">),</span> <span class="mi">3</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">pb</span><span class="p">)):</span>
+            <span class="n">coords</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">pb</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">coords</span>
+        <span class="k">return</span> <span class="n">coords</span>
+
+    <span class="k">def</span> <span class="nf">get_shortest_distance_between_blocks</span><span class="p">(</span><span class="n">pb1</span><span class="p">,</span> <span class="n">pb2</span><span class="p">):</span>
+        <span class="n">pb1coords</span> <span class="o">=</span> <span class="n">get_coords</span><span class="p">(</span><span class="n">pb1</span><span class="p">)</span>
+        <span class="n">pb2coords</span> <span class="o">=</span> <span class="n">get_coords</span><span class="p">(</span><span class="n">pb2</span><span class="p">)</span>
+        <span class="n">distmat</span> <span class="o">=</span> <span class="n">cdist</span><span class="p">(</span><span class="n">pb1coords</span><span class="p">,</span> <span class="n">pb2coords</span><span class="p">)</span>
+        <span class="n">minid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unravel_index</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">distmat</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">),</span> <span class="n">distmat</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">distmat</span><span class="p">[</span><span class="n">minid</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">get_block_graph</span><span class="p">(</span><span class="n">distmat</span><span class="p">,</span> <span class="n">cutoff</span><span class="p">):</span>
+        <span class="n">g</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">distmat</span><span class="p">)):</span>
+            <span class="n">g</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">distmat</span><span class="p">)):</span>
+                <span class="n">g</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">distmat</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">cutoff</span><span class="p">:</span>
+                    <span class="n">g</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">g</span>
+
+    <span class="n">distmat_pblocks</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">pblocks</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">pblocks</span><span class="p">)))</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">pblocks</span><span class="p">)):</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">pblocks</span><span class="p">)):</span>
+            <span class="n">distmat_pblocks</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_shortest_distance_between_blocks</span><span class="p">(</span><span class="n">pblocks</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">pblocks</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
+            <span class="n">distmat_pblocks</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">distmat_pblocks</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span>
+    <span class="n">block_graph</span> <span class="o">=</span> <span class="n">get_block_graph</span><span class="p">(</span><span class="n">distmat_pblocks</span><span class="p">,</span> <span class="n">cutoff</span><span class="p">)</span>
+    <span class="n">connected_block_ids</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">connected_components</span><span class="p">(</span><span class="n">block_graph</span><span class="p">)</span>  <span class="c1"># [[1,3], [2, 4, 5], ...]</span>
+    <span class="n">merged_blocks</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">ids</span> <span class="ow">in</span> <span class="n">connected_block_ids</span><span class="p">:</span>
+        <span class="n">merged_block</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">ids</span><span class="p">:</span>
+            <span class="n">merged_block</span> <span class="o">+=</span> <span class="n">pblocks</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">merged_blocks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">merged_block</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">merged_blocks</span></div>
+
+
+<div class="viewcode-block" id="find_connected_psites"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.disparser_functions.find_connected_psites">[docs]</a><span class="k">def</span> <span class="nf">find_connected_psites</span><span class="p">(</span><span class="n">psites</span><span class="p">:</span> <span class="p">[</span><span class="n">PeriodicSite</span><span class="p">]):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    simplified version of percolation in unwrap</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">latt</span> <span class="o">=</span> <span class="n">psites</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">lattice</span>
+    <span class="n">pindices</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">psites</span><span class="p">))</span>
+    <span class="n">visited</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">block_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">visited</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">psites</span><span class="p">):</span>
+        <span class="c1"># initialization</span>
+        <span class="n">unvisited</span> <span class="o">=</span> <span class="p">[</span><span class="n">idx</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">pindices</span> <span class="k">if</span> <span class="n">idx</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">visited</span><span class="p">]</span>
+        <span class="n">ini_idx</span> <span class="o">=</span> <span class="n">unvisited</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">block</span> <span class="o">=</span> <span class="p">[</span><span class="n">ini_idx</span><span class="p">]</span>
+        <span class="n">pointer</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">while</span> <span class="n">pointer</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">block</span><span class="p">):</span>
+            <span class="n">outside</span> <span class="o">=</span> <span class="p">[</span><span class="n">idx</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">pindices</span> <span class="k">if</span> <span class="n">idx</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">block</span> <span class="ow">and</span> <span class="n">idx</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">visited</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">outside</span><span class="p">:</span>
+                <span class="n">distance</span><span class="p">,</span> <span class="n">fctrans</span> <span class="o">=</span> <span class="n">PBCparser</span><span class="o">.</span><span class="n">get_dist_and_trans</span><span class="p">(</span><span class="n">latt</span><span class="p">,</span>
+                                                                 <span class="n">psites</span><span class="p">[</span><span class="n">block</span><span class="p">[</span><span class="n">pointer</span><span class="p">]]</span><span class="o">.</span><span class="n">_frac_coords</span><span class="p">,</span>
+                                                                 <span class="n">psites</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">_frac_coords</span><span class="p">,</span> <span class="p">)</span>
+
+                <span class="n">cutoff</span> <span class="o">=</span> <span class="n">Element</span><span class="p">(</span><span class="n">psites</span><span class="p">[</span><span class="n">block</span><span class="p">[</span><span class="n">pointer</span><span class="p">]]</span><span class="o">.</span><span class="n">species_string</span><span class="p">)</span><span class="o">.</span><span class="n">atomic_radius</span> <span class="o">+</span> <span class="n">Element</span><span class="p">(</span>
+                    <span class="n">psites</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">species_string</span><span class="p">)</span><span class="o">.</span><span class="n">atomic_radius</span>
+                <span class="n">cutoff</span> <span class="o">*=</span> <span class="mf">1.3</span>
+                <span class="k">if</span> <span class="n">distance</span> <span class="o">&lt;</span> <span class="n">cutoff</span><span class="p">:</span>
+                    <span class="n">block</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+            <span class="n">visited</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">block</span><span class="p">[</span><span class="n">pointer</span><span class="p">])</span>
+            <span class="n">pointer</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">block_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">block</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">[[</span><span class="n">psites</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">b</span><span class="p">]</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">block_list</span><span class="p">]</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Ai, Qianxiang
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

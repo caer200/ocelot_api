@@ -21,10 +21,10 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../../../_static/jquery.js"></script>
-        <script type="text/javascript" src="../../../_static/underscore.js"></script>
-        <script type="text/javascript" src="../../../_static/doctools.js"></script>
-        <script type="text/javascript" src="../../../_static/language_data.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
     
     <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
@@ -157,11 +157,13 @@
 <span class="kn">import</span> <span class="nn">os</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">joblib</span> <span class="kn">import</span> <span class="n">Parallel</span>
+<span class="kn">from</span> <span class="nn">joblib</span> <span class="kn">import</span> <span class="n">delayed</span>
 
 <span class="kn">from</span> <span class="nn">ocelot.schema.conformer</span> <span class="kn">import</span> <span class="n">DimerCollection</span>
-<span class="kn">from</span> <span class="nn">ocelot.task.zindo</span> <span class="kn">import</span> <span class="n">ZindoJob</span><span class="p">,</span> <span class="n">conver2zindo</span>
+<span class="kn">from</span> <span class="nn">ocelot.task.zindo</span> <span class="kn">import</span> <span class="n">ZindoJob</span>
+<span class="kn">from</span> <span class="nn">ocelot.task.zindo</span> <span class="kn">import</span> <span class="n">conver2zindo</span>
 
-<span class="c1"># TODO parallel zindo calculations</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">for a certain crystal config, get perocalation pathway</span>
 <span class="sd">&quot;&quot;&quot;</span>
@@ -184,11 +186,12 @@
 
 <div class="viewcode-block" id="Hop"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.hop.Hop">[docs]</a><span class="k">class</span> <span class="nc">Hop</span><span class="p">:</span>
 
-<div class="viewcode-block" id="Hop.__init__"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.hop.Hop.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">zindobin</span><span class="p">,</span> <span class="n">zindoctbin</span><span class="p">,</span> <span class="n">zindolib</span><span class="p">,</span> <span class="n">wdir</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">workdir</span> <span class="o">=</span> <span class="n">wdir</span>
+<div class="viewcode-block" id="Hop.__init__"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.hop.Hop.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">zindobin</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">zindoctbin</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">zindolib</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">wdir</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">(),</span> <span class="n">gaussbin</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">workdir</span> <span class="o">=</span> <span class="n">wdir</span>  <span class="c1"># make sure this is an absolute path</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">zindobin</span> <span class="o">=</span> <span class="n">zindobin</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">zindoctbin</span> <span class="o">=</span> <span class="n">zindoctbin</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">zindolib</span> <span class="o">=</span> <span class="n">zindolib</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gaussbin</span> <span class="o">=</span> <span class="n">gaussbin</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">config</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dimer_array</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tranv_fcs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get_dimers_array</span><span class="p">(</span><span class="n">maxfold</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">fast</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">symm</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
 
@@ -267,42 +270,103 @@
                 <span class="n">dimercolls</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">dimercolls</span></div>
 
-<div class="viewcode-block" id="Hop.run_zindo"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.hop.Hop.run_zindo">[docs]</a>    <span class="k">def</span> <span class="nf">run_zindo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alldimers</span><span class="p">,</span> <span class="n">workdir</span><span class="p">):</span>
+<div class="viewcode-block" id="Hop.run"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.hop.Hop.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alldimers</span><span class="p">,</span> <span class="n">calculator</span><span class="o">=</span><span class="s1">&#39;zindo&#39;</span><span class="p">,</span> <span class="n">njobs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Run zindo for all the dimers provided and calculate electronic coupling.</span>
-<span class="sd">        xzy files are written for each of the dimer in the respective folder. xyz file for the dimers is also written.</span>
+<span class="sd">        you should screen alldimers based on geodist before this run</span>
 
 <span class="sd">        :param alldimers:</span>
-<span class="sd">        :param workdir: working directory to run zindo</span>
-<span class="sd">        :return: data[dimer.label] = [hhcoupling, llcoupling, xyzstring]</span>
+<span class="sd">        :param calculator:</span>
+<span class="sd">        :param njobs:</span>
+<span class="sd">        :return:</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;calculator was set to </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">calculator</span><span class="p">))</span>
         <span class="n">dimercolls</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">group_dimers</span><span class="p">(</span><span class="n">alldimers</span><span class="p">)</span>
+        <span class="n">workload</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">dimercolls</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
             <span class="n">dimers</span> <span class="o">=</span> <span class="n">dimercolls</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
             <span class="n">dimercoll</span> <span class="o">=</span> <span class="n">DimerCollection</span><span class="p">(</span><span class="n">dimers</span><span class="p">)</span>
-            <span class="n">dimercoll</span><span class="o">.</span><span class="n">to_xyz</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">/dimercoll_</span><span class="si">{}</span><span class="s1">.xyz&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">workdir</span><span class="p">,</span> <span class="n">i</span><span class="p">))</span>
+            <span class="n">dimercoll</span><span class="o">.</span><span class="n">to_xyz</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">/dimercoll_</span><span class="si">{}</span><span class="s1">.xyz&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">workdir</span><span class="p">,</span> <span class="n">i</span><span class="p">))</span>
             <span class="k">for</span> <span class="n">idimer</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dimers</span><span class="p">)):</span>
                 <span class="n">lab</span> <span class="o">=</span> <span class="n">dimers</span><span class="p">[</span><span class="n">idimer</span><span class="p">]</span><span class="o">.</span><span class="n">label</span>
-                <span class="n">subwdir</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">/dimers/</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">workdir</span><span class="p">,</span> <span class="n">lab</span><span class="p">)</span>
-                <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s1">&#39;mkdir -p </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">subwdir</span><span class="p">))</span>
-
+                <span class="n">subwdir</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">/dimers/</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">workdir</span><span class="p">,</span> <span class="n">lab</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">calculator</span> <span class="o">!=</span> <span class="s1">&#39;geodist&#39;</span><span class="p">:</span>
+                    <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s1">&#39;mkdir -p </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">subwdir</span><span class="p">))</span>
                 <span class="n">mol_A</span> <span class="o">=</span> <span class="n">conver2zindo</span><span class="p">(</span><span class="n">dimers</span><span class="p">[</span><span class="n">idimer</span><span class="p">]</span><span class="o">.</span><span class="n">conformer_ref</span><span class="o">.</span><span class="n">pmgmol</span><span class="p">)</span>
                 <span class="n">mol_D</span> <span class="o">=</span> <span class="n">conver2zindo</span><span class="p">(</span><span class="n">dimers</span><span class="p">[</span><span class="n">idimer</span><span class="p">]</span><span class="o">.</span><span class="n">conformer_var</span><span class="o">.</span><span class="n">pmgmol</span><span class="p">)</span>
-                <span class="n">coupling_data</span><span class="p">,</span> <span class="n">nmo_a</span><span class="p">,</span> <span class="n">nmo_d</span> <span class="o">=</span> <span class="n">ZindoJob</span><span class="o">.</span><span class="n">dimer_run</span><span class="p">(</span><span class="n">lab</span><span class="p">,</span>
-                                                                 <span class="n">subwdir</span><span class="p">,</span>
-                                                                 <span class="bp">self</span><span class="o">.</span><span class="n">zindobin</span><span class="p">,</span>
-                                                                 <span class="bp">self</span><span class="o">.</span><span class="n">zindoctbin</span><span class="p">,</span>
-                                                                 <span class="bp">self</span><span class="o">.</span><span class="n">zindolib</span><span class="p">,</span>
-                                                                 <span class="n">mol_A</span><span class="p">,</span> <span class="n">mol_D</span><span class="p">)</span>
-                <span class="n">hhti</span> <span class="o">=</span> <span class="n">ZindoJob</span><span class="o">.</span><span class="n">get_hh_coupling</span><span class="p">(</span><span class="n">coupling_data</span><span class="p">,</span> <span class="n">nmo_a</span><span class="p">,</span> <span class="n">nmo_d</span><span class="p">)</span>
-                <span class="n">llti</span> <span class="o">=</span> <span class="n">ZindoJob</span><span class="o">.</span><span class="n">get_ll_coupling</span><span class="p">(</span><span class="n">coupling_data</span><span class="p">,</span> <span class="n">nmo_a</span><span class="p">,</span> <span class="n">nmo_d</span><span class="p">)</span>
-                <span class="n">data</span><span class="p">[</span><span class="n">lab</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">hhti</span><span class="p">,</span> <span class="n">llti</span><span class="p">,</span> <span class="n">dimers</span><span class="p">[</span><span class="n">idimer</span><span class="p">]</span><span class="o">.</span><span class="n">to_xyzstring</span><span class="p">()]</span>
-                <span class="n">dimers</span><span class="p">[</span><span class="n">idimer</span><span class="p">]</span><span class="o">.</span><span class="n">to_xyz</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">/</span><span class="si">{}</span><span class="s1">.xyz&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">subwdir</span><span class="p">,</span> <span class="n">lab</span><span class="p">))</span>
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">/hopdata1.json&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">workdir</span><span class="p">),</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">xyzstring</span> <span class="o">=</span> <span class="n">dimers</span><span class="p">[</span><span class="n">idimer</span><span class="p">]</span><span class="o">.</span><span class="n">to_xyzstring</span><span class="p">()</span>
+                <span class="n">unit_job</span> <span class="o">=</span> <span class="p">(</span><span class="n">lab</span><span class="p">,</span> <span class="n">subwdir</span><span class="p">,</span> <span class="n">mol_A</span><span class="p">,</span> <span class="n">mol_D</span><span class="p">,</span> <span class="n">xyzstring</span><span class="p">)</span>
+                <span class="n">workload</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">unit_job</span><span class="p">)</span>
+        <span class="c1"># run unit jobs</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;workload has </span><span class="si">{}</span><span class="s1"> unit jobs&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">workload</span><span class="p">)))</span>
+        <span class="k">if</span> <span class="n">calculator</span> <span class="o">==</span> <span class="s1">&#39;zindo&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">njobs</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+                <span class="n">njobs</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">(),</span> <span class="nb">len</span><span class="p">(</span><span class="n">workload</span><span class="p">))</span>
+            <span class="n">work_results</span> <span class="o">=</span> <span class="n">Parallel</span><span class="p">(</span><span class="n">njobs</span><span class="p">)(</span><span class="n">delayed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">zindo_cal</span><span class="p">)(</span><span class="n">uj</span><span class="p">)</span> <span class="k">for</span> <span class="n">uj</span> <span class="ow">in</span> <span class="n">workload</span><span class="p">)</span>
+            <span class="c1"># total 16 benzene</span>
+            <span class="c1"># 1 16.880834579467773</span>
+            <span class="c1"># 2 14.692869424819946</span>
+            <span class="c1"># 4 17.32540798187256</span>
+            <span class="c1"># total 3 tipgebw</span>
+            <span class="c1"># 1 88.71285700798035</span>
+            <span class="c1"># 3 34.4242103099823</span>
+        <span class="k">elif</span> <span class="n">calculator</span> <span class="o">==</span> <span class="s1">&#39;geodist&#39;</span><span class="p">:</span>
+            <span class="c1"># since alldimers should already have been screened based on geodist, calculator will just return inf</span>
+            <span class="n">work_results</span> <span class="o">=</span> <span class="p">[[</span><span class="n">uj</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="n">uj</span><span class="p">[</span><span class="mi">4</span><span class="p">]]</span> <span class="k">for</span> <span class="n">uj</span> <span class="ow">in</span> <span class="n">workload</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> is not a valid calculator!&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">calculator</span><span class="p">))</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">work_results</span><span class="p">:</span>
+            <span class="n">lab</span><span class="p">,</span> <span class="n">hhti</span><span class="p">,</span> <span class="n">llti</span><span class="p">,</span> <span class="n">xyzstring</span> <span class="o">=</span> <span class="n">result</span>
+            <span class="n">data</span><span class="p">[</span><span class="n">lab</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">hhti</span><span class="p">,</span> <span class="n">llti</span><span class="p">,</span> <span class="n">xyzstring</span><span class="p">]</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">/hopdata1.json&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">workdir</span><span class="p">),</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">data</span></div>
 
+<div class="viewcode-block" id="Hop.zindo_cal"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.hop.Hop.zindo_cal">[docs]</a>    <span class="k">def</span> <span class="nf">zindo_cal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">unitjob</span><span class="p">):</span>
+        <span class="n">lab</span><span class="p">,</span> <span class="n">subwdir</span><span class="p">,</span> <span class="n">mol_A</span><span class="p">,</span> <span class="n">mol_D</span><span class="p">,</span> <span class="n">xyzstring</span> <span class="o">=</span> <span class="n">unitjob</span>
+        <span class="n">coupling_data</span><span class="p">,</span> <span class="n">nmo_a</span><span class="p">,</span> <span class="n">nmo_d</span> <span class="o">=</span> <span class="n">ZindoJob</span><span class="o">.</span><span class="n">dimer_run</span><span class="p">(</span><span class="n">lab</span><span class="p">,</span> <span class="n">subwdir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">zindobin</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">zindoctbin</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">zindolib</span><span class="p">,</span>
+                                                         <span class="n">mol_A</span><span class="p">,</span> <span class="n">mol_D</span><span class="p">)</span>
+        <span class="n">hhti</span> <span class="o">=</span> <span class="n">ZindoJob</span><span class="o">.</span><span class="n">get_hh_coupling</span><span class="p">(</span><span class="n">coupling_data</span><span class="p">,</span> <span class="n">nmo_a</span><span class="p">,</span> <span class="n">nmo_d</span><span class="p">)</span>
+        <span class="n">llti</span> <span class="o">=</span> <span class="n">ZindoJob</span><span class="o">.</span><span class="n">get_ll_coupling</span><span class="p">(</span><span class="n">coupling_data</span><span class="p">,</span> <span class="n">nmo_a</span><span class="p">,</span> <span class="n">nmo_d</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">lab</span><span class="p">,</span> <span class="n">hhti</span><span class="p">,</span> <span class="n">llti</span><span class="p">,</span> <span class="n">xyzstring</span><span class="p">]</span></div>
+
+    <span class="c1">#</span>
+    <span class="c1"># def run_zindo(self, alldimers, workdir):</span>
+    <span class="c1">#     &quot;&quot;&quot;</span>
+    <span class="c1">#     Run zindo for all the dimers provided and calculate electronic coupling.</span>
+    <span class="c1">#     xzy files are written for each of the dimer in the respective folder. xyz file for the dimers is also written.</span>
+    <span class="c1">#</span>
+    <span class="c1">#     :param alldimers:</span>
+    <span class="c1">#     :param workdir: working directory to run zindo</span>
+    <span class="c1">#     :return: data[dimer.label] = [hhcoupling, llcoupling, xyzstring]</span>
+    <span class="c1">#     &quot;&quot;&quot;</span>
+    <span class="c1">#     data = {}</span>
+    <span class="c1">#     dimercolls = self.group_dimers(alldimers)</span>
+    <span class="c1">#     for i in dimercolls.keys():</span>
+    <span class="c1">#         dimers = dimercolls[i]</span>
+    <span class="c1">#         dimercoll = DimerCollection(dimers)</span>
+    <span class="c1">#         dimercoll.to_xyz(&#39;{}/dimercoll_{}.xyz&#39;.format(workdir, i))</span>
+    <span class="c1">#         for idimer in range(len(dimers)):</span>
+    <span class="c1">#             lab = dimers[idimer].label</span>
+    <span class="c1">#             subwdir = &#39;{}/dimers/{}&#39;.format(workdir, lab)</span>
+    <span class="c1">#             os.system(&#39;mkdir -p {}&#39;.format(subwdir))</span>
+    <span class="c1">#</span>
+    <span class="c1">#             mol_A = conver2zindo(dimers[idimer].conformer_ref.pmgmol)</span>
+    <span class="c1">#             mol_D = conver2zindo(dimers[idimer].conformer_var.pmgmol)</span>
+    <span class="c1">#             coupling_data, nmo_a, nmo_d = ZindoJob.dimer_run(lab,</span>
+    <span class="c1">#                                                              subwdir,</span>
+    <span class="c1">#                                                              self.zindobin,</span>
+    <span class="c1">#                                                              self.zindoctbin,</span>
+    <span class="c1">#                                                              self.zindolib,</span>
+    <span class="c1">#                                                              mol_A, mol_D)</span>
+    <span class="c1">#             hhti = ZindoJob.get_hh_coupling(coupling_data, nmo_a, nmo_d)</span>
+    <span class="c1">#             llti = ZindoJob.get_ll_coupling(coupling_data, nmo_a, nmo_d)</span>
+    <span class="c1">#             data[lab] = [hhti, llti, dimers[idimer].to_xyzstring()]</span>
+    <span class="c1">#             dimers[idimer].to_xyz(&#39;{}/{}.xyz&#39;.format(subwdir, lab))</span>
+    <span class="c1">#     with open(&#39;{}/hopdata1.json&#39;.format(workdir), &#39;w&#39;) as f:</span>
+    <span class="c1">#         json.dump(data, f)</span>
+    <span class="c1">#     return data</span>
+    <span class="c1">#</span>
 <div class="viewcode-block" id="Hop.applysym_to_coupling_data"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.hop.Hop.applysym_to_coupling_data">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">applysym_to_coupling_data</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">dimer_array</span><span class="p">,</span> <span class="n">workdir</span><span class="p">):</span>
         <span class="n">leni</span><span class="p">,</span> <span class="n">lenj</span><span class="p">,</span> <span class="n">lenk</span> <span class="o">=</span> <span class="n">dimer_array</span><span class="o">.</span><span class="n">shape</span>
@@ -417,7 +481,8 @@
 <div class="viewcode-block" id="Hop.get_hopping_network_s1"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.hop.Hop.get_hopping_network_s1">[docs]</a>    <span class="k">def</span> <span class="nf">get_hopping_network_s1</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">dimers_to_be_used</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">screen_dimers</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dimer_array</span><span class="p">,</span> <span class="n">close</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">unique</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="c1"># this gives &#39;hopdata1.json&#39;</span>
-        <span class="n">hopdata</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">run_zindo</span><span class="p">(</span><span class="n">dimers_to_be_used</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">workdir</span><span class="p">)</span>
+        <span class="c1"># hopdata = self.run_zindo(dimers_to_be_used, self.workdir)</span>
+        <span class="n">hopdata</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">dimers_to_be_used</span><span class="p">,</span> <span class="s1">&#39;zindo&#39;</span><span class="p">)</span>
         <span class="c1"># this gives &#39;symdata2.json&#39;</span>
         <span class="n">symdata</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">applysym_to_coupling_data</span><span class="p">(</span><span class="n">hopdata</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dimer_array</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">workdir</span><span class="p">)</span>
         <span class="c1"># this gives &#39;supercelldata3.json&#39;</span>
@@ -510,7 +575,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2019, Ai, Qianxiang
+        &copy; Copyright 2020, Ai, Qianxiang
 
     </p>
   </div>

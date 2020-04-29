@@ -21,10 +21,10 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../../../_static/jquery.js"></script>
-        <script type="text/javascript" src="../../../_static/underscore.js"></script>
-        <script type="text/javascript" src="../../../_static/doctools.js"></script>
-        <script type="text/javascript" src="../../../_static/language_data.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
     
     <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
@@ -153,27 +153,39 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ocelot.routines.pbc</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">math</span>
+<span></span><span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
 
-<span class="kn">from</span> <span class="nn">pymatgen.core.structure</span> <span class="kn">import</span> <span class="n">Site</span><span class="p">,</span> <span class="n">PeriodicSite</span><span class="p">,</span> <span class="n">Molecule</span><span class="p">,</span> <span class="n">Structure</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">pymatgen.core.periodic_table</span> <span class="kn">import</span> <span class="n">_pt_data</span>
+<span class="kn">from</span> <span class="nn">pymatgen.core.structure</span> <span class="kn">import</span> <span class="n">Lattice</span>
+<span class="kn">from</span> <span class="nn">pymatgen.core.structure</span> <span class="kn">import</span> <span class="n">Molecule</span>
+<span class="kn">from</span> <span class="nn">pymatgen.core.structure</span> <span class="kn">import</span> <span class="n">PeriodicSite</span>
+<span class="kn">from</span> <span class="nn">pymatgen.core.structure</span> <span class="kn">import</span> <span class="n">Site</span>
+<span class="kn">from</span> <span class="nn">pymatgen.core.structure</span> <span class="kn">import</span> <span class="n">Structure</span>
 <span class="kn">from</span> <span class="nn">pymatgen.util.coord</span> <span class="kn">import</span> <span class="n">pbc_shortest_vectors</span>
-
-<span class="kn">from</span> <span class="nn">ocelot.schema.conformer</span> <span class="kn">import</span> <span class="n">MolConformer</span><span class="p">,</span> <span class="n">Element</span>
 
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">PBCparser: get unwrapped structure and mols</span>
+
+<span class="sd">method here should not rely on ocelot schema</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 
+<div class="viewcode-block" id="AtomicRadius"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.pbc.AtomicRadius">[docs]</a><span class="k">def</span> <span class="nf">AtomicRadius</span><span class="p">(</span><span class="n">site</span><span class="p">:</span> <span class="n">Site</span><span class="p">):</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="n">_pt_data</span><span class="p">[</span><span class="n">site</span><span class="o">.</span><span class="n">species_string</span><span class="p">]</span>
+    <span class="n">at_r</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Atomic radius&quot;</span><span class="p">,</span> <span class="s2">&quot;no data&quot;</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">at_r</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;unknown element </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">site</span><span class="o">.</span><span class="n">species_string</span><span class="p">))</span>
+        <span class="k">return</span> <span class="mf">1.0</span></div>
+
+
 <div class="viewcode-block" id="PBCparser"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.pbc.PBCparser">[docs]</a><span class="k">class</span> <span class="nc">PBCparser</span><span class="p">:</span>
-    <span class="c1">#</span>
-    <span class="c1"># def __init__(self, pstructure):</span>
-    <span class="c1">#     self.nsites = len(pstructure)</span>
-    <span class="c1">#     self.structure = pstructure</span>
 
 <div class="viewcode-block" id="PBCparser.get_dist_and_trans"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.pbc.PBCparser.get_dist_and_trans">[docs]</a>    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">get_dist_and_trans</span><span class="p">(</span><span class="n">lattice</span><span class="p">,</span> <span class="n">fc1</span><span class="p">,</span> <span class="n">fc2</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">get_dist_and_trans</span><span class="p">(</span><span class="n">lattice</span><span class="p">:</span> <span class="n">Lattice</span><span class="p">,</span> <span class="n">fc1</span><span class="p">,</span> <span class="n">fc2</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        get the shortest distance and corresponding translation vector between two frac coords</span>
 
@@ -183,20 +195,46 @@
 <span class="sd">        :return:</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">v</span><span class="p">,</span> <span class="n">d2</span> <span class="o">=</span> <span class="n">pbc_shortest_vectors</span><span class="p">(</span><span class="n">lattice</span><span class="p">,</span> <span class="n">fc1</span><span class="p">,</span> <span class="n">fc2</span><span class="p">,</span> <span class="n">return_d2</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="n">fc</span> <span class="o">=</span> <span class="n">lattice</span><span class="o">.</span><span class="n">get_fractional_coords</span><span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="n">fc1</span> <span class="o">-</span> <span class="n">fc2</span>
-        <span class="k">return</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">d2</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]),</span> <span class="n">fc</span></div>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">fc1</span><span class="p">)</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">fc</span> <span class="o">=</span> <span class="n">lattice</span><span class="o">.</span><span class="n">get_fractional_coords</span><span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="n">fc1</span> <span class="o">-</span> <span class="n">fc2</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">fc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">fc1</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">fc2</span><span class="p">),</span> <span class="mi">3</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">fc1</span><span class="p">)):</span>
+                <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">fc2</span><span class="p">)):</span>
+                    <span class="n">fc_vector</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">],</span> <span class="n">lattice</span><span class="o">.</span><span class="n">inv_matrix</span><span class="p">)</span>
+                    <span class="n">fc</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">fc_vector</span> <span class="o">+</span> <span class="n">fc1</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">fc2</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">d2</span><span class="p">),</span> <span class="n">fc</span></div>
 
 <div class="viewcode-block" id="PBCparser.unwrap"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.pbc.PBCparser.unwrap">[docs]</a>    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">unwrap</span><span class="p">(</span><span class="n">pstructure</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">unwrap</span><span class="p">(</span><span class="n">pstructure</span><span class="p">:</span> <span class="n">Structure</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        unwrap the structure, extract isolated mols</span>
 
+<span class="sd">        this will modify psites *in-place*, properties will be inherited and a new property</span>
+<span class="sd">        &#39;imol&#39; will be written</span>
+<span class="sd">        psite with imol=x is an element of both mols[x] and unwrap_pblock_list[x]</span>
+
+<span class="sd">        this method is not supposed to modify siteid!</span>
+
 <span class="sd">        :param pstructure: periodic structure obj from pymatgen</span>
-<span class="sd">        :return:</span>
+<span class="sd">        :return: mols, unwrap_str_sorted, unwrap_pblock_list</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="n">psites</span> <span class="o">=</span> <span class="n">pstructure</span><span class="o">.</span><span class="n">sites</span>
-        <span class="k">for</span> <span class="n">isite</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">psites</span><span class="p">)):</span>
-            <span class="n">psites</span><span class="p">[</span><span class="n">isite</span><span class="p">]</span><span class="o">.</span><span class="n">properties</span><span class="p">[</span><span class="s1">&#39;siteid&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">isite</span>
+        <span class="n">cutoff_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">psites</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">psites</span><span class="p">)))</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">psites</span><span class="p">)):</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">psites</span><span class="p">)):</span>
+                <span class="n">cutoff</span> <span class="o">=</span> <span class="n">AtomicRadius</span><span class="p">(</span><span class="n">psites</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">+</span> <span class="n">AtomicRadius</span><span class="p">(</span><span class="n">psites</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
+                <span class="n">cutoff</span> <span class="o">*=</span> <span class="mf">1.3</span>
+                <span class="n">cutoff_matrix</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">cutoff</span>
+                <span class="n">cutoff_matrix</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">cutoff</span>
+
+        <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="s1">&#39;iasym&#39;</span> <span class="ow">in</span> <span class="n">s</span><span class="o">.</span><span class="n">properties</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">psites</span><span class="p">):</span>
+            <span class="n">sameiasym</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;if a percolating step involves hydrogens, only percolate to sites with the same iasym&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">sameiasym</span> <span class="o">=</span> <span class="kc">False</span>
+
         <span class="n">pindices</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">psites</span><span class="p">))</span>
         <span class="n">visited</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">block_list</span> <span class="o">=</span> <span class="p">[]</span>
@@ -209,26 +247,33 @@
             <span class="n">ini_idx</span> <span class="o">=</span> <span class="n">unvisited</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
             <span class="n">block</span> <span class="o">=</span> <span class="p">[</span><span class="n">ini_idx</span><span class="p">]</span>
             <span class="c1"># unwrap.append(psites[ini_idx])</span>
-            <span class="n">unwrap_block</span> <span class="o">=</span> <span class="p">[</span><span class="n">Site</span><span class="p">(</span><span class="n">psites</span><span class="p">[</span><span class="n">ini_idx</span><span class="p">]</span><span class="o">.</span><span class="n">species_string</span><span class="p">,</span> <span class="n">psites</span><span class="p">[</span><span class="n">ini_idx</span><span class="p">]</span><span class="o">.</span><span class="n">coords</span><span class="p">)]</span>
+            <span class="n">unwrap_block</span> <span class="o">=</span> <span class="p">[</span><span class="n">Site</span><span class="p">(</span><span class="n">psites</span><span class="p">[</span><span class="n">ini_idx</span><span class="p">]</span><span class="o">.</span><span class="n">species_string</span><span class="p">,</span> <span class="n">psites</span><span class="p">[</span><span class="n">ini_idx</span><span class="p">]</span><span class="o">.</span><span class="n">coords</span><span class="p">,</span>
+                                 <span class="n">properties</span><span class="o">=</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">psites</span><span class="p">[</span><span class="n">ini_idx</span><span class="p">]</span><span class="o">.</span><span class="n">properties</span><span class="p">))]</span>
             <span class="n">unwrap_pblock</span> <span class="o">=</span> <span class="p">[</span><span class="n">psites</span><span class="p">[</span><span class="n">ini_idx</span><span class="p">]]</span>
             <span class="n">pointer</span> <span class="o">=</span> <span class="mi">0</span>
             <span class="k">while</span> <span class="n">pointer</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">block</span><span class="p">):</span>
                 <span class="n">outside</span> <span class="o">=</span> <span class="p">[</span><span class="n">idx</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">pindices</span> <span class="k">if</span> <span class="n">idx</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">block</span> <span class="ow">and</span> <span class="n">idx</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">visited</span><span class="p">]</span>
                 <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">outside</span><span class="p">:</span>
+                    <span class="n">si</span> <span class="o">=</span> <span class="n">psites</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                    <span class="n">sj</span> <span class="o">=</span> <span class="n">psites</span><span class="p">[</span><span class="n">block</span><span class="p">[</span><span class="n">pointer</span><span class="p">]]</span>
+                    <span class="k">if</span> <span class="n">sameiasym</span> <span class="ow">and</span> <span class="p">(</span><span class="n">si</span><span class="o">.</span><span class="n">species_string</span> <span class="o">==</span> <span class="s1">&#39;H&#39;</span> <span class="ow">or</span> <span class="n">sj</span><span class="o">.</span><span class="n">species_string</span> <span class="o">==</span> <span class="s1">&#39;H&#39;</span><span class="p">):</span>
+                        <span class="k">if</span> <span class="n">si</span><span class="o">.</span><span class="n">properties</span><span class="p">[</span><span class="s1">&#39;iasym&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="n">sj</span><span class="o">.</span><span class="n">properties</span><span class="p">[</span><span class="s1">&#39;iasym&#39;</span><span class="p">]:</span>
+                            <span class="k">continue</span>
                     <span class="n">distance</span><span class="p">,</span> <span class="n">fctrans</span> <span class="o">=</span> <span class="n">PBCparser</span><span class="o">.</span><span class="n">get_dist_and_trans</span><span class="p">(</span><span class="n">pstructure</span><span class="o">.</span><span class="n">lattice</span><span class="p">,</span>
-                                                                     <span class="n">psites</span><span class="p">[</span><span class="n">block</span><span class="p">[</span><span class="n">pointer</span><span class="p">]]</span><span class="o">.</span><span class="n">_frac_coords</span><span class="p">,</span>
-                                                                     <span class="n">psites</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">_frac_coords</span><span class="p">,</span> <span class="p">)</span>
+                                                                     <span class="n">psites</span><span class="p">[</span><span class="n">block</span><span class="p">[</span><span class="n">pointer</span><span class="p">]]</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">,</span>
+                                                                     <span class="n">psites</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">,</span> <span class="p">)</span>
+                    <span class="n">fctrans</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">rint</span><span class="p">(</span><span class="n">fctrans</span><span class="p">)</span>
 
-                    <span class="n">cutoff</span> <span class="o">=</span> <span class="n">Element</span><span class="p">(</span><span class="n">psites</span><span class="p">[</span><span class="n">block</span><span class="p">[</span><span class="n">pointer</span><span class="p">]]</span><span class="o">.</span><span class="n">species_string</span><span class="p">)</span><span class="o">.</span><span class="n">atomic_radius</span> <span class="o">+</span> <span class="n">Element</span><span class="p">(</span>
-                        <span class="n">psites</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">species_string</span><span class="p">)</span><span class="o">.</span><span class="n">atomic_radius</span>
-                    <span class="n">cutoff</span> <span class="o">*=</span> <span class="mf">1.3</span>
+                    <span class="n">cutoff</span> <span class="o">=</span> <span class="n">cutoff_matrix</span><span class="p">[</span><span class="n">block</span><span class="p">[</span><span class="n">pointer</span><span class="p">]][</span><span class="n">i</span><span class="p">]</span>
                     <span class="k">if</span> <span class="n">distance</span> <span class="o">&lt;</span> <span class="n">cutoff</span><span class="p">:</span>
                         <span class="n">block</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
-                        <span class="n">psites</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">PeriodicSite</span><span class="p">(</span><span class="n">psites</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">species_string</span><span class="p">,</span> <span class="n">psites</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">_frac_coords</span> <span class="o">+</span> <span class="n">fctrans</span><span class="p">,</span>
-                                                 <span class="n">pstructure</span><span class="o">.</span><span class="n">lattice</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">psites</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">properties</span><span class="p">))</span>
+                        <span class="n">psites</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">_frac_coords</span> <span class="o">+=</span> <span class="n">fctrans</span>
+                        <span class="c1"># psites[i] = PeriodicSite(psites[i].species_string, psites[i].frac_coords + fctrans,</span>
+                        <span class="c1">#                          pstructure.lattice, properties=deepcopy(psites[i].properties))</span>
                         <span class="n">unwrap_block</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-                            <span class="n">Site</span><span class="p">(</span><span class="n">psites</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">species_string</span><span class="p">,</span> <span class="n">psites</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">coords</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">psites</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">properties</span><span class="p">)))</span>
-                        <span class="c1"># unwrap.append(psites[i])</span>
+                            <span class="c1"># Site(psites[i].species_string, psites[i].coords, properties=deepcopy(psites[i].properties))</span>
+                            <span class="n">Site</span><span class="p">(</span><span class="n">psites</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">species_string</span><span class="p">,</span> <span class="n">psites</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">coords</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="n">psites</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">properties</span><span class="p">)</span>
+                        <span class="p">)</span>
                         <span class="n">unwrap_pblock</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">psites</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
                 <span class="n">visited</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">block</span><span class="p">[</span><span class="n">pointer</span><span class="p">])</span>
                 <span class="n">pointer</span> <span class="o">+=</span> <span class="mi">1</span>
@@ -243,69 +288,48 @@
                 <span class="n">unwrap_pblock_list</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">properties</span><span class="p">[</span><span class="s1">&#39;imol&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span>
                 <span class="n">unwrap</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">unwrap_pblock_list</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">])</span>
 
-        <span class="c1"># this does not work, from_sites cannot pickup properties</span>
-        <span class="c1"># mols = [Molecule.from_sites(sites) for sites in unwrap_block_list]</span>
-        <span class="n">mols</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">group</span> <span class="ow">in</span> <span class="n">unwrap_block_list</span><span class="p">:</span>
-            <span class="n">property_list</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">group</span><span class="p">)):</span>
-                <span class="n">property_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">group</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">properties</span><span class="p">))</span>
-                <span class="n">group</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">properties</span> <span class="o">=</span> <span class="p">{}</span>
-            <span class="n">mol</span> <span class="o">=</span> <span class="n">Molecule</span><span class="o">.</span><span class="n">from_sites</span><span class="p">(</span><span class="n">group</span><span class="p">)</span>
-            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">group</span><span class="p">)):</span>
-                <span class="n">mol</span><span class="o">.</span><span class="n">_sites</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">properties</span> <span class="o">=</span> <span class="n">property_list</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
-            <span class="n">mols</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>
+        <span class="n">mols</span> <span class="o">=</span> <span class="p">[</span><span class="n">Molecule</span><span class="o">.</span><span class="n">from_sites</span><span class="p">(</span><span class="n">sites</span><span class="p">)</span> <span class="k">for</span> <span class="n">sites</span> <span class="ow">in</span> <span class="n">unwrap_block_list</span><span class="p">]</span>
 
-        <span class="n">unwrap</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">unwrap</span><span class="p">),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">species_string</span><span class="p">)</span>
-        <span class="n">unwrap_str_sorted</span> <span class="o">=</span> <span class="n">Structure</span><span class="o">.</span><span class="n">from_sites</span><span class="p">(</span><span class="n">unwrap</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">mols</span><span class="p">,</span> <span class="n">unwrap_str_sorted</span><span class="p">,</span> <span class="n">unwrap_pblock_list</span></div>
+        <span class="c1"># unwrap_structure = Structure.from_sites(sorted(unwrap, key=lambda x: x.species_string))</span>
+        <span class="n">unwrap_structure</span> <span class="o">=</span> <span class="n">Structure</span><span class="o">.</span><span class="n">from_sites</span><span class="p">(</span><span class="n">unwrap</span><span class="p">,</span> <span class="n">to_unit_cell</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">mols</span><span class="p">,</span> <span class="n">unwrap_structure</span><span class="p">,</span> <span class="n">unwrap_pblock_list</span></div>
 
-<div class="viewcode-block" id="PBCparser.squeeze"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.pbc.PBCparser.squeeze">[docs]</a>    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">squeeze</span><span class="p">(</span><span class="n">pstructure</span><span class="p">:</span> <span class="n">Structure</span><span class="p">):</span>
+<div class="viewcode-block" id="PBCparser.unwrap_and_squeeze"><a class="viewcode-back" href="../../../ocelot.routines.html#ocelot.routines.pbc.PBCparser.unwrap_and_squeeze">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">unwrap_and_squeeze</span><span class="p">(</span><span class="n">pstructure</span><span class="p">:</span> <span class="n">Structure</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        after unwrapping, the mols can be far away from each other, this tries to translate them s.t. they stay together</span>
 
-<span class="sd">        :rtype:</span>
 <span class="sd">        :param pstructure:</span>
 <span class="sd">        :return:</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">mols</span><span class="p">,</span> <span class="n">unwrap_structure</span><span class="p">,</span> <span class="n">psiteblocks</span> <span class="o">=</span> <span class="n">PBCparser</span><span class="o">.</span><span class="n">unwrap</span><span class="p">(</span><span class="n">pstructure</span><span class="p">)</span>
-
-        <span class="n">moleconformers</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">mm</span> <span class="ow">in</span> <span class="n">mols</span><span class="p">:</span>
-            <span class="n">mc</span> <span class="o">=</span> <span class="n">MolConformer</span><span class="o">.</span><span class="n">from_pmgmol</span><span class="p">(</span><span class="n">mm</span><span class="p">)</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">mc</span><span class="o">.</span><span class="n">is_solvent</span><span class="p">:</span>
-                <span class="n">moleconformers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mc</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">moleconformers</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="n">refpoint</span> <span class="o">=</span> <span class="n">moleconformers</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">backbone</span><span class="o">.</span><span class="n">geoc</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">mols</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">refpoint</span> <span class="o">=</span> <span class="n">mols</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">center_of_mass</span>
             <span class="n">refpoint</span> <span class="o">=</span> <span class="n">unwrap_structure</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">get_fractional_coords</span><span class="p">(</span><span class="n">refpoint</span><span class="p">)</span>
-            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">moleconformers</span><span class="p">)):</span>
-                <span class="n">varmol</span> <span class="o">=</span> <span class="n">moleconformers</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
-                <span class="n">varpoint</span> <span class="o">=</span> <span class="n">varmol</span><span class="o">.</span><span class="n">backbone</span><span class="o">.</span><span class="n">geoc</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">mols</span><span class="p">)):</span>
+                <span class="n">varmol</span> <span class="o">=</span> <span class="n">mols</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                <span class="n">varpoint</span> <span class="o">=</span> <span class="n">varmol</span><span class="o">.</span><span class="n">center_of_mass</span>
                 <span class="n">varpoint</span> <span class="o">=</span> <span class="n">unwrap_structure</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">get_fractional_coords</span><span class="p">(</span><span class="n">varpoint</span><span class="p">)</span>
                 <span class="n">distance</span><span class="p">,</span> <span class="n">fctrans</span> <span class="o">=</span> <span class="n">PBCparser</span><span class="o">.</span><span class="n">get_dist_and_trans</span><span class="p">(</span><span class="n">unwrap_structure</span><span class="o">.</span><span class="n">lattice</span><span class="p">,</span> <span class="n">refpoint</span><span class="p">,</span> <span class="n">varpoint</span><span class="p">)</span>
                 <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">psiteblocks</span><span class="p">[</span><span class="n">i</span><span class="p">])):</span>
                     <span class="n">psiteblocks</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">_frac_coords</span> <span class="o">+=</span> <span class="n">fctrans</span>
-            <span class="n">psites</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="n">mols</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">squeeze_psites</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">squeeze_mols</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">pblock</span><span class="p">:</span> <span class="p">[</span><span class="n">PeriodicSite</span><span class="p">]</span>
             <span class="k">for</span> <span class="n">pblock</span> <span class="ow">in</span> <span class="n">psiteblocks</span><span class="p">:</span>
-                <span class="n">block</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="n">squeeze_block</span> <span class="o">=</span> <span class="p">[]</span>
                 <span class="k">for</span> <span class="n">ps</span> <span class="ow">in</span> <span class="n">pblock</span><span class="p">:</span>
-                    <span class="n">psites</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ps</span><span class="p">)</span>
-                    <span class="n">block</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Site</span><span class="p">(</span><span class="n">ps</span><span class="o">.</span><span class="n">species_string</span><span class="p">,</span> <span class="n">ps</span><span class="o">.</span><span class="n">coords</span><span class="p">))</span>
-                <span class="n">mol</span> <span class="o">=</span> <span class="n">Molecule</span><span class="o">.</span><span class="n">from_sites</span><span class="p">(</span><span class="n">block</span><span class="p">)</span>
-                <span class="n">mols</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>
-            <span class="n">unwrap_structure</span> <span class="o">=</span> <span class="n">Structure</span><span class="o">.</span><span class="n">from_sites</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">psites</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">species_string</span><span class="p">))</span>
+                    <span class="n">squeeze_psites</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ps</span><span class="p">)</span>
+                    <span class="n">squeeze_block</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                        <span class="n">Site</span><span class="p">(</span><span class="n">ps</span><span class="o">.</span><span class="n">species_string</span><span class="p">,</span> <span class="n">ps</span><span class="o">.</span><span class="n">coords</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="n">ps</span><span class="o">.</span><span class="n">properties</span><span class="p">))</span>  <span class="c1"># do we need deepcopy?</span>
+                <span class="n">mol</span> <span class="o">=</span> <span class="n">Molecule</span><span class="o">.</span><span class="n">from_sites</span><span class="p">(</span><span class="n">squeeze_block</span><span class="p">)</span>
+                <span class="n">squeeze_mols</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>
+            <span class="n">squeeze_unwrap_structure</span> <span class="o">=</span> <span class="n">Structure</span><span class="o">.</span><span class="n">from_sites</span><span class="p">(</span><span class="n">squeeze_psites</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">squeeze_mols</span><span class="p">,</span> <span class="n">squeeze_unwrap_structure</span><span class="p">,</span> <span class="n">psiteblocks</span>
 
-            <span class="n">moleconformers</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">mols</span><span class="p">:</span>
-                <span class="n">mc</span> <span class="o">=</span> <span class="n">MolConformer</span><span class="o">.</span><span class="n">from_pmgmol</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="n">mc</span><span class="o">.</span><span class="n">is_solvent</span><span class="p">:</span>
-                    <span class="n">moleconformers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mc</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">mols</span><span class="p">,</span> <span class="n">moleconformers</span><span class="p">,</span> <span class="n">unwrap_structure</span>
 
-        <span class="k">return</span> <span class="n">mols</span><span class="p">,</span> <span class="n">moleconformers</span><span class="p">,</span> <span class="n">unwrap_structure</span></div></div>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">mols</span><span class="p">,</span> <span class="n">unwrap_structure</span><span class="p">,</span> <span class="n">psiteblocks</span></div></div>
 </pre></div>
 
            </div>
@@ -318,7 +342,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2019, Ai, Qianxiang
+        &copy; Copyright 2020, Ai, Qianxiang
 
     </p>
   </div>

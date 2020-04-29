@@ -1,0 +1,264 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ocelot.task.reorg &mdash; ocelot 0.2 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> ocelot
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#schema">schema</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#disorder">Disorder</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#bone-config">Bone Config</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html#backbone-and-sidechain">Backbone and Sidechain</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ocelot.html">ocelot package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">ocelot</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>ocelot.task.reorg</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ocelot.task.reorg</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">os</span>
+
+
+<div class="viewcode-block" id="Reorganization"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.reorg.Reorganization">[docs]</a><span class="k">class</span> <span class="nc">Reorganization</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot; class to calculate reorganization energy for holes and electrons from Gaussian output files.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Reorganization.__init__"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.reorg.Reorganization.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nopt</span><span class="o">=</span><span class="s1">&#39;nopt.log&#39;</span><span class="p">,</span> <span class="n">copt</span><span class="o">=</span><span class="s1">&#39;copt.log&#39;</span><span class="p">,</span> <span class="n">aopt</span><span class="o">=</span><span class="s1">&#39;aopt.log&#39;</span><span class="p">,</span> <span class="n">ngeo_a</span><span class="o">=</span><span class="s1">&#39;nasp.log&#39;</span><span class="p">,</span> <span class="n">ngeo_c</span><span class="o">=</span><span class="s1">&#39;ncsp.log&#39;</span><span class="p">,</span>
+                 <span class="n">ageo_n</span><span class="o">=</span><span class="s1">&#39;ansp.log&#39;</span><span class="p">,</span> <span class="n">cgeo_n</span><span class="o">=</span><span class="s1">&#39;cnsp.log&#39;</span><span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">nopt</span> <span class="o">=</span> <span class="n">nopt</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">copt</span> <span class="o">=</span> <span class="n">copt</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">aopt</span> <span class="o">=</span> <span class="n">aopt</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">ngeo_a</span> <span class="o">=</span> <span class="n">ngeo_a</span>  <span class="c1"># n geometry, charge spin as a</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ngeo_c</span> <span class="o">=</span> <span class="n">ngeo_c</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ageo_n</span> <span class="o">=</span> <span class="n">ageo_n</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cgeo_n</span> <span class="o">=</span> <span class="n">cgeo_n</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">fns</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nopt</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">copt</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">aopt</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ngeo_a</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ngeo_c</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ageo_n</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cgeo_n</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">fn</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">fns</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span><span class="o">.</span><span class="n">st_size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="s1">&#39;log files for reorg calculations not ready&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Reorganization.reorg_energy"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.reorg.Reorganization.reorg_energy">[docs]</a>    <span class="k">def</span> <span class="nf">reorg_energy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="n">aopt_energy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">extract_energy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">aopt</span><span class="p">)</span>
+        <span class="n">copt_energy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">extract_energy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">copt</span><span class="p">)</span>
+        <span class="n">nopt_energy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">extract_energy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nopt</span><span class="p">)</span>
+
+        <span class="n">ngeo_a_energy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">extract_energy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ngeo_a</span><span class="p">)</span>
+        <span class="n">ngeo_c_energy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">extract_energy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ngeo_c</span><span class="p">)</span>
+        <span class="n">ageo_n_energy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">extract_energy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ageo_n</span><span class="p">)</span>
+        <span class="n">cgeo_n_energy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">extract_energy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cgeo_n</span><span class="p">)</span>
+
+        <span class="n">hole_reorg</span> <span class="o">=</span> <span class="p">(</span><span class="n">ngeo_c_energy</span> <span class="o">-</span> <span class="n">copt_energy</span> <span class="o">+</span> <span class="n">cgeo_n_energy</span> <span class="o">-</span> <span class="n">nopt_energy</span><span class="p">)</span> <span class="o">*</span> <span class="mf">27.2114</span>
+        <span class="n">elec_reorg</span> <span class="o">=</span> <span class="p">(</span><span class="n">ngeo_a_energy</span> <span class="o">-</span> <span class="n">aopt_energy</span> <span class="o">+</span> <span class="n">ageo_n_energy</span> <span class="o">-</span> <span class="n">nopt_energy</span><span class="p">)</span> <span class="o">*</span> <span class="mf">27.2114</span>  <span class="c1"># ev</span>
+
+        <span class="n">ip_vertical</span> <span class="o">=</span> <span class="p">(</span><span class="n">ngeo_c_energy</span> <span class="o">-</span> <span class="n">nopt_energy</span><span class="p">)</span> <span class="o">*</span> <span class="mf">27.2114</span>
+        <span class="n">ip_adia</span> <span class="o">=</span> <span class="p">(</span><span class="n">copt_energy</span> <span class="o">-</span> <span class="n">nopt_energy</span><span class="p">)</span> <span class="o">*</span> <span class="mf">27.2114</span>
+
+        <span class="n">ea_vertical</span> <span class="o">=</span> <span class="p">(</span><span class="n">ngeo_a_energy</span> <span class="o">-</span> <span class="n">nopt_energy</span><span class="p">)</span> <span class="o">*</span> <span class="mf">27.2114</span>
+        <span class="n">ea_adia</span> <span class="o">=</span> <span class="p">(</span><span class="n">aopt_energy</span> <span class="o">-</span> <span class="n">nopt_energy</span><span class="p">)</span> <span class="o">*</span> <span class="mf">27.2114</span>
+
+        <span class="k">return</span> <span class="n">hole_reorg</span><span class="p">,</span> <span class="n">elec_reorg</span><span class="p">,</span> <span class="n">ip_vertical</span><span class="p">,</span> <span class="n">ip_adia</span><span class="p">,</span> <span class="n">ea_vertical</span><span class="p">,</span> <span class="n">ea_adia</span></div>
+
+<div class="viewcode-block" id="Reorganization.extract_energy"><a class="viewcode-back" href="../../../ocelot.task.html#ocelot.task.reorg.Reorganization.extract_energy">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">extract_energy</span><span class="p">(</span><span class="n">log</span><span class="p">):</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">log</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">loglines</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+        <span class="n">scflines</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">mp2line</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">loglines</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s2">&quot;SCF Done&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+                <span class="n">scflines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+            <span class="k">elif</span> <span class="s2">&quot;EUMP2&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+                <span class="n">mp2line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="k">elif</span> <span class="s2">&quot;ERMP2&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+                <span class="n">mp2line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">mp2line</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">mp2line</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;D&#39;</span><span class="p">,</span> <span class="s1">&#39;E&#39;</span><span class="p">)</span>
+            <span class="n">mp2line</span> <span class="o">=</span> <span class="n">mp2line</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+            <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">mp2line</span><span class="p">[</span><span class="mi">5</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">linelen</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">scflines</span><span class="p">)</span>
+            <span class="n">scfline</span> <span class="o">=</span> <span class="n">scflines</span><span class="p">[</span><span class="n">linelen</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+            <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">scfline</span><span class="p">[</span><span class="mi">4</span><span class="p">])</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Ai, Qianxiang
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
