@@ -1157,7 +1157,7 @@ class BoneConformer(FragConformer):
         :return: long axis length
         """
         ref = self.rings[0].geoc
-        projs = [np.dot(s.coords - ref, self.pfit_vo) for s in self]
+        projs = [np.dot(s.coords - ref, self.pfit_vq) for s in self]
         return max(projs) - min(projs)
 
     @property
@@ -1168,7 +1168,7 @@ class BoneConformer(FragConformer):
         :return: short axis length
         """
         ref = self.rings[0].geoc
-        projs = [np.dot(s.coords - ref, self.pfit_vo) for s in self]
+        projs = [np.dot(s.coords - ref, self.pfit_vp) for s in self]
         return max(projs) - min(projs)
 
     @classmethod
