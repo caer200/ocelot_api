@@ -16,7 +16,7 @@ from ocelot.schema.conformer import _coordination_rule
 
 """
 given a non-solvent omol, generate input for nics scan, parse output
-the omol should be reoriented 
+the omol should be reoriented such that z axis is perpendicular to the backbone plane
 """
 
 
@@ -35,7 +35,7 @@ class NICSjob:
         if self.omol.is_solvent:
             warnings.warn('W: trying to do NICS job for a solvent-like molecule')
 
-        bone, sccs, backbone_graph, scgs = self.omol.partition(scheme='lgfr')
+        bone = self.omol.backbone
         lgfr = bone.rings
         geocs = [r.geoc for r in lgfr]  # nx3
         dmat = squareform(pdist(np.array(geocs)))
@@ -294,7 +294,7 @@ class NICSjob:
         for i in range(len(lines)):
             if tensor_kw in lines[i]:
                 for j in range(i + 1, i + 1 + ns * 5):
-                    if 'Bq' in lines[j]:
+                    if 'BQ' in lines[j].upper():
                         tensor_zzs.append(-float(lines[j + 3].strip().split()[-1]))
                 break
         return tensor_zzs

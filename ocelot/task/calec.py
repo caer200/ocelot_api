@@ -163,7 +163,7 @@ class ElectronicCoupling:
     def g09_get_basis_functions(fchk_lines):
         # Get number of basis functions
         for line in fchk_lines:
-            if "Number of basis functions" in line:
+            if "Number of independent functions" in line:
                 nbf = int(line.split()[5])
                 return nbf
 
