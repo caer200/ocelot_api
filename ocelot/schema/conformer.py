@@ -1362,9 +1362,9 @@ class MolConformer(BasicConformer):
     @staticmethod
     def chrom_partition(mc: BasicConformer, rdmol, atomidx2siteid, molgraph: MolGraph, withhalogen=True):
         if withhalogen:
-            cgs = RdFunc.get_conjugate_group(rdmol)
-        else:
             cgs = RdFunc.get_conjugate_group_with_halogen(rdmol)
+        else:
+            cgs = RdFunc.get_conjugate_group(rdmol)
         try:
             chromol, aid_to_newid_chromol = cgs[0]
         except IndexError:
