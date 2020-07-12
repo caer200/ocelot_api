@@ -101,7 +101,7 @@ class DataEntry(MSONable):
                 inserted = True
         else:
             if overwrite:
-                result = collection.replace_one({'_id': self._id}, self.as_dict())
+                result = collection.update_one({'_id': self._id}, {"$set":json.loads(self.to_json())})
                 if result.acknowledged:
                     print('{}: previously existed {} was replaced'.format(self._id, result.matched_count))
                     inserted = True
@@ -175,7 +175,8 @@ class CuratedData(DataEntry):
                 inserted = True
         else:
             if overwrite:
-                result = collection.replace_one({'_id': self._id}, self.as_dict())
+                #result = collection.replace_one({'_id': self._id}, self.as_dict())
+                result = collection.update_one({'_id': self._id}, {"$set": json.loads(self.to_json())})
                 if result.acknowledged:
                     print('{}: previously existed {} was replaced'.format(self._id, result.matched_count))
                     inserted = True
