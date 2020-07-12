@@ -209,6 +209,8 @@ class RdFunc:
     def get_conjugate_group(m: Mol):
         # supp = ResonanceMolSupplier(m, Chem.KEKULE_ALL)
         supp = ResonanceMolSupplier(m, Chem.ALLOW_CHARGE_SEPARATION)
+        m = supp[0]
+
         cg_dict = {}
         a: Atom
         for a in m.GetAtoms():
@@ -235,6 +237,7 @@ class RdFunc:
                     adjmat[j][i] = True
 
         supp = ResonanceMolSupplier(m, )
+        m = supp[0]
         # supp = ResonanceMolSupplier(m, Chem.KEKULE_ALL)
         # supp = ResonanceMolSupplier(m, Chem.ALLOW_CHARGE_SEPARATION)
         cg_dict = {}
