@@ -95,7 +95,8 @@ class DataEntry(MSONable):
         existed = collection.find_one({'_id': self._id})
         inserted = False
         if existed is None:
-            result = collection.insert_one(json.loads(self.to_json()))
+            #result = collection.insert_one(json.loads(self.to_json()))
+            result = collection.update_one({"_id": self._id}, {"$set": json.loads(self.to_json())}, upsert=True)
             if result.acknowledged:
                 inserted = True
         else:
@@ -169,7 +170,7 @@ class CuratedData(DataEntry):
         inserted = False
         if existed is None:
             #result = collection.insert_one(json.loads(self.to_json()))
-            result = collection.update_one({"_id":self._id},{"$set":json.loads(self.to_json())})
+            result = collection.update_one({"_id":self._id},{"$set":json.loads(self.to_json())},upsert=True)
             if result.acknowledged:
                 inserted = True
         else:
