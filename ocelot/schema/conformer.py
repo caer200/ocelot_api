@@ -1384,27 +1384,39 @@ class MolConformer(BasicConformer):
         return chromolc, fragcs, cg, fgs
 
     @staticmethod
-    def geo_partition(bc: BasicConformer, molgraph: MolGraph, coplane_cutoff=30.0):
-        try:
-            lgfr = []
-            for r in molgraph.lgfr:
-                ring = RingConformer.from_siteids(r, bc.sites, False)
-                lgfr.append(ring)
-        except:
-            raise ConformerError('cannot get lgfr!')
-        avgn1, avgn2 = RingConformer.get_avg_norms(lgfr)
+    def geo_partition(bc: BasicConformer, molgraph: MolGraph, coplane_cutoff=30.0, bone_scheme='bm'):
+        if bone_scheme == 'lgfr':
+            try:
+                lgfr = []
+                for r in molgraph.lgfr:
+                    ring = RingConformer.from_siteids(r, bc.sites, False)
+                    lgfr.append(ring)
+            except:
+                raise ConformerError('cannot get lgfr!')
+            avgn1, avgn2 = RingConformer.get_avg_norms(lgfr)
 
-        def coplane_check(ring_siteids, tol=coplane_cutoff):
-            ringconformer = RingConformer.from_siteids(ring_siteids, bc.sites, False)
-            coplane = ringconformer.iscoplane_with_norm(avgn1, tol, 'degree')
-            return coplane
+            def coplane_check(ring_siteids, tol=coplane_cutoff):
+                ringconformer = RingConformer.from_siteids(ring_siteids, bc.sites, False)
+                coplane = ringconformer.iscoplane_with_norm(avgn1, tol, 'degree')
+                return coplane
 
-        try:
-            bg, scgs = molgraph.partition_to_bone_frags('lgcr', additional_criteria=coplane_check)
-        except:
-            raise ConformerError('cannot lgcr partition with coplane_cutoff: {}!'.format(coplane_cutoff))
+            try:
+                bg, scgs = molgraph.partition_to_bone_frags(bone_selection='lgfr', additional_criteria=coplane_check)
+                bone_conformer = BoneConformer.from_siteids(bg.graph.nodes, bc.sites, graph=bg, copy=False)
+            except:
+                raise ConformerError('cannot lgcr partition with coplane_cutoff: {}!'.format(coplane_cutoff))
 
-        bone_conformer = BoneConformer.from_siteids(bg.graph.nodes, bc.sites, graph=bg, copy=False)
+        elif bone_scheme == 'lgcr':
+            bg, scgs = molgraph.partition_to_bone_frags(bone_selection='lgcr')
+            bone_conformer = BoneConformer.from_siteids(bg.graph.nodes, bc.sites, graph=bg, copy=False)
+
+        elif bone_scheme == 'bm':
+            bg, scgs = molgraph.partition_to_bone_frags(bone_selection='bm')
+            bone_conformer = FragConformer.from_siteids(bg.graph.nodes, bc.sites, graph=bg, copy=False)
+        else:
+           raise NotImplementedError(bone_scheme, " is not implemented. Try with lgfr, lgcr or bm")
+
+        # bone_conformer = BoneConformer.from_siteids(bg.graph.nodes, bc.sites, graph=bg, copy=False)
 
         sccs = []
         for scg in scgs:
@@ -1412,11 +1424,14 @@ class MolConformer(BasicConformer):
             bc_joint_site_id = scg.graph.graph['joints'][sc_joint_site_id][0]
             bc_joint_site = bc.get_site_byid(bc_joint_site_id)
             # print(bc_joint_site)
-            v_sc_position = bc_joint_site.coords - bc.geoc
-            sc_position_angle = angle_btw(v_sc_position, bone_conformer.pfit_vp, 'degree')
-            scc = SidechainConformer.from_siteids(scg.graph.nodes, bc.sites, copy=False, graph=scg,
-                                                  conformer_properties={'sc_position_angle': sc_position_angle,
-                                                                        'bc_joint_siteid': bc_joint_site_id})
+            if bone_scheme in ["lgcr","lgfr"]:
+                v_sc_position = bc_joint_site.coords - bc.geoc
+                sc_position_angle = angle_btw(v_sc_position, bone_conformer.pfit_vp, 'degree')
+                scc = SidechainConformer.from_siteids(scg.graph.nodes, bc.sites, copy=False, graph=scg,
+                                                      conformer_properties={'sc_position_angle': sc_position_angle,
+                                                                            'bc_joint_siteid': bc_joint_site_id})
+            else:
+                scc = FragConformer.from_siteids(scg.graph.nodes, bc.sites, copy=False, graph=scg)
             sccs.append(scc)
         return bone_conformer, sccs, bg, scgs  # sccs <--> scgs bijection
 

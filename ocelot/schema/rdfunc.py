@@ -237,7 +237,6 @@ class RdFunc:
                     adjmat[j][i] = True
 
         supp = ResonanceMolSupplier(m, )
-        m = supp[0]
         # supp = ResonanceMolSupplier(m, Chem.KEKULE_ALL)
         # supp = ResonanceMolSupplier(m, Chem.ALLOW_CHARGE_SEPARATION)
         cg_dict = {}

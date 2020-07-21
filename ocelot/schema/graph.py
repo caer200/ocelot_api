@@ -12,7 +12,7 @@ from networkx import Graph
 from pymatgen.core.periodic_table import Element
 from pymatgen.vis.structure_vtk import EL_COLORS
 from rdkit import Chem
-
+from rdkit.Chem.Scaffolds import MurckoScaffold
 from ocelot.routines.conformerparser import ACParser
 from ocelot.schema.rdfunc import RdFunc
 
@@ -459,10 +459,15 @@ class MolGraph(BasicGraph):
         return joints_subg1_as_keys, joints_subg2_as_keys, sg1, sg2_components
 
     @staticmethod
-    def get_bone_and_frags_from_nxgraph(bone_graph: nx.Graph, fragments: [nx.Graph], scheme):
-        gb = BackboneGraph(bone_graph, bone_graph.graph['joints'], partition_scheme=scheme)
-        scs = [SidechainGraph(frag_graph, frag_graph.graph['joints'], partition_scheme=scheme) for frag_graph in
-               fragments]
+    def get_bone_and_frags_from_nxgraph(bone_graph: nx.Graph, fragments: [nx.Graph], scheme="bm"):
+        if scheme in ["lgcr", "lgfr"]:
+            gb = BackboneGraph(bone_graph, bone_graph.graph['joints'], partition_scheme=scheme)
+            scs = [SidechainGraph(frag_graph, frag_graph.graph['joints'], partition_scheme=scheme) for frag_graph in
+                   fragments]
+        else:
+            gb = FragmentGraph(bone_graph, bone_graph.graph['joints'], partition_scheme=scheme)
+            scs = [FragmentGraph(frag_graph, frag_graph.graph['joints'], partition_scheme=scheme) for frag_graph in
+                   fragments]
         return gb, scs
 
     @staticmethod
@@ -471,7 +476,7 @@ class MolGraph(BasicGraph):
         fgs = [FragmentGraph(frag_graph, frag_graph.graph['joints'], 'chrom') for frag_graph in fragments]
         return cg, fgs
 
-    def partition(self, bone_selection='lgfr', additional_ring_criteria=None, with_halogen=True):
+    def partition(self, bone_selection='bm', additional_ring_criteria=None, with_halogen=True):
         """
         parition the molecule into a backbone graph and a list of fragments (graphs)
 
@@ -506,6 +511,21 @@ class MolGraph(BasicGraph):
                 nodes_in_chromol, self.graph)
             return chromolsg, sg_components
         #
+        elif bone_selection == 'bm':
+            try:
+                mol, smiles, atomidx2nodename, nodename2atomidx = self.to_rdmol()
+            except:
+                raise GraphError('to_rdmol failed in chrom partition!')
+            
+            bm_mol = MurckoScaffold.GetScaffoldForMol(mol)
+            backbone_nodes = set(mol.GetSubstructMatch(bm_mol))
+            backbone_nodes = set([atomidx2nodename[node] for node in backbone_nodes])
+            joints_bone_as_keys, joints_frag_as_keys, bone_graph, fragments = MolGraph.get_joints_and_subgraph(
+                backbone_nodes,
+                self.graph)
+
+            return bone_graph, fragments
+            
         else:
             raise GraphError('selection scheme not implemented in graph partition: {}'.format(bone_selection))
 
@@ -520,9 +540,10 @@ class MolGraph(BasicGraph):
         backbone_nodes = set([item for sublist in bonerings for item in sublist])
         joints_bone_as_keys, joints_frag_as_keys, bone_graph, fragments = self.get_joints_and_subgraph(backbone_nodes,
                                                                                                        self.graph)
+
         return bone_graph, fragments
 
-    def partition_to_bone_frags(self, bone_selection='lgfr', additional_criteria=None):
+    def partition_to_bone_frags(self, bone_selection='bm', additional_criteria=None):
         """
         partition the molecule into backbone and a list of frags
 
