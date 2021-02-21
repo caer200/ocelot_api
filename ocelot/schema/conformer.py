@@ -1384,7 +1384,7 @@ class MolConformer(BasicConformer):
         return chromolc, fragcs, cg, fgs
 
     @staticmethod
-    def geo_partition(bc: BasicConformer, molgraph: MolGraph, coplane_cutoff=30.0, bone_scheme='bm'):
+    def geo_partition(bc: BasicConformer, molgraph: MolGraph, coplane_cutoff=30.0, bone_scheme='lgfr'):
         if bone_scheme == 'lgfr':
             try:
                 lgfr = []
