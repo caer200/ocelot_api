@@ -1,4 +1,3 @@
-# OCELOT API
 <p align="center"> <img src="./docs/_images/api_small.png"></p>
 
 
