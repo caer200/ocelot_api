@@ -1,4 +1,6 @@
 # OCELOT API
+![Alt text](./docs/_images/api_small.png)
+
 
 API for conjugate organic molecules.
 
