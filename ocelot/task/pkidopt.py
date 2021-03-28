@@ -155,7 +155,7 @@ class ModelBoneDimer:
                 mindist2d)
 
 
-class PkId:
+class PackingIdentifier:
     def __init__(self, bone_structure: Structure, model_bones: [ModelBone]):
         self.structure = bone_structure
         self.latt = self.structure.lattice
@@ -358,31 +358,23 @@ def get_modeldimers_array(bones: [ModelBone], lattice: Lattice, maxfold=2):
     return dimers, transv_fcs
 
 
+class PkidError(Exception):pass
+
 def pkid_ciffile(ciffile):
     dp = DisParser.from_ciffile(ciffile)
     pstructure, unwrap_str, mols, conf_infos= dp.to_configs(write_files=False)  # writes conf_x.cif
+    if len(set([m.composition for m in mols])) != 1:  # TODO ideally one should check at the graph level
+        raise PkidError("not one type of molecule!")
     config = conf_infos[0][0]
-
     # mols still contains disordered sites!
     import time
     ts1 = time.time()
     bs, model_bones = get_bone_structure_cheaper(config, mols)
     ts2 = time.time()
     print('boneconfig', ts2 - ts1)
-    pid = PkId(bs, model_bones)
+    pid = PackingIdentifier(bs, model_bones)
     pdata = pid.identify_heuristic()
     ts3 = time.time()
     print('idheuristic', ts3-ts2)
     return pdata
 
-if __name__ == '__main__':
-    import glob
-    # for cif in sorted(glob.glob('./tipge-bw.cif')):
-    # for cif in sorted(glob.glob('./tipge-ss.cif')):
-    # for cif in sorted(glob.glob('./tipge-*.cif')):
-    from pprint import pprint
-    for cif in sorted(glob.glob('./k*.cif')):
-        print(cif)
-        packingdata = pkid_ciffile(cif)
-        print(packingdata[0]['packing'])
-        pprint(packingdata)
