@@ -55,7 +55,7 @@ class PackingIdentifier:
             4. apply classification based on the keys
         :return:
         """
-        bc_dimers, bc_dimers_transv_fcs = self.boneconfig.get_dimers_array(maxfold=2)
+        bc_dimers, bc_dimers_transv_fcs = self.boneconfig.get_dimers_array(maxfold=2, fast=True)
         report = OrderedDict()
         for i in range(self.boneconfig.z):
             n_close_azm_and_parallel = 0  # min distance between backbone proj<2, 1.5>oslip
@@ -143,3 +143,14 @@ class PackingIdentifier:
         TODO use multwfn to generate hirshfield finger print, then analysze it based on 10.1039/c1ce05763d
         """
         pass
+
+def pkid_ciffile(ciffile):
+    from ocelot.routines.disparser import DisParser
+    from ocelot.schema.configuration import Config
+    dp = DisParser.from_ciffile(ciffile)
+    _, _, _, confs = dp.to_configs(write_files=False)  # writes conf_x.cif
+    config = Config.from_pstructure(confs[0][0], assign_siteids=True)
+    bc, boneonly_pstructure, terminated_backbone_hmols = config.get_bone_config()
+    pid = PackingIdentifier(bc)
+    packingd = pid.identify_heuristic()
+    return packingd

@@ -170,7 +170,7 @@ class Config:
                         msites = deepcopy(var_omol.sites)
                         for h in range(len(msites)):
                             msites[h].coords += transv
-                        dimer_ijk = ConformerDimer(ref_omol, MolConformer(msites, prop=var_omol.conformer_properties),
+                        dimer_ijk = ConformerDimer(ref_omol, MolConformer.from_sites(msites, prop=var_omol.conformer_properties),
                                                    label="{}_{}_{}".format(i, j, k))
                     dimers[i][j][k] = dimer_ijk
         return dimers, transv_fcs
