@@ -100,7 +100,7 @@ class WtuningJob:
         new_dir = 'tuning_' + self.name + '_ocycle' + str(self.ocycle)
         new_dir = '{}/{}'.format(self.wdir, new_dir)
         # os.mkdir(new_dir)
-        os.system('mkdir -p {}'.format(new_dir))
+        os.makedirs(new_dir)
         os.chdir(new_dir)
         omega_opt, C_opt, err, num = optimize.fminbound(self.omega_wtune, bounds[0],
                                                         bounds[1], disp=dis, xtol=tol,
@@ -120,7 +120,7 @@ class WtuningJob:
         new_dir = 'tuning_' + self.name + '_acycle' + str(self.ocycle)
         new_dir = '{}/{}'.format(self.wdir, new_dir)
         # os.mkdir(new_dir)
-        os.system('mkdir -p {}'.format(new_dir))
+        os.makedirs(new_dir)
         os.chdir(new_dir)
         alpha_opt, C_opt, err, num = optimize.fminbound(self.alpha_atune, bounds[0],
                                                         bounds[1], disp=dis, xtol=tol,
