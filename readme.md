@@ -1,3 +1,4 @@
+![GitHub](https://img.shields.io/github/license/caer200/ocelot_api)
 <p align="center"> <img src="./docs/_images/api_small.png"></p>
 
 
