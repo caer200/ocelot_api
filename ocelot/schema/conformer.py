@@ -1640,7 +1640,7 @@ class ConformerDimer:
         """
         :return: minimum dist between sites on different bones
         """
-        distmat = cdist(self.conformer_ref.backbone.cart_coords, self.conformer_var.backbone.cart_coords)
+        distmat = cdist(self.conformer_ref.chrombone.cart_coords, self.conformer_var.chrombone.cart_coords)
         return np.min(distmat)
 
     def plt_bone_overlap(self, algo='convex', output='bone_overlap.eps'):
