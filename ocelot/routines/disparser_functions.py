@@ -10,7 +10,6 @@ from pymatgen.core.operations import SymmOp
 from pymatgen.core.periodic_table import Element
 from pymatgen.core.structure import PeriodicSite
 from pymatgen.io.cif import CifFile
-from pymatgen.io.cif import _get_cod_data
 from pymatgen.io.cif import str2float
 from pymatgen.io.cif import sub_spgrp
 from pymatgen.symmetry.groups import SYMM_DATA
@@ -20,6 +19,21 @@ from scipy.spatial.distance import cdist
 
 from ocelot.routines.pbc import PBCparser
 
+
+_COD_DATA = None
+
+
+def _get_cod_data():
+    global _COD_DATA
+    if _COD_DATA is None:
+        import pymatgen
+        with open(os.path.join(pymatgen.symmetry.__path__[0],
+                               "symm_ops.json")) \
+                as f:
+            import json
+            _COD_DATA = json.load(f)
+
+    return _COD_DATA
 
 class CifFileError(Exception): pass
 
