@@ -13,7 +13,6 @@ from pymatgen.core.periodic_table import Element
 from pymatgen.core.structure import PeriodicSite
 from pymatgen.io.cif import CifFile
 from pymatgen.io.cif import str2float
-from pymatgen.io.cif import sub_spgrp
 from pymatgen.symmetry.groups import SYMM_DATA
 from pymatgen.symmetry.groups import SpaceGroup
 from pymatgen.util.coord import pbc_shortest_vectors
