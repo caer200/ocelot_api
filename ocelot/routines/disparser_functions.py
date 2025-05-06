@@ -4,6 +4,7 @@ import re
 import os
 import textwrap
 import warnings
+from functools import partial
 from copy import deepcopy
 
 import networkx as nx
