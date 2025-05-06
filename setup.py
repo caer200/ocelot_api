@@ -5,7 +5,7 @@ except ImportError:
 
 import os
 setup(
-    name='ocelot',
+    name='ocelot_api',
     version='0.2',
     description="",
     author="Ai, Qianxiang",
