@@ -5,7 +5,7 @@ import warnings
 import numpy as np
 import shapely.geometry as geometry
 from scipy.spatial import Delaunay
-from shapely.ops import cascaded_union, polygonize
+from shapely.ops import unary_union, polygonize
 
 class GeometryError(Exception): pass
 
@@ -266,7 +266,7 @@ def alpha_shape(points, alpha=0.7):
     edge_points = np.unique(np.concatenate((edge1, edge2, edge3)), axis=0).tolist()
     m = geometry.MultiLineString(edge_points)
     triangles = list(polygonize(m))
-    return cascaded_union(triangles), edge_points
+    return unary_union(triangles), edge_points
 
 
 class Fitter:
