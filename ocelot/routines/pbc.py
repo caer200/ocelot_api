@@ -19,17 +19,14 @@ _pt_data = {
     e.symbol: {
         "Z": e.Z,
         "atomic_mass": float(e.atomic_mass),
-        # example extras—uncomment or remove as needed:
-        # "X": float(e.X) if e.X is not None else 0.0,      # Pauling electronegativity
-        # "atomic_radius": float(e.atomic_radius) if e.atomic_radius is not None else 0.0,
-        # "cov_rad": float(e.covalent_radius) if e.covalent_radius is not None else 0.0,
+        "atomic_radius": float(e.atomic_radius) if e.atomic_radius is not None else 0.0,
     }
     for e in Element
 }
 
 def AtomicRadius(site: Site):
     d = _pt_data[site.species_string]
-    at_r = d.get("Atomic radius", "no data")
+    at_r = d.get("atomic_radius", "no data")
     try:
         return float(at_r)
     except ValueError:
